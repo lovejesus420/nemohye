@@ -1,4 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import {
+  ADMIN_ID, ADMIN_PW,
+  sendOTP, verifyOTP,
+  getSession, saveSession, clearSession,
+  registerUser, getUser,
+  getAllUsers, deleteUser,
+  formatPhone,
+} from './auth.js';
 
 // ─── 환경변수에서 API 키 읽기 ─────────────────────────────────────
 // Vercel/Netlify 배포 시: 환경변수 VITE_ANTHROPIC_KEY 설정
@@ -34,8 +42,6 @@ const EXTRA_OPTIONS=[
   {value:'기초생활수급자 또는 차상위계층',label:'📋 기초/차상위계층'},{value:'노인 단독 가구(65세 이상)',label:'👴 노인 단독 가구'},
 ];
 const LOADING_STEPS=["정부24, 복지로, 각 지자체 데이터 검토 중","나이 및 소득 조건 매칭 중","지역별 특화 혜택 검색 중","필요 서류 및 신청 기한 정리 중","최종 맞춤 혜택 목록 생성 중"];
-const ADMIN_ID='lovejesus420';
-const ADMIN_PW='kim159753';
 const CAT_COLOR={'주거':'#dbeafe','의료':'#fee2e2','금융':'#fef9c3','교육':'#dcfce7','고용':'#ede9fe','보육':'#fce7f3','노인':'#e0f2fe','장애':'#ecfccb','청년':'#ede9fe','기타':'#f3f4f6'};
 const MONTH_KR=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 const DAY_KR=['일','월','화','수','목','금','토'];
@@ -194,21 +200,103 @@ return(<div>
 </div>);}
 
 // ─── AuthScreen ───────────────────────────────────────────────────
-function AuthScreen({onLogin}){const[mode,setMode]=useState('login');const[name,setName]=useState('');const[email,setEmail]=useState('');const[pw,setPw]=useState('');const[pw2,setPw2]=useState('');const[msg,setMsg]=useState({type:'',text:''});const[busy,setBusy]=useState(false);
-const reset=m=>{setMode(m);setMsg({type:'',text:''});setName('');setPw('');setPw2('');};
-const doSignup=async()=>{if(!name||!email||!pw||!pw2){setMsg({type:'err',text:'모든 항목을 입력해 주세요.'});return;}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){setMsg({type:'err',text:'올바른 이메일 형식을 입력해 주세요.'});return;}if(pw!==pw2){setMsg({type:'err',text:'비밀번호가 일치하지 않습니다.'});return;}if(pw.length<4){setMsg({type:'err',text:'비밀번호는 4자 이상이어야 합니다.'});return;}setBusy(true);const existing=sGet(`user:${email}`);if(existing){setMsg({type:'err',text:'이미 가입된 이메일입니다.'});setBusy(false);return;}const u={name,email,pw,createdAt:new Date().toISOString()};sSet(`user:${email}`,u);setBusy(false);onLogin(u);};
-const doLogin=async()=>{if(!email||!pw){setMsg({type:'err',text:'이메일과 비밀번호를 입력해 주세요.'});return;}setBusy(true);if(email===ADMIN_ID&&pw===ADMIN_PW){setBusy(false);onLogin({name:'관리자',email:ADMIN_ID,isAdmin:true,createdAt:new Date().toISOString()});return;}const u=sGet(`user:${email}`);if(!u){setMsg({type:'err',text:'가입되지 않은 이메일입니다.'});setBusy(false);return;}if(u.pw!==pw){setMsg({type:'err',text:'비밀번호가 틀렸습니다.'});setBusy(false);return;}setBusy(false);onLogin(u);};
+function AuthScreen({onLogin}){
+  const[step,setStep]=useState('phone'); // 'phone'|'otp'|'name'|'admin'
+  const[phone,setPhone]=useState('');
+  const[code,setCode]=useState('');
+  const[name,setName]=useState('');
+  const[adminId,setAdminId]=useState('');
+  const[adminPw,setAdminPw]=useState('');
+  const[msg,setMsg]=useState({type:'',text:''});
+  const[busy,setBusy]=useState(false);
+  const[verifiedInfo,setVerifiedInfo]=useState(null);
+
+  const showErr=t=>setMsg({type:'err',text:t});
+  const showOk=t=>setMsg({type:'ok',text:t});
+  const clearMsg=()=>setMsg({type:'',text:''});
+
+  const doSendOTP=async()=>{
+    const p=phone.replace(/\D/g,'');
+    if(p.length<10){showErr('올바른 휴대폰 번호를 입력해 주세요.');return;}
+    setBusy(true);clearMsg();
+    try{
+      await sendOTP(phone,'recaptcha-container');
+      showOk('인증코드가 발송됐습니다. 문자를 확인해 주세요.');
+      setStep('otp');
+    }catch(e){showErr('발송 실패: '+e.message);}
+    finally{setBusy(false);}
+  };
+
+  const doVerifyOTP=async()=>{
+    if(code.length!==6){showErr('6자리 코드를 입력해 주세요.');return;}
+    setBusy(true);clearMsg();
+    try{
+      const info=await verifyOTP(code);
+      const existing=getUser(info.phone);
+      if(existing){onLogin(existing);return;}
+      setVerifiedInfo(info);
+      setStep('name');
+    }catch(e){showErr('인증 실패: 코드를 다시 확인해 주세요.');}
+    finally{setBusy(false);}
+  };
+
+  const doRegister=()=>{
+    if(!name.trim()){showErr('이름을 입력해 주세요.');return;}
+    const u=registerUser({name:name.trim(),phone:verifiedInfo.phone,uid:verifiedInfo.uid});
+    onLogin(u);
+  };
+
+  const doAdminLogin=()=>{
+    if(adminId===ADMIN_ID&&adminPw===ADMIN_PW){
+      onLogin({name:'관리자',phone:ADMIN_ID,isAdmin:true,createdAt:new Date().toISOString()});
+    }else{showErr('관리자 ID 또는 비밀번호가 틀렸습니다.');}
+  };
+
+  const MsgBox=()=>msg.text?(<div style={{background:msg.type==='err'?'#fee2e2':'#dcfce7',border:`1px solid ${msg.type==='err'?'#fca5a5':'#86efac'}`,borderRadius:8,padding:'10px 14px',fontSize:13,color:msg.type==='err'?'#991b1b':'#166534',marginBottom:16}}>{msg.text}</div>):null;
+  const STEPS=[['phone','① 번호 입력'],['otp','② 코드 확인'],['name','③ 이름 등록']];
+
 return(<div style={{minHeight:'100vh',background:'#0d1117',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24}}>
-  <div style={{marginBottom:28,textAlign:'center'}}><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginBottom:8}}><Logo size={50}/><span style={{fontFamily:'serif',fontSize:'2.42rem',fontWeight:900,color:'#fff',letterSpacing:-1}}>네모<span style={{color:'#c9a84c'}}>혜</span></span></div><p style={{color:'#6b7280',fontSize:14}}>네 모든 혜택을 찾아드리는 서비스</p></div>
+  <div id="recaptcha-container"/>
+  <div style={{marginBottom:28,textAlign:'center'}}>
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginBottom:8}}><Logo size={50}/><span style={{fontFamily:'serif',fontSize:'2.42rem',fontWeight:900,color:'#fff',letterSpacing:-1}}>네모<span style={{color:'#c9a84c'}}>혜</span></span></div>
+    <p style={{color:'#6b7280',fontSize:14}}>네 모든 혜택을 찾아드리는 서비스</p>
+  </div>
   <div style={{...CS,width:'100%',maxWidth:420,padding:'32px 28px'}}>
-    <div style={{display:'flex',background:'#f5f0e8',borderRadius:10,padding:4,marginBottom:24,gap:4}}>{[['login','로그인'],['signup','회원가입']].map(([v,l])=>(<button key={v} onClick={()=>reset(v)} style={{flex:1,padding:'9px 0',border:'none',borderRadius:8,fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',background:mode===v?'#0d1117':'transparent',color:mode===v?'#fff':'#6b6560',transition:'all 0.15s'}}>{l}</button>))}</div>
-    {mode==='signup'&&<div style={{marginBottom:14}}><label style={LS}>이름</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="홍길동" style={IS}/></div>}
-    <div style={{marginBottom:14}}><label style={LS}>이메일 {mode==='login'&&<span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'#9ca3af',fontSize:12}}>(또는 관리자 ID)</span>}</label><input type={mode==='login'?'text':'email'} value={email} onChange={e=>setEmail(e.target.value)} placeholder={mode==='login'?'이메일 또는 ID 입력':'example@email.com'} style={IS}/></div>
-    <div style={{marginBottom:mode==='signup'?14:22}}><label style={LS}>비밀번호</label><input type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••" style={IS} onKeyDown={e=>{if(e.key==='Enter'&&mode==='login')doLogin();}}/></div>
-    {mode==='signup'&&<div style={{marginBottom:22}}><label style={LS}>비밀번호 확인</label><input type="password" value={pw2} onChange={e=>setPw2(e.target.value)} placeholder="••••••••" style={IS} onKeyDown={e=>{if(e.key==='Enter')doSignup();}}/></div>}
-    {msg.text&&<div style={{background:msg.type==='err'?'#fee2e2':'#dcfce7',border:`1px solid ${msg.type==='err'?'#fca5a5':'#86efac'}`,borderRadius:8,padding:'10px 14px',fontSize:14,color:msg.type==='err'?'#991b1b':'#166534',marginBottom:16}}>{msg.text}</div>}
-    <button onClick={mode==='login'?doLogin:doSignup} disabled={busy} style={BP({width:'100%',padding:'14px',fontSize:17,borderRadius:10,opacity:busy?0.7:1})}>{busy?'처리 중...':(mode==='login'?'로그인':'가입하기')}</button>
-    <p style={{textAlign:'center',fontSize:13,color:'#9ca3af',marginTop:18}}>{mode==='login'?'아직 계정이 없으신가요? ':'이미 계정이 있으신가요? '}<button onClick={()=>reset(mode==='login'?'signup':'login')} style={{background:'none',border:'none',color:'#1a6b6b',fontWeight:700,cursor:'pointer',fontSize:13,fontFamily:'inherit',textDecoration:'underline'}}>{mode==='login'?'회원가입':'로그인'}</button></p>
+    {step!=='admin'&&(<>
+      <div style={{display:'flex',gap:6,marginBottom:24}}>
+        {STEPS.map(([s,l])=>(<div key={s} style={{flex:1,textAlign:'center',padding:'7px 0',borderRadius:8,fontSize:12,fontWeight:700,background:step===s?'#0d1117':'#f5f0e8',color:step===s?'#fff':'#9ca3af'}}>{l}</div>))}
+      </div>
+      {step==='phone'&&(<>
+        <div style={{marginBottom:16}}><label style={LS}>휴대폰 번호</label><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="010-1234-5678" style={IS} onKeyDown={e=>e.key==='Enter'&&doSendOTP()}/></div>
+        <MsgBox/>
+        <button onClick={doSendOTP} disabled={busy} style={BP({width:'100%',padding:'14px',fontSize:17,borderRadius:10,opacity:busy?0.7:1})}>{busy?'발송 중...':'인증코드 받기'}</button>
+        <p style={{textAlign:'center',fontSize:12,color:'#9ca3af',marginTop:12}}>문자로 6자리 인증코드가 발송됩니다</p>
+      </>)}
+      {step==='otp'&&(<>
+        <div style={{background:'#f0fdf4',border:'1px solid #86efac',borderRadius:8,padding:'10px 14px',fontSize:13,color:'#166534',marginBottom:16}}>📱 {phone} 으로 코드를 발송했습니다</div>
+        <div style={{marginBottom:16}}><label style={LS}>인증 코드 (6자리)</label><input value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,'').slice(0,6))} placeholder="000000" style={{...IS,fontSize:22,letterSpacing:6,textAlign:'center'}} onKeyDown={e=>e.key==='Enter'&&doVerifyOTP()}/></div>
+        <MsgBox/>
+        <button onClick={doVerifyOTP} disabled={busy} style={BP({width:'100%',padding:'14px',fontSize:17,borderRadius:10,opacity:busy?0.7:1})}>{busy?'확인 중...':'확인'}</button>
+        <button onClick={()=>{setStep('phone');setCode('');clearMsg();}} style={{width:'100%',marginTop:10,background:'none',border:'none',color:'#9ca3af',fontSize:13,cursor:'pointer',fontFamily:'inherit',padding:'8px 0'}}>← 번호 다시 입력</button>
+      </>)}
+      {step==='name'&&(<>
+        <div style={{background:'#f0fdf4',border:'1px solid #86efac',borderRadius:8,padding:'10px 14px',fontSize:13,color:'#166534',marginBottom:16}}>✅ 인증 완료! 처음 오셨군요. 이름을 입력해 주세요.</div>
+        <div style={{marginBottom:20}}><label style={LS}>이름</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="홍길동" style={IS} onKeyDown={e=>e.key==='Enter'&&doRegister()}/></div>
+        <MsgBox/>
+        <button onClick={doRegister} style={BP({width:'100%',padding:'14px',fontSize:17,borderRadius:10})}>가입 완료 →</button>
+      </>)}
+      <p style={{textAlign:'center',fontSize:12,color:'#9ca3af',marginTop:20,borderTop:'1px solid #f0ebe0',paddingTop:16}}>
+        <button onClick={()=>{setStep('admin');clearMsg();}} style={{background:'none',border:'none',color:'#6b6560',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>관리자 로그인</button>
+      </p>
+    </>)}
+    {step==='admin'&&(<>
+      <div style={{textAlign:'center',marginBottom:20}}><span style={{fontSize:22}}>⚙️</span><div style={{fontWeight:700,fontSize:15,marginTop:6,color:'#0d1117'}}>관리자 로그인</div></div>
+      <div style={{marginBottom:14}}><label style={LS}>관리자 ID</label><input value={adminId} onChange={e=>setAdminId(e.target.value)} style={IS}/></div>
+      <div style={{marginBottom:20}}><label style={LS}>비밀번호</label><input type="password" value={adminPw} onChange={e=>setAdminPw(e.target.value)} style={IS} onKeyDown={e=>e.key==='Enter'&&doAdminLogin()}/></div>
+      <MsgBox/>
+      <button onClick={doAdminLogin} style={BP({width:'100%',padding:'14px',fontSize:17,borderRadius:10})}>로그인</button>
+      <button onClick={()=>{setStep('phone');clearMsg();setAdminId('');setAdminPw('');}} style={{width:'100%',marginTop:10,background:'none',border:'none',color:'#9ca3af',fontSize:13,cursor:'pointer',fontFamily:'inherit',padding:'8px 0'}}>← 일반 로그인으로</button>
+    </>)}
   </div>
 </div>);}
 
@@ -216,7 +304,7 @@ return(<div style={{minHeight:'100vh',background:'#0d1117',display:'flex',flexDi
 function AnalyzeTab({user,onSaved}){
   const[age,setAge]=useState('');const[gender,setGender]=useState('');const[job,setJob]=useState('');const[income,setIncome]=useState('');const[address,setAddress]=useState('');const[extras,setExtras]=useState([]);
   const[loading,setLoading]=useState(false);const[step,setStep]=useState(0);const[results,setResults]=useState(null);const[err,setErr]=useState('');const[savedIds,setSavedIds]=useState(new Set());const rRef=useRef();
-  const loadSavedIds=useCallback(()=>{const ids=new Set(sList(`benefit_item:${user.email}:`).map(k=>k.split(':').pop()));setSavedIds(ids);},[user.email]);
+  const loadSavedIds=useCallback(()=>{const ids=new Set(sList(`benefit_item:${user.phone}:`).map(k=>k.split(':').pop()));setSavedIds(ids);},[user.phone]);
   useEffect(()=>{loadSavedIds();},[loadSavedIds]);
   useEffect(()=>{if(!loading)return;let i=0;const t=setInterval(()=>{i=(i+1)%LOADING_STEPS.length;setStep(i);},2000);return()=>clearInterval(t);},[loading]);
   useEffect(()=>{if(results&&rRef.current)rRef.current.scrollIntoView({behavior:'smooth'});},[results]);
@@ -229,7 +317,7 @@ function AnalyzeTab({user,onSaved}){
     const prompt=`당신은 대한민국 복지 전문가입니다. 아래 정보로 받을 수 있는 정부·지자체 복지 혜택을 분석해주세요.\n[정보] 나이:${age}세/성별:${gender}/직업:${job}/소득:${income}/거주:${address}/추가:${extra}/기준일:${today}\n순수 JSON만 반환 (마크다운 코드블록 없이):\n{"summary":{"totalBenefits":숫자,"estimatedMonthlyBenefit":"금액범위","topPriority":"혜택명"},"benefits":[{"id":1,"category":"주거/의료/금융/교육/고용/보육/노인/장애/청년/기타 중 택1","categoryIcon":"이모지","scope":"전국 또는 지역명","isUrgent":false,"title":"혜택명","institution":"기관명","description":"설명2~3문장","amount":"금액","deadline":"YYYY년 MM월 DD일 형식 또는 수시 신청","requiredDocuments":["서류1","서류2"],"howToApply":"방법","applyUrl":"https://..."}]}\n최소8개 최대15개. 실제 혜택만. 지역혜택은 ${address} 기준. 마감일은 YYYY년 MM월 DD일 형식으로.`;
     try{const raw=await callClaude(prompt);setResults(JSON.parse(raw));}catch(e){setErr(e.message);}finally{setLoading(false);}
   };
-  const toggleSave=(b)=>{const key=`benefit_item:${user.email}:${b.id}`;if(savedIds.has(String(b.id))){sDel(key);setSavedIds(p=>{const n=new Set(p);n.delete(String(b.id));return n;});}else{sSet(key,{...b,savedAt:new Date().toISOString(),userEmail:user.email});setSavedIds(p=>new Set([...p,String(b.id)]));}onSaved();};
+  const toggleSave=(b)=>{const key=`benefit_item:${user.phone}:${b.id}`;if(savedIds.has(String(b.id))){sDel(key);setSavedIds(p=>{const n=new Set(p);n.delete(String(b.id));return n;});}else{sSet(key,{...b,savedAt:new Date().toISOString(),userPhone:user.phone});setSavedIds(p=>new Set([...p,String(b.id)]));}onSaved();};
   const urgent=results?.benefits?.filter(b=>b.isUrgent)||[];const normal=results?.benefits?.filter(b=>!b.isUrgent)||[];
   return(<div>
     <div style={{...CS,marginBottom:20}}>
@@ -261,9 +349,9 @@ function AnalyzeTab({user,onSaved}){
 
 // ─── SavedTab ─────────────────────────────────────────────────────
 function SavedTab({user}){const[items,setItems]=useState(null);const[view,setView]=useState('list');
-const load=useCallback(()=>{const keys=sList(`benefit_item:${user.email}:`);const data=keys.map(k=>sGet(k)).filter(Boolean).sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt));setItems(data);},[user.email]);
+const load=useCallback(()=>{const keys=sList(`benefit_item:${user.phone}:`);const data=keys.map(k=>sGet(k)).filter(Boolean).sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt));setItems(data);},[user.phone]);
 useEffect(()=>{load();},[load]);
-const del=(id)=>{sDel(`benefit_item:${user.email}:${id}`);load();};
+const del=(id)=>{sDel(`benefit_item:${user.phone}:${id}`);load();};
 if(!items)return<div style={{textAlign:'center',padding:60,color:'#9ca3af',fontSize:15}}>불러오는 중...</div>;
 if(!items.length)return(<div style={{textAlign:'center',padding:'60px 20px'}}><div style={{fontSize:53,marginBottom:14}}>📭</div><div style={{fontSize:17,fontWeight:700,marginBottom:8}}>저장된 혜택이 없습니다</div><div style={{fontSize:14,color:'#6b6560'}}>혜택 분석 후 🔖 버튼을 눌러 개별 저장하세요</div></div>);
 const withDeadline=items.filter(b=>parseDeadline(b.deadline));
@@ -280,7 +368,7 @@ function LifeTab({user}){
   const[loading,setLoading]=useState(false);const[step,setStep]=useState(0);const[result,setResult]=useState(null);const[err,setErr]=useState('');const[view,setView]=useState('form');const rRef=useRef();
   const[savedPlans,setSavedPlans]=useState([]);
   const STEPS=['목표 분석 중...','재정 상황 계산 중...','정부 혜택 연계 검토 중...','단계별 타임라인 수립 중...','현실적인 설계안 작성 중...'];
-  const loadSaved=useCallback(()=>{const keys=sList(`lifeplan:${user.email}:`);setSavedPlans(keys.map(k=>sGet(k)).filter(Boolean).sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt)));},[user.email]);
+  const loadSaved=useCallback(()=>{const keys=sList(`lifeplan:${user.phone}:`);setSavedPlans(keys.map(k=>sGet(k)).filter(Boolean).sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt)));},[user.phone]);
   useEffect(()=>{loadSaved();},[loadSaved]);
   useEffect(()=>{if(!loading)return;let i=0;const t=setInterval(()=>{i=(i+1)%STEPS.length;setStep(i);},2200);return()=>clearInterval(t);},[loading]);
   useEffect(()=>{if(result&&rRef.current)rRef.current.scrollIntoView({behavior:'smooth'});},[result]);
@@ -293,7 +381,7 @@ function LifeTab({user}){
     const prompt=`당신은 대한민국 최고의 재무 설계사이자 인생 코치입니다.\n[사용자 정보]\n나이:${age}세/목표:${goalLabels}/월소득:${income}만원/자산:${assets||'0'}만원/월저축:${monthly}만원/지역:${region||'미정'}/추가:${detail||'없음'}/기준일:${today}\n순수 JSON만 반환:\n{"summary":{"headline":"한 줄 핵심 요약","totalYears":숫자,"keyInsight":"조언 2문장"},"financials":{"monthlyRequired":"권장 월 저축액","currentGap":"갭 및 조정방법","expectedReturn":"예상 수익","totalNeeded":"총 필요 자금","breakdown":[{"label":"항목","amount":"금액","note":"설명"}]},"timeline":[{"phase":"단계명","period":"기간","age":"나이","color":"teal 또는 gold 또는 rust 또는 purple","tasks":[{"month":"시기","action":"할 일","type":"저축 또는 서류 또는 신청 또는 대출 또는 투자 또는 준비","detail":"방법 및 기관명","amount":"금액 또는 null","urgent":false}]}],"govBenefits":[{"title":"혜택명","when":"신청시기","amount":"금액","url":"URL"}],"risks":["리스크1","리스크2","리스크3"],"tips":["팁1","팁2","팁3"]}\n단계 2~4개, 각 3~6개 tasks, 총 10개 이상.`;
     try{const raw=await callClaude(prompt);setResult(JSON.parse(raw));setView('result');}catch(e){setErr(e.message);}finally{setLoading(false);}
   };
-  const savePlan=()=>{if(!result)return;const id=Date.now().toString();sSet(`lifeplan:${user.email}:${id}`,{id,savedAt:new Date().toISOString(),goals,age,income,assets,monthly,region,detail,result});loadSaved();showToast('인생 설계 플랜이 저장됐어요!');};
+  const savePlan=()=>{if(!result)return;const id=Date.now().toString();sSet(`lifeplan:${user.phone}:${id}`,{id,savedAt:new Date().toISOString(),goals,age,income,assets,monthly,region,detail,result});loadSaved();showToast('인생 설계 플랜이 저장됐어요!');};
   const PHASE_COLORS={teal:'#1a6b6b',gold:'#c9a84c',rust:'#c94f1a',purple:'#7c3aed'};
   const TYPE_STYLE={저축:{bg:'#dcfce7',color:'#166534'},서류:{bg:'#dbeafe',color:'#1e40af'},신청:{bg:'#fce7f3',color:'#9d174d'},대출:{bg:'#fef9c3',color:'#854d0e'},투자:{bg:'#ede9fe',color:'#5b21b6'},준비:{bg:'#f3f4f6',color:'#374151'}};
   return(<div>
@@ -312,7 +400,7 @@ function LifeTab({user}){
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:14}}><div style={{background:'#fee2e2',borderRadius:12,padding:'16px'}}><div style={{fontWeight:700,fontSize:14,color:'#991b1b',marginBottom:10}}>⚠️ 주의할 리스크</div>{result.risks?.map((r,i)=><div key={i} style={{fontSize:13,color:'#7f1d1d',lineHeight:1.6,marginBottom:4}}>• {r}</div>)}</div><div style={{background:'#dcfce7',borderRadius:12,padding:'16px'}}><div style={{fontWeight:700,fontSize:14,color:'#166534',marginBottom:10}}>💡 실천 팁</div>{result.tips?.map((t,i)=><div key={i} style={{fontSize:13,color:'#14532d',lineHeight:1.6,marginBottom:4}}>• {t}</div>)}</div></div>
       <div style={{background:'#ede8dc',borderRadius:10,padding:'14px 16px',fontSize:13,color:'#6b6560',lineHeight:1.7}}><strong style={{color:'#0d1117'}}>⚠️ 유의사항</strong><br/>본 설계안은 참고용입니다. 실제 금융 결정 전 공인 재무설계사(CFP) 또는 금융기관에 상담하세요.</div>
     </div>)}
-    {view==='saved'&&(<div>{savedPlans.length===0?<div style={{textAlign:'center',padding:'60px 20px'}}><div style={{fontSize:53,marginBottom:14}}>📋</div><div style={{fontSize:17,fontWeight:700,marginBottom:8}}>저장된 플랜이 없습니다</div></div>:savedPlans.map(plan=>(<div key={plan.id} style={{...CS,marginBottom:12}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10,flexWrap:'wrap',marginBottom:12}}><div><div style={{fontFamily:'serif',fontSize:'1.10rem',fontWeight:700,marginBottom:6}}>{plan.result?.summary?.headline}</div><div style={{display:'flex',flexWrap:'wrap',gap:5}}>{plan.goals.map(g=>{const gl=LIFE_GOALS.find(x=>x.id===g);return gl?<span key={g} style={{background:'#0d1117',color:'#fff',fontSize:11,fontWeight:700,padding:'2px 9px',borderRadius:20}}>{gl.icon} {gl.label}</span>:null;})}</div></div><div style={{textAlign:'right',flexShrink:0}}><div style={{fontSize:12,color:'#9ca3af'}}>{new Date(plan.savedAt).toLocaleDateString('ko-KR')}</div><div style={{fontSize:13,color:'#c9a84c',fontWeight:700,marginTop:2}}>{plan.result?.financials?.totalNeeded}</div></div></div><div style={{display:'flex',gap:7,paddingTop:12,borderTop:'1px solid #f0ebe0'}}><button onClick={()=>{setResult(plan.result);setGoals(plan.goals);setAge(plan.age);setIncome(plan.income);setAssets(plan.assets);setMonthly(plan.monthly);setRegion(plan.region||'');setDetail(plan.detail||'');setView('result');}} style={BP({padding:'8px 14px',fontSize:13,borderRadius:8,background:'#1a6b6b'})}>결과 보기</button><button onClick={()=>{if(!window.confirm('삭제하시겠습니까?'))return;sDel(`lifeplan:${user.email}:${plan.id}`);loadSaved();}} style={BP({padding:'8px 12px',fontSize:13,borderRadius:8,background:'#fee2e2',color:'#991b1b'})}>🗑 삭제</button></div></div>))}</div>)}
+    {view==='saved'&&(<div>{savedPlans.length===0?<div style={{textAlign:'center',padding:'60px 20px'}}><div style={{fontSize:53,marginBottom:14}}>📋</div><div style={{fontSize:17,fontWeight:700,marginBottom:8}}>저장된 플랜이 없습니다</div></div>:savedPlans.map(plan=>(<div key={plan.id} style={{...CS,marginBottom:12}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10,flexWrap:'wrap',marginBottom:12}}><div><div style={{fontFamily:'serif',fontSize:'1.10rem',fontWeight:700,marginBottom:6}}>{plan.result?.summary?.headline}</div><div style={{display:'flex',flexWrap:'wrap',gap:5}}>{plan.goals.map(g=>{const gl=LIFE_GOALS.find(x=>x.id===g);return gl?<span key={g} style={{background:'#0d1117',color:'#fff',fontSize:11,fontWeight:700,padding:'2px 9px',borderRadius:20}}>{gl.icon} {gl.label}</span>:null;})}</div></div><div style={{textAlign:'right',flexShrink:0}}><div style={{fontSize:12,color:'#9ca3af'}}>{new Date(plan.savedAt).toLocaleDateString('ko-KR')}</div><div style={{fontSize:13,color:'#c9a84c',fontWeight:700,marginTop:2}}>{plan.result?.financials?.totalNeeded}</div></div></div><div style={{display:'flex',gap:7,paddingTop:12,borderTop:'1px solid #f0ebe0'}}><button onClick={()=>{setResult(plan.result);setGoals(plan.goals);setAge(plan.age);setIncome(plan.income);setAssets(plan.assets);setMonthly(plan.monthly);setRegion(plan.region||'');setDetail(plan.detail||'');setView('result');}} style={BP({padding:'8px 14px',fontSize:13,borderRadius:8,background:'#1a6b6b'})}>결과 보기</button><button onClick={()=>{if(!window.confirm('삭제하시겠습니까?'))return;sDel(`lifeplan:${user.phone}:${plan.id}`);loadSaved();}} style={BP({padding:'8px 12px',fontSize:13,borderRadius:8,background:'#fee2e2',color:'#991b1b'})}>🗑 삭제</button></div></div>))}</div>)}
   </div>);}
 
 // ─── WeddingTab ───────────────────────────────────────────────────
@@ -321,7 +409,7 @@ function WeddingTab({user}){
   const[budget,setBudget]=useState('');const[region,setRegion]=useState('');const[wdate,setWdate]=useState('');const[style,setStyle]=useState('');const[guests,setGuests]=useState('');const[contrib,setContrib]=useState('');const[extra,setExtra]=useState('');
   const[loading,setLoading]=useState(false);const[stepIdx,setStepIdx]=useState(0);const[result,setResult]=useState(null);const[err,setErr]=useState('');const[view,setView]=useState('form');const[calEvents,setCalEvents]=useState([]);const rRef=useRef();
   const[savedPlans,setSavedPlans]=useState([]);
-  const loadSaved=useCallback(()=>{const keys=sList(`wedding:${user.email}:`);setSavedPlans(keys.map(k=>sGet(k)).filter(Boolean).sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt)));},[user.email]);
+  const loadSaved=useCallback(()=>{const keys=sList(`wedding:${user.phone}:`);setSavedPlans(keys.map(k=>sGet(k)).filter(Boolean).sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt)));},[user.phone]);
   useEffect(()=>{loadSaved();},[loadSaved]);
   useEffect(()=>{if(!loading)return;let i=0;const t=setInterval(()=>{i=(i+1)%WEDDING_STEPS_LOAD.length;setStepIdx(i);},2000);return()=>clearInterval(t);},[loading]);
   useEffect(()=>{if(result&&rRef.current)rRef.current.scrollIntoView({behavior:'smooth'});},[result]);
@@ -333,7 +421,7 @@ function WeddingTab({user}){
     const prompt=`당신은 대한민국 최고의 웨딩 플래너이자 재무 전문가입니다.\n[정보] 총 결혼 예산:${budget}만원/지역:${region}/희망시기:${wdate||'미정'}/스타일:${style||'일반 웨딩홀'}/하객수:${guests}명/양가지원:${contrib||'미정'}/추가:${extra||'없음'}/기준일:${today}\n순수 JSON만 반환:\n{"summary":{"headline":"한 줄 핵심 요약","totalBudget":"${budget}만원","perGuest":"1인당 비용","keyAdvice":"중요 조언 2문장"},"budget":{"items":[{"category":"카테고리명","icon":"이모지","min":"최소(만원)","max":"최대(만원)","recommended":"권장(만원)","tip":"절약팁"}],"hiddenCosts":["숨겨진비용1","숨겨진비용2","숨겨진비용3"]},"vendors":{"studio":[{"name":"업체명","priceRange":"가격대","style":"스타일","region":"위치","rating":"★★★★☆","tip":"선택팁","url":"URL"}],"dress":[{"name":"업체명","priceRange":"가격대","style":"스타일","region":"위치","rating":"★★★★☆","tip":"선택팁","url":"URL"}],"makeup":[{"name":"업체명","priceRange":"가격대","style":"스타일","region":"위치","rating":"★★★★☆","tip":"선택팁","url":"URL"}],"hall":[{"name":"웨딩홀명","priceRange":"대관료","capacity":"수용인원","region":"위치·교통","style":"홀 특징","rating":"★★★★☆","tip":"선택팁","url":"URL"}]},"timeline":[{"id":"t1","action":"할 일","icon":"이모지","category":"스드메 또는 웨딩홀 또는 서류 또는 신혼여행 또는 준비","timing":"D-몇개월","deadline":"YYYY년 MM월 DD일","detail":"방법·체크포인트","vendor":"업체/기관","amount":"비용 또는 null","documents":["서류1"],"method":"예약방법","url":"URL","urgent":false}],"govSupport":[{"title":"지원정책","amount":"금액","condition":"조건","when":"신청시기","url":"URL"}],"savePoints":["절약포인트1","절약포인트2","절약포인트3"],"checkList":["체크1","체크2","체크3","체크4","체크5"]}\ntimeline 최소 12개. vendors 각 3개. hall은 ${region} 기준. 한국 실제 업체명·가격 반영.`;
     try{const raw=await callClaude(prompt,5000);const parsed=JSON.parse(raw);setResult(parsed);setCalEvents(extractCalEvents(parsed));setView('result');}catch(e){setErr(e.message);}finally{setLoading(false);}
   };
-  const savePlan=()=>{if(!result)return;const id=Date.now().toString();sSet(`wedding:${user.email}:${id}`,{id,savedAt:new Date().toISOString(),budget,region,wdate,style,guests,contrib,extra,result});loadSaved();showToast('결혼 설계 플랜이 저장됐어요! 💍');};
+  const savePlan=()=>{if(!result)return;const id=Date.now().toString();sSet(`wedding:${user.phone}:${id}`,{id,savedAt:new Date().toISOString(),budget,region,wdate,style,guests,contrib,extra,result});loadSaved();showToast('결혼 설계 플랜이 저장됐어요! 💍');};
   const CAT_STYLE={'스드메':{bg:'#fce7f3',color:'#9d174d'},'웨딩홀':{bg:'#ede9fe',color:'#5b21b6'},'서류':{bg:'#dbeafe',color:'#1e40af'},'신혼여행':{bg:'#fef9c3',color:'#854d0e'},'준비':{bg:'#dcfce7',color:'#166534'}};
   const[vendorTab,setVendorTab]=useState('studio');
   const VENDOR_TABS=[['studio','📷 스튜디오'],['dress','👗 드레스'],['makeup','💄 메이크업'],['hall','🏛 웨딩홀']];
@@ -358,19 +446,15 @@ function WeddingTab({user}){
       <div style={{background:'#ede8dc',borderRadius:10,padding:'12px 14px',fontSize:12,color:'#6b6560',lineHeight:1.7}}><strong style={{color:'#0d1117'}}>⚠️ 유의사항</strong><br/>업체 정보 및 가격은 참고용이며 실제와 다를 수 있습니다. 계약 전 반드시 현장 상담을 받으시기 바랍니다.</div>
     </div>)}
     {view==='calendar'&&(<div>{calEvents.length===0&&!result?<div style={{textAlign:'center',padding:'60px 20px'}}><div style={{fontSize:53,marginBottom:14}}>📅</div><div style={{fontSize:15,fontWeight:700,marginBottom:8}}>설계 결과가 없습니다</div></div>:<><button onClick={()=>{const txt=buildKakaoText(calEvents);copyToClip(txt,'웨딩 일정 전체가 복사됐어요! 카카오톡 > 나에게 보내기에 붙여넣기 하세요.');}} style={{width:'100%',marginBottom:14,background:'#FEE500',border:'none',borderRadius:12,padding:'13px 18px',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:'inherit',color:'#3C1E1E',display:'flex',alignItems:'center',justifyContent:'center',gap:10}}><span style={{width:24,height:24,background:'rgba(0,0,0,0.08)',borderRadius:5,display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:15}}>💬</span>카카오톡으로 웨딩 일정 전체 받기</button><CalendarWidget events={calEvents}/></> }</div>)}
-    {view==='saved'&&(<div>{savedPlans.length===0?<div style={{textAlign:'center',padding:'60px 20px'}}><div style={{fontSize:53,marginBottom:14}}>💒</div><div style={{fontSize:15,fontWeight:700,marginBottom:8}}>저장된 웨딩 플랜이 없습니다</div></div>:savedPlans.map(plan=>(<div key={plan.id} style={{...CS,marginBottom:12}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10,flexWrap:'wrap',marginBottom:10}}><div><div style={{fontFamily:'serif',fontSize:'1.04rem',fontWeight:700,marginBottom:4}}>{plan.result?.summary?.headline}</div><div style={{display:'flex',gap:6,flexWrap:'wrap'}}><span style={{background:'#4a0e4e',color:'#f9a8d4',fontSize:11,fontWeight:700,padding:'2px 9px',borderRadius:20}}>💍 {plan.region}</span><span style={{background:'#f5f0e8',color:'#6b6560',fontSize:11,padding:'2px 9px',borderRadius:20}}>👥 {plan.guests}명</span><span style={{background:'#f5f0e8',color:'#6b6560',fontSize:11,padding:'2px 9px',borderRadius:20}}>💰 {plan.budget}만원</span></div></div><div style={{textAlign:'right',flexShrink:0}}><div style={{fontSize:12,color:'#9ca3af'}}>{new Date(plan.savedAt).toLocaleDateString('ko-KR')}</div></div></div><div style={{display:'flex',gap:7,paddingTop:10,borderTop:'1px solid #f0ebe0'}}><button onClick={()=>{setResult(plan.result);setBudget(plan.budget);setRegion(plan.region);setWdate(plan.wdate||'');setStyle(plan.style||'');setGuests(plan.guests);setContrib(plan.contrib||'');setExtra(plan.extra||'');setCalEvents(extractCalEvents(plan.result));setView('result');}} style={BP({padding:'8px 14px',fontSize:13,borderRadius:8,background:'#4a0e4e'})}>결과 보기</button><button onClick={()=>{if(!window.confirm('삭제하시겠습니까?'))return;sDel(`wedding:${user.email}:${plan.id}`);loadSaved();}} style={BP({padding:'8px 12px',fontSize:13,borderRadius:8,background:'#fee2e2',color:'#991b1b'})}>🗑 삭제</button></div></div>))}</div>)}
+    {view==='saved'&&(<div>{savedPlans.length===0?<div style={{textAlign:'center',padding:'60px 20px'}}><div style={{fontSize:53,marginBottom:14}}>💒</div><div style={{fontSize:15,fontWeight:700,marginBottom:8}}>저장된 웨딩 플랜이 없습니다</div></div>:savedPlans.map(plan=>(<div key={plan.id} style={{...CS,marginBottom:12}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10,flexWrap:'wrap',marginBottom:10}}><div><div style={{fontFamily:'serif',fontSize:'1.04rem',fontWeight:700,marginBottom:4}}>{plan.result?.summary?.headline}</div><div style={{display:'flex',gap:6,flexWrap:'wrap'}}><span style={{background:'#4a0e4e',color:'#f9a8d4',fontSize:11,fontWeight:700,padding:'2px 9px',borderRadius:20}}>💍 {plan.region}</span><span style={{background:'#f5f0e8',color:'#6b6560',fontSize:11,padding:'2px 9px',borderRadius:20}}>👥 {plan.guests}명</span><span style={{background:'#f5f0e8',color:'#6b6560',fontSize:11,padding:'2px 9px',borderRadius:20}}>💰 {plan.budget}만원</span></div></div><div style={{textAlign:'right',flexShrink:0}}><div style={{fontSize:12,color:'#9ca3af'}}>{new Date(plan.savedAt).toLocaleDateString('ko-KR')}</div></div></div><div style={{display:'flex',gap:7,paddingTop:10,borderTop:'1px solid #f0ebe0'}}><button onClick={()=>{setResult(plan.result);setBudget(plan.budget);setRegion(plan.region);setWdate(plan.wdate||'');setStyle(plan.style||'');setGuests(plan.guests);setContrib(plan.contrib||'');setExtra(plan.extra||'');setCalEvents(extractCalEvents(plan.result));setView('result');}} style={BP({padding:'8px 14px',fontSize:13,borderRadius:8,background:'#4a0e4e'})}>결과 보기</button><button onClick={()=>{if(!window.confirm('삭제하시겠습니까?'))return;sDel(`wedding:${user.phone}:${plan.id}`);loadSaved();}} style={BP({padding:'8px 12px',fontSize:13,borderRadius:8,background:'#fee2e2',color:'#991b1b'})}>🗑 삭제</button></div></div>))}</div>)}
   </div>);}
 
 // ─── AdminTab ─────────────────────────────────────────────────────
 function AdminTab(){
   const[users,setUsers]=useState(null);
-  const load=useCallback(()=>{
-    const keys=sList('user:').filter(k=>k!==`user:${ADMIN_ID}`);
-    const data=keys.map(k=>sGet(k)).filter(Boolean).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-    setUsers(data);
-  },[]);
+  const load=useCallback(()=>{ setUsers(getAllUsers()); },[]);
   useEffect(()=>{load();},[load]);
-  const del=(email)=>{if(!window.confirm(`${email} 회원을 삭제하시겠습니까?`))return;sDel(`user:${email}`);load();};
+  const del=(phone)=>{if(!window.confirm(`${formatPhone(phone)} 회원을 삭제하시겠습니까?`))return;deleteUser(phone);load();};
   if(!users)return<div style={{textAlign:'center',padding:60,color:'#9ca3af',fontSize:15}}>불러오는 중...</div>;
   return(<div>
     <div style={{...CS,marginBottom:20,padding:'20px 24px'}}>
@@ -381,24 +465,24 @@ function AdminTab(){
       <p style={{fontSize:13,color:'#9ca3af'}}>회원가입한 모든 사용자를 관리합니다</p>
     </div>
     {users.length===0&&(<div style={{textAlign:'center',padding:'60px 20px',color:'#9ca3af',fontSize:14}}>가입된 회원이 없습니다</div>)}
-    {users.map((u,i)=>(<div key={u.email} style={{...CS,marginBottom:10,padding:'18px 20px'}}>
+    {users.map((u,i)=>(<div key={u.phone} style={{...CS,marginBottom:10,padding:'18px 20px'}}>
       <div style={{display:'flex',alignItems:'center',gap:14}}>
         <div style={{width:44,height:44,borderRadius:'50%',background:'linear-gradient(135deg,#1a6b6b,#0d4f4f)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.10rem',fontWeight:900,color:'#c9a84c',fontFamily:'serif',flexShrink:0}}>{u.name?.charAt(0)||'?'}</div>
         <div style={{flex:1,minWidth:0}}>
           <div style={{fontWeight:700,fontSize:15,color:'#0d1117',marginBottom:2}}>{u.name}</div>
-          <div style={{fontSize:13,color:'#6b6560',marginBottom:1}}>{u.email}</div>
+          <div style={{fontSize:13,color:'#6b6560',marginBottom:1}}>{formatPhone(u.phone)}</div>
           <div style={{fontSize:12,color:'#9ca3af'}}>가입일: {new Date(u.createdAt).toLocaleString('ko-KR',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
           <span style={{fontSize:12,fontWeight:700,padding:'3px 10px',borderRadius:20,background:'#ede8dc',color:'#6b6560'}}>#{i+1}</span>
-          <button onClick={()=>del(u.email)} style={{background:'#fee2e2',border:'none',borderRadius:7,padding:'7px 14px',fontSize:13,fontWeight:700,color:'#991b1b',cursor:'pointer'}}>삭제</button>
+          <button onClick={()=>del(u.phone)} style={{background:'#fee2e2',border:'none',borderRadius:7,padding:'7px 14px',fontSize:13,fontWeight:700,color:'#991b1b',cursor:'pointer'}}>삭제</button>
         </div>
       </div>
     </div>))}
   </div>);}
 
 // ─── ProfileTab ───────────────────────────────────────────────────
-function ProfileTab({user,onLogout,savedCount}){return(<div style={{maxWidth:480,margin:'0 auto'}}><div style={{...CS,textAlign:'center',padding:'32px 24px',marginBottom:14}}><div style={{width:68,height:68,borderRadius:'50%',background:'linear-gradient(135deg,#1a6b6b,#0d4f4f)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.76rem',fontWeight:900,color:'#c9a84c',margin:'0 auto 14px',fontFamily:'serif'}}>{user.name?.charAt(0)||'?'}</div><div style={{fontFamily:'serif',fontSize:'1.32rem',fontWeight:700,marginBottom:3}}>{user.name}</div><div style={{fontSize:14,color:'#6b6560',marginBottom:20}}>{user.email}</div><div style={{display:'flex',justifyContent:'center',gap:32,padding:'16px 0',borderTop:'1px solid #f0ebe0',borderBottom:'1px solid #f0ebe0',marginBottom:20}}><div style={{textAlign:'center'}}><div style={{fontSize:'1.98rem',fontWeight:900,color:'#1a6b6b',lineHeight:1}}>{savedCount}</div><div style={{fontSize:12,color:'#6b6560',marginTop:3}}>저장한 혜택</div></div><div style={{textAlign:'center'}}><div style={{fontSize:'1.10rem',fontWeight:700,color:'#c9a84c',lineHeight:1,paddingTop:4}}>{new Date(user.createdAt).toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'})}</div><div style={{fontSize:12,color:'#6b6560',marginTop:3}}>가입일</div></div></div><button onClick={onLogout} style={BP({width:'100%',padding:'12px',background:'#fee2e2',color:'#991b1b',borderRadius:10,fontSize:14})}>로그아웃</button></div><div style={{background:'#ede8dc',borderRadius:12,padding:'14px 16px',fontSize:13,color:'#6b6560',lineHeight:1.7}}><strong style={{color:'#0d1117'}}>💡 안내</strong><br/>저장된 혜택은 이 기기의 localStorage에 보관됩니다. 캘린더 알림은 브라우저 알림 권한을 허용하면 자동으로 작동합니다.</div></div>);}
+function ProfileTab({user,onLogout,savedCount}){return(<div style={{maxWidth:480,margin:'0 auto'}}><div style={{...CS,textAlign:'center',padding:'32px 24px',marginBottom:14}}><div style={{width:68,height:68,borderRadius:'50%',background:'linear-gradient(135deg,#1a6b6b,#0d4f4f)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.76rem',fontWeight:900,color:'#c9a84c',margin:'0 auto 14px',fontFamily:'serif'}}>{user.name?.charAt(0)||'?'}</div><div style={{fontFamily:'serif',fontSize:'1.32rem',fontWeight:700,marginBottom:3}}>{user.name}</div><div style={{fontSize:14,color:'#6b6560',marginBottom:20}}>{formatPhone(user.phone)}</div><div style={{display:'flex',justifyContent:'center',gap:32,padding:'16px 0',borderTop:'1px solid #f0ebe0',borderBottom:'1px solid #f0ebe0',marginBottom:20}}><div style={{textAlign:'center'}}><div style={{fontSize:'1.98rem',fontWeight:900,color:'#1a6b6b',lineHeight:1}}>{savedCount}</div><div style={{fontSize:12,color:'#6b6560',marginTop:3}}>저장한 혜택</div></div><div style={{textAlign:'center'}}><div style={{fontSize:'1.10rem',fontWeight:700,color:'#c9a84c',lineHeight:1,paddingTop:4}}>{new Date(user.createdAt).toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'})}</div><div style={{fontSize:12,color:'#6b6560',marginTop:3}}>가입일</div></div></div><button onClick={onLogout} style={BP({width:'100%',padding:'12px',background:'#fee2e2',color:'#991b1b',borderRadius:10,fontSize:14})}>로그아웃</button></div><div style={{background:'#ede8dc',borderRadius:12,padding:'14px 16px',fontSize:13,color:'#6b6560',lineHeight:1.7}}><strong style={{color:'#0d1117'}}>💡 안내</strong><br/>저장된 혜택은 이 기기의 localStorage에 보관됩니다. 캘린더 알림은 브라우저 알림 권한을 허용하면 자동으로 작동합니다.</div></div>);}
 
 // ─── Root App ─────────────────────────────────────────────────────
 export default function App() {
@@ -411,16 +495,16 @@ export default function App() {
   const noKey = !API_KEY;
 
   useEffect(() => {
-    const s = sGet('session:current');
+    const s = getSession();
     if (s) setUser(s);
     setReady(true);
   }, []);
 
-  const login = (u) => { sSet('session:current', u); setUser(u); };
-  const logout = () => { sDel('session:current'); setUser(null); setTab('analyze'); };
+  const login = (u) => { saveSession(u); setUser(u); };
+  const logout = () => { clearSession(); setUser(null); setTab('analyze'); };
   const refreshCount = useCallback(() => {
     if (!user) return;
-    setSavedCount(sList(`benefit_item:${user.email}:`).length);
+    setSavedCount(sList(`benefit_item:${user.phone}:`).length);
   }, [user]);
   useEffect(() => { refreshCount(); }, [refreshCount]);
 
