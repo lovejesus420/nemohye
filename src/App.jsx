@@ -139,6 +139,36 @@ function Logo({size=38}){return(<svg width={size} height={size} viewBox="0 0 42 
 const R=()=><span style={{color:'#c94f1a',marginLeft:2}}>*</span>;
 function Divider({label}){return(<div style={{display:'flex',alignItems:'center',gap:10,margin:'20px 0 12px'}}><div style={{flex:1,height:1,background:'#d4cdc2'}}/><span style={{fontSize:11,fontWeight:700,color:'#6b6560',textTransform:'uppercase',letterSpacing:2,whiteSpace:'nowrap'}}>{label}</span><div style={{flex:1,height:1,background:'#d4cdc2'}}/></div>);}
 
+// ─── getBestApplyUrl: 홈페이지 메인 URL → 신청 페이지 URL 매핑 ───
+const APPLY_URL_MAP = {
+  'bokjiro.go.kr': 'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do',
+  'gov.kr': 'https://www.gov.kr/portal/serviceList',
+  'work.go.kr': 'https://www.work.go.kr/jobcenter/main.do',
+  'nhuf.molit.go.kr': 'https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp',
+  'youthcenter.go.kr': 'https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do',
+  'youth.go.kr': 'https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do',
+  'nhis.or.kr': 'https://www.nhis.or.kr/nhis/policy/wbhada02800m01.do',
+  'nps.or.kr': 'https://www.nps.or.kr/jsppage/service/apply/apply.jsp',
+  'kcomwel.or.kr': 'https://www.kcomwel.or.kr/kcomwel/paym/acci/acci.jsp',
+  'hf.go.kr': 'https://www.hf.go.kr/hf/sub04/sub04_01_01.do',
+  'lh.or.kr': 'https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWtWrtanc.do',
+  'sbcrc.or.kr': 'https://www.sbcrc.or.kr/site/main/apply/applyView',
+};
+function getBestApplyUrl(url){
+  if(!url)return'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do';
+  try{
+    const host=new URL(url).hostname.replace(/^www\./,'');
+    // 이미 서브페이지(path가 있음)면 그대로 사용
+    const path=new URL(url).pathname;
+    if(path&&path!=='/'&&path.length>1)return url;
+    // 메인 홈페이지면 매핑된 신청 URL로 교체
+    for(const[domain,applyUrl]of Object.entries(APPLY_URL_MAP)){
+      if(host===domain||host.endsWith('.'+domain))return applyUrl;
+    }
+  }catch{}
+  return url;
+}
+
 // ─── BCard ────────────────────────────────────────────────────────
 function BCard({b,savedIds,onToggleSave}){const bg=CAT_COLOR[b.category]||'#f3f4f6';const isSaved=savedIds?.has(String(b.id));const dl=parseDeadline(b.deadline);const days=daysLeft(dl);const[calOpen,setCalOpen]=useState(false);
 return(<div style={{background:'#fff',border:`1.5px solid ${isSaved?'#1a6b6b':'#d4cdc2'}`,borderRadius:14,padding:'18px 20px',marginBottom:10,boxShadow:isSaved?'0 0 0 3px rgba(26,107,107,0.08)':'0 2px 10px rgba(0,0,0,0.05)'}}>
@@ -163,7 +193,7 @@ return(<div style={{background:'#fff',border:`1.5px solid ${isSaved?'#1a6b6b':'#
     </div>
     {b.requiredDocuments?.length>0&&(<div style={{marginBottom:10}}><div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:0.5,marginBottom:5}}>📂 필요 서류</div><div style={{display:'flex',flexWrap:'wrap',gap:4}}>{b.requiredDocuments.map(d=><span key={d} style={{background:'#f0ebe0',border:'1px solid #d4cdc2',borderRadius:5,padding:'3px 8px',fontSize:12}}>📄 {d}</span>)}</div></div>)}
     <div style={{display:'flex',gap:7,flexWrap:'wrap',alignItems:'center'}}>
-      <a href={b.applyUrl||'https://www.bokjiro.go.kr'} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:5,background:'#0d1117',color:'#fff',fontSize:13,fontWeight:700,padding:'8px 14px',borderRadius:7,textDecoration:'none'}}>신청하러 가기 →</a>
+      <a href={getBestApplyUrl(b.applyUrl)} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:5,background:'#0d1117',color:'#fff',fontSize:13,fontWeight:700,padding:'8px 14px',borderRadius:7,textDecoration:'none'}}>신청하러 가기 →</a>
       {dl&&(<div style={{position:'relative'}}>
         <button onClick={()=>setCalOpen(p=>!p)} style={BP({padding:'7px 12px',fontSize:13,borderRadius:7,background:'#edf6f6',color:'#1a6b6b',display:'flex',alignItems:'center',gap:5})}>📅 캘린더 알림</button>
         {calOpen&&(<div style={{position:'absolute',bottom:'calc(100% + 6px)',left:0,background:'#fff',border:'1.5px solid #d4cdc2',borderRadius:12,boxShadow:'0 8px 24px rgba(0,0,0,0.12)',zIndex:300,minWidth:220,overflow:'hidden'}}>
@@ -314,7 +344,7 @@ function AnalyzeTab({user,onSaved}){
     setLoading(true);setResults(null);setErr('');setStep(0);
     const today=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
     const extra=extras.join(', ')||'없음';
-    const prompt=`당신은 대한민국 복지 전문가입니다. 아래 정보로 받을 수 있는 정부·지자체 복지 혜택을 분석해주세요.\n[정보] 나이:${age}세/성별:${gender}/직업:${job}/소득:${income}/거주:${address}/추가:${extra}/기준일:${today}\n순수 JSON만 반환 (마크다운 코드블록 없이):\n{"summary":{"totalBenefits":숫자,"estimatedMonthlyBenefit":"금액범위","topPriority":"혜택명"},"benefits":[{"id":1,"category":"주거/의료/금융/교육/고용/보육/노인/장애/청년/기타 중 택1","categoryIcon":"이모지","scope":"전국 또는 지역명","isUrgent":false,"title":"혜택명","institution":"기관명","description":"설명2~3문장","amount":"금액","deadline":"YYYY년 MM월 DD일 형식 또는 수시 신청","requiredDocuments":["서류1","서류2"],"howToApply":"방법","applyUrl":"https://..."}]}\n최소8개 최대15개. 실제 혜택만. 지역혜택은 ${address} 기준. 마감일은 YYYY년 MM월 DD일 형식으로.`;
+    const prompt=`당신은 대한민국 복지 전문가입니다. 아래 정보로 받을 수 있는 정부·지자체 복지 혜택을 분석해주세요.\n[정보] 나이:${age}세/성별:${gender}/직업:${job}/소득:${income}/거주:${address}/추가:${extra}/기준일:${today}\n순수 JSON만 반환 (마크다운 코드블록 없이):\n{"summary":{"totalBenefits":숫자,"estimatedMonthlyBenefit":"금액범위","topPriority":"혜택명"},"benefits":[{"id":1,"category":"주거/의료/금융/교육/고용/보육/노인/장애/청년/기타 중 택1","categoryIcon":"이모지","scope":"전국 또는 지역명","isUrgent":false,"title":"혜택명","institution":"기관명","description":"설명2~3문장","amount":"금액","deadline":"YYYY년 MM월 DD일 형식 또는 수시 신청","requiredDocuments":["서류1","서류2"],"howToApply":"방법","applyUrl":"https://..."}]}\n최소8개 최대15개. 실제 혜택만. 지역혜택은 ${address} 기준. 마감일은 YYYY년 MM월 DD일 형식으로.\napplyUrl 규칙(매우 중요): 홈페이지 메인 URL 절대 금지. 반드시 신청서 또는 서비스 목록 페이지 직접 URL을 사용할 것. 주요 포털 신청 URL: 복지로 신청=https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do, 정부24 신청=https://www.gov.kr/portal/serviceList, 고용24=https://www.work.go.kr/jobcenter/main.do, 주택도시기금=https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp, 청년정책포털=https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do, 국민건강보험=https://www.nhis.or.kr/nhis/policy/wbhada02800m01.do, 국민연금=https://www.nps.or.kr/jsppage/service/apply/apply.jsp, 근로복지공단=https://www.kcomwel.or.kr/kcomwel/paym/acci/acci.jsp. 모르는 경우 해당 기관의 민원 또는 신청 서브페이지 URL을 추론해서 넣을 것.`;
     try{const raw=await callClaude(prompt);setResults(JSON.parse(raw));}catch(e){setErr(e.message);}finally{setLoading(false);}
   };
   const toggleSave=(b)=>{const key=`benefit_item:${user.phone}:${b.id}`;if(savedIds.has(String(b.id))){sDel(key);setSavedIds(p=>{const n=new Set(p);n.delete(String(b.id));return n;});}else{sSet(key,{...b,savedAt:new Date().toISOString(),userPhone:user.phone});setSavedIds(p=>new Set([...p,String(b.id)]));}onSaved();};
@@ -477,6 +507,136 @@ function WeddingTab({user}){
     {view==='saved'&&(<div>{savedPlans.length===0?<div style={{textAlign:'center',padding:'60px 20px'}}><div style={{fontSize:53,marginBottom:14}}>💒</div><div style={{fontSize:15,fontWeight:700,marginBottom:8}}>저장된 웨딩 플랜이 없습니다</div></div>:savedPlans.map(plan=>(<div key={plan.id} style={{...CS,marginBottom:12}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10,flexWrap:'wrap',marginBottom:10}}><div><div style={{fontFamily:'serif',fontSize:'1.04rem',fontWeight:700,marginBottom:4}}>{plan.result?.summary?.headline}</div><div style={{display:'flex',gap:6,flexWrap:'wrap'}}><span style={{background:'#4a0e4e',color:'#f9a8d4',fontSize:11,fontWeight:700,padding:'2px 9px',borderRadius:20}}>💍 {plan.region}</span><span style={{background:'#f5f0e8',color:'#6b6560',fontSize:11,padding:'2px 9px',borderRadius:20}}>👥 {plan.guests}명</span><span style={{background:'#f5f0e8',color:'#6b6560',fontSize:11,padding:'2px 9px',borderRadius:20}}>💰 {plan.budget}만원</span></div></div><div style={{textAlign:'right',flexShrink:0}}><div style={{fontSize:12,color:'#9ca3af'}}>{new Date(plan.savedAt).toLocaleDateString('ko-KR')}</div></div></div><div style={{display:'flex',gap:7,paddingTop:10,borderTop:'1px solid #f0ebe0'}}><button onClick={()=>{setResult(plan.result);setBudget(plan.budget);setRegion(plan.region);setWdate(plan.wdate||'');setStyle(plan.style||'');setGuests(plan.guests);setContrib(plan.contrib||'');setExtra(plan.extra||'');setCalEvents(extractCalEvents(plan.result));setView('result');}} style={BP({padding:'8px 14px',fontSize:13,borderRadius:8,background:'#4a0e4e'})}>결과 보기</button><button onClick={()=>{if(!window.confirm('삭제하시겠습니까?'))return;sDel(`wedding:${user.phone}:${plan.id}`);loadSaved();}} style={BP({padding:'8px 12px',fontSize:13,borderRadius:8,background:'#fee2e2',color:'#991b1b'})}>🗑 삭제</button></div></div>))}</div>)}
   </div>);}
 
+// ─── RealEstateTab ────────────────────────────────────────────────
+function RealEstateTab({user}){
+  const HOUSE_TYPES=[{id:'아파트',icon:'🏢',label:'아파트'},{id:'오피스텔',icon:'🏙',label:'오피스텔'},{id:'빌라',icon:'🏘',label:'빌라 · 다세대'},{id:'단독주택',icon:'🏡',label:'단독주택'}];
+  const SITUATIONS=['신혼부부','청년 자취','학생 자취','직장인 이사','가족 이사','투자/임대'];
+  const RE_STEPS=['지역 부동산 시세 분석 중...','매물 정보 검색 중...','대출 상품 확인 중...','정부 지원 혜택 매칭 중...','맞춤 부동산 플랜 작성 중...'];
+
+  const[houseType,setHouseType]=useState('');
+  const[address,setAddress]=useState('');
+  const[budget,setBudget]=useState('');
+  const[age,setAge]=useState('');
+  const[situation,setSituation]=useState('');
+  const[loading,setLoading]=useState(false);
+  const[stepIdx,setStepIdx]=useState(0);
+  const[result,setResult]=useState(null);
+  const[err,setErr]=useState('');
+  const rRef=useRef();
+
+  useEffect(()=>{if(!loading)return;let i=0;const t=setInterval(()=>{i=(i+1)%RE_STEPS.length;setStepIdx(i);},2000);return()=>clearInterval(t);},[loading]);
+  useEffect(()=>{if(result&&rRef.current)rRef.current.scrollIntoView({behavior:'smooth'});},[result]);
+
+  const analyze=async()=>{
+    if(!houseType){alert('집 유형을 선택해 주세요.');return;}
+    setLoading(true);setResult(null);setErr('');setStepIdx(0);
+    const today=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+    const prompt=`당신은 대한민국 최고의 부동산 전문가입니다.\n[정보] 집유형:${houseType}/지역:${address||'미정'}/예산:${budget||'미정'}/나이:${age||'미정'}세/상황:${situation||'미정'}/기준일:${today}\n순수 JSON만 반환 (마크다운 없이):\n{"summary":{"headline":"한 줄 요약","avgPrice":"평균 매매가","priceRange":"가격 범위","marketTrend":"시장 동향 한 문장","insight":"핵심 인사이트 2문장"},"properties":[{"id":1,"name":"단지/건물명","location":"상세 위치(역·버스 기준)","price":"매매가","jeonse":"전세가","rent":"월세(보증금/월)","area":"전용면적㎡","floor":"층수","features":["특징1","특징2","특징3"],"pros":"장점 한 줄","cons":"단점 한 줄","nearbyFacilities":["지하철","마트","학교 등"],"recommend":"추천 이유"}],"loans":[{"name":"대출 상품명","institution":"은행/기관","maxAmount":"최대 한도","rate":"금리 범위","condition":"신청 조건","target":"대상자","benefit":"주요 혜택","url":"신청 URL"}],"govSupport":[{"name":"정책명","amount":"지원 금액","condition":"조건","url":"URL"}],"tips":["팁1","팁2","팁3","팁4"],"checklist":["계약 전 체크1","체크2","체크3","체크4","체크5"]}\nproperties 5개, loans 5개, govSupport 3개. ${address||'해당 지역'} 실제 시세 반영. 실제 대출 상품명·정책명 사용.`;
+    try{const raw=await callClaude(prompt,4000);setResult(JSON.parse(raw));}catch(e){setErr(e.message);}finally{setLoading(false);}
+  };
+
+  return(<div>
+    <div style={{background:'linear-gradient(135deg,#0f3460,#0a1628)',borderRadius:14,padding:'22px 24px',marginBottom:16,color:'#fff'}}>
+      <div style={{fontSize:11,letterSpacing:3,color:'#7dd3fc',textTransform:'uppercase',marginBottom:8}}>✦ AI 부동산 분석</div>
+      <div style={{fontFamily:'serif',fontSize:'1.32rem',fontWeight:700,marginBottom:6}}>나에게 맞는 집을<br/>찾아드립니다 🏠</div>
+      <p style={{fontSize:13,color:'rgba(255,255,255,0.65)',lineHeight:1.7}}>집 유형과 조건을 입력하면 매물 정보, 대출 상품, 정부 지원까지 한번에</p>
+    </div>
+
+    <div style={{...CS,marginBottom:14}}>
+      <h2 style={{fontFamily:'serif',fontSize:'1.10rem',fontWeight:700,marginBottom:5}}>집 유형 선택 <R/></h2>
+      <p style={{fontSize:12,color:'#9ca3af',marginBottom:14}}>원하는 집 유형을 선택하세요 (필수)</p>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10}}>
+        {HOUSE_TYPES.map(h=>(<button key={h.id} onClick={()=>setHouseType(h.id)} style={{padding:'16px 8px',border:`2px solid ${houseType===h.id?'#0f3460':'#d4cdc2'}`,borderRadius:12,background:houseType===h.id?'#eef6ff':'#fff',cursor:'pointer',fontFamily:'inherit',transition:'all 0.15s',display:'flex',flexDirection:'column',alignItems:'center',gap:7}}>
+          <span style={{fontSize:28}}>{h.icon}</span>
+          <span style={{fontSize:12,fontWeight:700,color:houseType===h.id?'#0f3460':'#374151'}}>{h.label}</span>
+        </button>))}
+      </div>
+    </div>
+
+    <div style={{...CS,marginBottom:14}}>
+      <h2 style={{fontFamily:'serif',fontSize:'1.10rem',fontWeight:700,marginBottom:14}}>추가 조건 <span style={{fontWeight:400,fontSize:12,color:'#9ca3af'}}>(선택)</span></h2>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:13}}>
+        <div style={{gridColumn:'1/-1'}}><label style={LS}>원하는 지역</label><AddrInput value={address} onChange={setAddress}/></div>
+        <div><label style={LS}>예산</label><input value={budget} onChange={e=>setBudget(e.target.value)} placeholder="예: 3억, 보증금 5000 월세 70" style={IS}/></div>
+        <div><label style={LS}>나이</label><input type="number" value={age} onChange={e=>setAge(e.target.value)} placeholder="예: 28" style={IS}/></div>
+        <div style={{gridColumn:'1/-1'}}><label style={LS}>현재 상황</label><div style={{display:'flex',flexWrap:'wrap',gap:8,marginTop:2}}>{SITUATIONS.map(s=>(<button key={s} onClick={()=>setSituation(situation===s?'':s)} style={{padding:'8px 14px',border:`1.5px solid ${situation===s?'#0f3460':'#d4cdc2'}`,borderRadius:20,background:situation===s?'#eef6ff':'#fff',fontSize:13,fontWeight:situation===s?700:400,cursor:'pointer',fontFamily:'inherit',color:situation===s?'#0f3460':'#374151',transition:'all 0.15s'}}>{s}</button>))}</div></div>
+      </div>
+      <button onClick={analyze} disabled={loading} style={BP({width:'100%',marginTop:18,padding:'14px',fontSize:15,borderRadius:10,opacity:loading?0.7:1,background:'#0f3460',display:'flex',alignItems:'center',justifyContent:'center',gap:8})}>
+        <span style={{fontSize:18}}>🏠</span>{loading?'분석 중...':'부동산 설계하기'}
+      </button>
+    </div>
+
+    {loading&&(<div style={{textAlign:'center',padding:'36px 0'}}><div style={{width:42,height:42,border:'3px solid #d4cdc2',borderTopColor:'#0f3460',borderRadius:'50%',animation:'spin 0.8s linear infinite',margin:'0 auto 12px'}}/><div style={{fontSize:14,color:'#6b6560'}}>부동산 정보를 분석하고 있습니다...</div><div style={{fontSize:13,color:'#0f3460',marginTop:5,fontWeight:500}}>{RE_STEPS[stepIdx]}</div></div>)}
+    {err&&(<div style={{background:'#fee2e2',border:'1px solid #fca5a5',borderRadius:10,padding:'12px 16px',color:'#991b1b',fontSize:13,marginBottom:16}}><strong>오류:</strong><br/><code style={{fontSize:12,wordBreak:'break-all'}}>{err}</code></div>)}
+
+    {result&&(<div ref={rRef}>
+      <div style={{background:'linear-gradient(135deg,#0f3460,#0a1628)',borderRadius:14,padding:'22px 24px',marginBottom:14,color:'#fff'}}>
+        <div style={{fontSize:11,letterSpacing:3,color:'#7dd3fc',textTransform:'uppercase',marginBottom:8}}>✦ 분석 완료</div>
+        <div style={{fontFamily:'serif',fontSize:'1.32rem',fontWeight:700,lineHeight:1.4,marginBottom:8}}>{result.summary?.headline}</div>
+        <p style={{fontSize:13,color:'rgba(255,255,255,0.75)',lineHeight:1.7,marginBottom:14}}>{result.summary?.insight}</p>
+        <div style={{display:'flex',gap:20,flexWrap:'wrap'}}>
+          {[{v:result.summary?.avgPrice,l:'평균 매매가'},{v:result.summary?.priceRange,l:'가격 범위'},{v:houseType,l:'집 유형'}].map(({v,l})=>(<div key={l}><div style={{fontSize:'1.10rem',fontWeight:900,color:'#7dd3fc',lineHeight:1}}>{v}</div><div style={{fontSize:12,opacity:0.6,marginTop:3}}>{l}</div></div>))}
+        </div>
+        {result.summary?.marketTrend&&<div style={{marginTop:12,paddingTop:12,borderTop:'1px solid rgba(255,255,255,0.15)',fontSize:13,color:'rgba(255,255,255,0.7)'}}>📈 {result.summary.marketTrend}</div>}
+      </div>
+
+      <div style={{...CS,marginBottom:14}}>
+        <div style={{fontFamily:'serif',fontWeight:700,fontSize:'1.27rem',marginBottom:14}}>🏠 추천 매물</div>
+        {result.properties?.map((p,i)=>(<div key={i} style={{background:'#faf7f2',border:'1px solid #e8e2d8',borderRadius:12,padding:'16px',marginBottom:10}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:8,marginBottom:8,flexWrap:'wrap'}}>
+            <div><div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{p.name}</div><div style={{fontSize:12,color:'#6b6560'}}>{p.location}</div></div>
+            <span style={{background:'#eef6ff',color:'#0f3460',fontSize:11,fontWeight:700,padding:'3px 10px',borderRadius:20,flexShrink:0}}>#{i+1}</span>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:7,marginBottom:10}}>
+            {[{l:'💰 매매가',v:p.price,c:'#0f3460'},{l:'🔑 전세',v:p.jeonse||'-',c:'#166534'},{l:'🏠 월세',v:p.rent||'-',c:'#c94f1a'}].map(({l,v,c})=>(<div key={l} style={{background:'#f5f0e8',borderRadius:8,padding:'8px 10px'}}><div style={{fontSize:10,fontWeight:700,color:'#6b6560',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>{l}</div><div style={{fontSize:12,fontWeight:700,color:c,lineHeight:1.4}}>{v}</div></div>))}
+          </div>
+          <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:8}}>
+            {p.features?.map(f=><span key={f} style={{fontSize:11,background:'#dbeafe',color:'#1e40af',padding:'2px 8px',borderRadius:5}}>{f}</span>)}
+            {p.area&&<span style={{fontSize:11,background:'#f0ebe0',color:'#6b6560',padding:'2px 8px',borderRadius:5}}>📐 {p.area}</span>}
+            {p.floor&&<span style={{fontSize:11,background:'#f0ebe0',color:'#6b6560',padding:'2px 8px',borderRadius:5}}>🏗 {p.floor}</span>}
+          </div>
+          {p.nearbyFacilities?.length>0&&<div style={{fontSize:12,color:'#6b6560',marginBottom:8}}>🚇 {p.nearbyFacilities.join(' · ')}</div>}
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:p.recommend?8:0}}>
+            <div style={{flex:1,minWidth:120,background:'#dcfce7',borderRadius:7,padding:'7px 10px',fontSize:12,color:'#166534'}}>✅ {p.pros}</div>
+            <div style={{flex:1,minWidth:120,background:'#fee2e2',borderRadius:7,padding:'7px 10px',fontSize:12,color:'#991b1b'}}>⚠️ {p.cons}</div>
+          </div>
+          {p.recommend&&<div style={{fontSize:12,color:'#0f3460',fontWeight:600,background:'#eef6ff',borderRadius:7,padding:'7px 10px'}}>💡 {p.recommend}</div>}
+        </div>))}
+      </div>
+
+      <div style={{...CS,marginBottom:14}}>
+        <div style={{fontFamily:'serif',fontWeight:700,fontSize:'1.27rem',marginBottom:14}}>💳 이용 가능한 대출 상품</div>
+        {result.loans?.map((l,i)=>(<div key={i} style={{borderBottom:i<result.loans.length-1?'1px solid #f0ebe0':'none',paddingBottom:14,marginBottom:14}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:8,flexWrap:'wrap',marginBottom:6}}>
+            <div><div style={{fontWeight:700,fontSize:14,marginBottom:2}}>{l.name}</div><div style={{fontSize:12,color:'#6b6560'}}>{l.institution}</div></div>
+            <div style={{textAlign:'right',flexShrink:0}}><div style={{fontSize:14,fontWeight:700,color:'#0f3460'}}>{l.maxAmount}</div><div style={{fontSize:12,color:'#6b6560'}}>{l.rate}</div></div>
+          </div>
+          <div style={{fontSize:12,color:'#374151',lineHeight:1.6,marginBottom:6}}>{l.condition}</div>
+          <div style={{display:'flex',gap:7,flexWrap:'wrap',alignItems:'center'}}>
+            <span style={{fontSize:11,background:'#dbeafe',color:'#1e40af',padding:'2px 8px',borderRadius:5}}>👤 {l.target}</span>
+            {l.benefit&&<span style={{fontSize:11,background:'#dcfce7',color:'#166534',padding:'2px 8px',borderRadius:5}}>✨ {l.benefit}</span>}
+            <a href={l.url||'https://www.bokjiro.go.kr'} target="_blank" rel="noreferrer" style={{marginLeft:'auto',fontSize:12,fontWeight:700,color:'#fff',background:'#0f3460',padding:'5px 10px',borderRadius:6,textDecoration:'none'}}>신청하기 →</a>
+          </div>
+        </div>))}
+      </div>
+
+      {result.govSupport?.length>0&&(<div style={{...CS,marginBottom:14}}>
+        <div style={{fontFamily:'serif',fontWeight:700,fontSize:'1.27rem',marginBottom:14}}>🏛 정부 지원 혜택</div>
+        {result.govSupport.map((g,i)=>(<div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',padding:'11px 0',borderBottom:i<result.govSupport.length-1?'1px solid #f0ebe0':'none',gap:10,flexWrap:'wrap'}}>
+          <div style={{flex:1}}><div style={{fontSize:14,fontWeight:700}}>{g.name}</div><div style={{fontSize:12,color:'#6b6560',marginTop:2}}>{g.condition}</div></div>
+          <div style={{display:'flex',gap:7,alignItems:'center',flexShrink:0}}><span style={{fontSize:13,fontWeight:700,color:'#1a6b6b'}}>{g.amount}</span><a href={g.url||'https://www.bokjiro.go.kr'} target="_blank" rel="noreferrer" style={{fontSize:12,fontWeight:700,color:'#fff',background:'#0d1117',padding:'5px 9px',borderRadius:6,textDecoration:'none'}}>신청 →</a></div>
+        </div>))}
+      </div>)}
+
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:14}}>
+        <div style={{background:'#fef9c3',borderRadius:12,padding:'14px'}}><div style={{fontWeight:700,fontSize:13,color:'#854d0e',marginBottom:8}}>💡 부동산 팁</div>{result.tips?.map((t,i)=><div key={i} style={{fontSize:12,color:'#78350f',lineHeight:1.6,marginBottom:3}}>✓ {t}</div>)}</div>
+        <div style={{background:'#dbeafe',borderRadius:12,padding:'14px'}}><div style={{fontWeight:700,fontSize:13,color:'#1e40af',marginBottom:8}}>☑️ 계약 전 체크리스트</div>{result.checklist?.map((c,i)=><div key={i} style={{fontSize:12,color:'#1e3a8a',lineHeight:1.6,marginBottom:3}}>□ {c}</div>)}</div>
+      </div>
+      <div style={{background:'#ede8dc',borderRadius:10,padding:'12px 14px',fontSize:12,color:'#6b6560',lineHeight:1.7}}><strong style={{color:'#0d1117'}}>⚠️ 유의사항</strong><br/>제공된 정보는 AI 분석 기반 참고 자료입니다. 실제 매물·대출 조건은 공인중개사 및 해당 금융기관에 직접 확인하세요.</div>
+    </div>)}
+  </div>);
+}
+
 // ─── AdminTab ─────────────────────────────────────────────────────
 function AdminTab(){
   const[users,setUsers]=useState(null);
@@ -539,7 +699,7 @@ export default function App() {
   if (!ready) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#0d1117',color:'#c9a84c',fontFamily:'serif',fontSize:'1.32rem',fontWeight:700}}>네모혜</div>;
   if (!user) return <AuthScreen onLogin={login} />;
 
-  const NAV = [['analyze','🔍 분석'],['life','🗺 인생설계'],['wedding','💍 결혼설계'],['saved',`📁 보관함${savedCount>0?` ${savedCount}`:''}`],['profile','👤 내 정보'],...(user?.isAdmin?[['admin','⚙️ Admin']]:[])];
+  const NAV = [['analyze','🔍 혜택설계'],['life','🗺 인생설계'],['wedding','💍 결혼설계'],['realestate','🏠 부동산'],['saved',`📁 보관함${savedCount>0?` ${savedCount}`:''}`],['profile','👤 내 정보'],...(user?.isAdmin?[['admin','⚙️ Admin']]:[])];
 
   return (
     <div style={{fontFamily:"'Noto Sans KR', sans-serif",background:'#f5f0e8',minHeight:'100vh',color:'#0d1117'}}>
@@ -581,10 +741,11 @@ export default function App() {
         <div style={{background:'#fff',borderBottom:'1px solid #d4cdc2',padding:'18px 20px'}}>
           <div style={{maxWidth:760,margin:'0 auto'}}>
             <h1 style={{fontFamily:'serif',fontSize:'1.32rem',fontWeight:700}}>
-              {tab==='life'?'🗺 인생 설계':tab==='wedding'?'💍 결혼 설계':tab==='saved'?'📁 내 혜택 보관함':tab==='admin'?'⚙️ Admin 회원 관리':'👤 내 정보'}
+              {tab==='life'?'🗺 인생 설계':tab==='wedding'?'💍 결혼 설계':tab==='realestate'?'🏠 부동산 설계':tab==='saved'?'📁 내 혜택 보관함':tab==='admin'?'⚙️ Admin 회원 관리':'👤 내 정보'}
             </h1>
             {tab==='life'&&<p style={{fontSize:13,color:'#6b6560',marginTop:3}}>목표와 재정 상황을 입력하면 현실적인 단계별 인생 플랜을 설계해드려요</p>}
             {tab==='wedding'&&<p style={{fontSize:13,color:'#6b6560',marginTop:3}}>예산·지역·스타일 입력 → 스드메·웨딩홀 추천 + 준비 일정 캘린더 동기화</p>}
+            {tab==='realestate'&&<p style={{fontSize:13,color:'#6b6560',marginTop:3}}>집 유형과 조건을 입력하면 추천 매물·대출 상품·정부 지원을 한번에 분석해드려요</p>}
             {tab==='saved'&&<p style={{fontSize:13,color:'#6b6560',marginTop:3}}>저장한 혜택 목록과 캘린더 알림을 확인할 수 있어요</p>}
           </div>
         </div>
@@ -594,6 +755,7 @@ export default function App() {
         {tab==='analyze' && <AnalyzeTab user={user} onSaved={refreshCount}/>}
         {tab==='life'    && <LifeTab user={user}/>}
         {tab==='wedding' && <WeddingTab user={user}/>}
+        {tab==='realestate' && <RealEstateTab user={user}/>}
         {tab==='saved'   && <SavedTab user={user}/>}
         {tab==='profile' && <ProfileTab user={user} onLogout={logout} savedCount={savedCount}/>}
         {tab==='admin' && user?.isAdmin && <AdminTab/>}
