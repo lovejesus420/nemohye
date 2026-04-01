@@ -4,111 +4,86 @@
 //  📌 로그인 방식을 바꾸려면 이 파일만 수정하세요.
 //     App.jsx는 건드릴 필요 없습니다.
 //
-//  현재 공급자: Firebase Phone Auth (SMS OTP)
+//  현재 공급자: Solapi (솔라피/CoolSMS) SMS OTP
 //
 //  다른 공급자로 교체 시:
 //    SECTION A (Provider Implementation) 를 통째로 교체하세요.
 //    SECTION B (Common Interface) 는 그대로 유지됩니다.
-//
-//  교체 예시:
-//    - NCP SENS + Vercel Serverless Function
-//    - Twilio Verify + Vercel Serverless Function
-//    - 이메일 + 비밀번호 방식으로 롤백
 // ═══════════════════════════════════════════════════════════════════════
-
-import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 
 // ─── 관리자 자격증명 ──────────────────────────────────────────────────
 export const ADMIN_ID = 'lovejesus420';
 export const ADMIN_PW = 'kim159753';
 
 // ═══════════════════════════════════════════════════════════════════════
-//  SECTION A: PROVIDER IMPLEMENTATION — Firebase Phone Auth
+//  SECTION A: PROVIDER IMPLEMENTATION — Solapi SMS OTP
 //
 //  🔄 다른 공급자로 교체 시 이 섹션을 통째로 바꾸세요.
-//  외부에 노출되는 함수: sendOTP(phone, containerId), verifyOTP(code)
+//  외부에 노출되는 함수: sendOTP(phone, _containerId), verifyOTP(code)
 //
-//  Firebase 설정 방법:
-//    1. https://console.firebase.google.com 에서 프로젝트 생성
-//    2. Authentication > Sign-in method > Phone 활성화
-//    3. 프로젝트 설정 > 웹 앱 추가 > 아래 config 복사
-//    4. 프로젝트 루트에 .env 파일 생성 후 아래 변수 입력:
+//  Solapi 설정 방법:
+//    1. https://solapi.com 회원가입 → 충전 (건당 ₩8~20)
+//    2. 콘솔 > 개발 > API Key Management > API Key / API Secret 복사
+//    3. 콘솔 > 발신번호 > 발신번호 등록 (본인 번호 인증)
+//    4. 프로젝트 루트 .env 파일:
 //
-//       VITE_FIREBASE_API_KEY=AIza...
-//       VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-//       VITE_FIREBASE_PROJECT_ID=your-project
-//       VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-//       VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
-//       VITE_FIREBASE_APP_ID=1:123456789:web:abc123
+//       SOLAPI_API_KEY=솔라피API키
+//       SOLAPI_API_SECRET=솔라피API시크릿
+//       SOLAPI_SENDER=발신번호(숫자만, e.g. 01012345678)
+//       OTP_TOKEN_SECRET=랜덤긴문자열(openssl rand -hex 32 로 생성)
 //
 //    5. Vercel 배포 시: 프로젝트 Settings > Environment Variables 에 동일 변수 추가
-//    6. Firebase 콘솔 > Authentication > Settings > 승인된 도메인에 배포 도메인 추가
+//       (VITE_ 접두사 없이 서버 전용 변수로 설정)
+//
+//  작동 방식:
+//    sendOTP → /api/send-otp (Vercel Function) → Solapi SMS 발송
+//              → 서명된 OTP 토큰 반환 (DB 불필요, 5분 유효)
+//    verifyOTP → /api/verify-otp (Vercel Function) → 토큰+코드 검증
+//              → 성공 시 전화번호 반환
 // ═══════════════════════════════════════════════════════════════════════
 
-const FIREBASE_CONFIG = {
-  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
-};
-
-let _auth = null;
-let _confirmResult = null;
-
-function _getFirebaseAuth() {
-  if (!_auth) {
-    const app = getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
-    _auth = getAuth(app);
-    _auth.languageCode = 'ko';
-  }
-  return _auth;
-}
-
-// 한국 번호 → E.164 변환 (010-1234-5678 → +821012345678)
-function _toE164(phone) {
-  const d = phone.replace(/\D/g, '');
-  if (d.startsWith('82')) return '+' + d;
-  if (d.startsWith('0'))  return '+82' + d.slice(1);
-  return '+82' + d;
-}
+// 현재 인증 세션에서 임시로 OTP 토큰 보관
+let _otpToken = null;
 
 /**
  * SMS 인증코드 발송
  * @param {string} phone        - 한국 휴대폰 번호 (010-xxxx-xxxx 등 다양한 형식 허용)
- * @param {string} containerId  - invisible reCAPTCHA 를 마운트할 DOM element id
+ * @param {string} _containerId - 사용 안 함 (Firebase reCAPTCHA 호환성 유지용 파라미터)
  */
-export async function sendOTP(phone, containerId) {
-  const auth = _getFirebaseAuth();
-  const e164 = _toE164(phone);
+export async function sendOTP(phone, _containerId) {
+  _otpToken = null;
 
-  // 기존 reCAPTCHA 정리 (재발송 시 필요)
-  if (window._recaptchaVerifier) {
-    try { window._recaptchaVerifier.clear(); } catch {}
-    window._recaptchaVerifier = null;
-  }
-
-  const verifier = new RecaptchaVerifier(auth, containerId, {
-    size: 'invisible',
-    callback: () => {},
-    'expired-callback': () => {},
+  const res = await fetch('/api/send-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone }),
   });
-  window._recaptchaVerifier = verifier;
 
-  _confirmResult = await signInWithPhoneNumber(auth, e164, verifier);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'SMS 발송에 실패했습니다.');
+
+  _otpToken = data.token; // 서버에서 발급한 서명 토큰 보관
 }
 
 /**
  * 인증코드 검증
  * @param {string} code - 사용자가 입력한 6자리 숫자 코드
- * @returns {Promise<{ uid: string, phone: string }>}  uid: Firebase UID, phone: E.164 형식
+ * @returns {Promise<{ uid: string, phone: string }>}  phone: E.164 (+82...) 형식
  */
 export async function verifyOTP(code) {
-  if (!_confirmResult) throw new Error('먼저 인증 코드를 요청하세요.');
-  const cred = await _confirmResult.confirm(code);
-  return { uid: cred.user.uid, phone: cred.user.phoneNumber };
+  if (!_otpToken) throw new Error('먼저 인증 코드를 요청하세요.');
+
+  const res = await fetch('/api/verify-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: _otpToken, code }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || '인증에 실패했습니다.');
+
+  _otpToken = null; // 사용 후 토큰 폐기
+  return { uid: data.phone, phone: data.phone }; // uid = phone (Firebase uid 자리 대체)
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -168,5 +143,5 @@ export function formatPhone(phone) {
   const local = d.startsWith('82') ? '0' + d.slice(2) : d;
   if (local.length === 11) return local.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
   if (local.length === 10) return local.replace(/(\d{3})(\d{3,4})(\d{4})/, '$1-$2-$3');
-  return phone; // 변환 불가 시 원본 반환
+  return phone;
 }

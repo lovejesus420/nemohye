@@ -1,4 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { App as CapApp } from '@capacitor/app';
+import { SplashScreen } from '@capacitor/splash-screen';
+
+// ─── Capacitor 모바일 초기화 ──────────────────────────────────────
+const IS_NATIVE = typeof window !== 'undefined' && !!(window.Capacitor?.isNativePlatform?.());
+if (IS_NATIVE) {
+  StatusBar.setStyle({ style: Style.Dark }).catch(()=>{});
+  StatusBar.setBackgroundColor({ color: '#0d1117' }).catch(()=>{});
+  SplashScreen.hide().catch(()=>{});
+}
 import {
   ADMIN_ID, ADMIN_PW,
   sendOTP, verifyOTP,
@@ -286,7 +297,6 @@ function AuthScreen({onLogin}){
   const STEPS=[['phone','① 번호 입력'],['otp','② 코드 확인'],['name','③ 이름 등록']];
 
 return(<div style={{minHeight:'100vh',background:'#0d1117',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24}}>
-  <div id="recaptcha-container"/>
   <div style={{marginBottom:28,textAlign:'center'}}>
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginBottom:8}}><Logo size={50}/><span style={{fontFamily:'serif',fontSize:'2.42rem',fontWeight:900,color:'#fff',letterSpacing:-1}}>네모<span style={{color:'#c9a84c'}}>혜</span></span></div>
     <p style={{color:'#6b7280',fontSize:14}}>네 모든 혜택을 찾아드리는 서비스</p>
@@ -688,6 +698,19 @@ export default function App() {
     setReady(true);
   }, []);
 
+  // 안드로이드 뒤로가기 버튼: analyze 탭이면 앱 종료, 나머지는 analyze로 이동
+  useEffect(() => {
+    if (!IS_NATIVE) return;
+    const handler = CapApp.addListener('backButton', ({ canGoBack }) => {
+      if (tab === 'analyze') {
+        CapApp.exitApp();
+      } else {
+        setTab('analyze');
+      }
+    });
+    return () => { handler.then(h => h.remove()); };
+  }, [tab]);
+
   const login = (u) => { saveSession(u); setUser(u); };
   const logout = () => { clearSession(); setUser(null); setTab('analyze'); };
   const refreshCount = useCallback(() => {
@@ -712,7 +735,7 @@ export default function App() {
         </div>
       )}
 
-      <header style={{background:'#0d1117',padding:'0 20px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:200,height:56}}>
+      <header style={{background:'#0d1117',padding:'0 20px',paddingTop:'env(safe-area-inset-top, 0px)',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:200,height:'calc(56px + env(safe-area-inset-top, 0px))'}}>
         <div onClick={()=>setTab('analyze')} style={{display:'flex',alignItems:'center',gap:9,cursor:'pointer'}}>
           <Logo size={34}/>
           <span style={{fontFamily:'serif',fontWeight:900,fontSize:'1.26rem',color:'#fff',letterSpacing:-0.5}}>네모<span style={{color:'#c9a84c'}}>혜</span></span>
@@ -761,7 +784,7 @@ export default function App() {
         {tab==='admin' && user?.isAdmin && <AdminTab/>}
       </div>
 
-      <footer style={{background:'#0d1117',padding:'20px 24px',textAlign:'center',color:'#5a6270',fontSize:12,lineHeight:1.8}}>
+      <footer style={{background:'#0d1117',padding:'20px 24px',paddingBottom:'calc(20px + env(safe-area-inset-bottom, 0px))',textAlign:'center',color:'#5a6270',fontSize:12,lineHeight:1.8}}>
         <p>본 서비스는 복지 안내 서비스로, 실제 수혜 여부는 관할 기관에 직접 문의하시기 바랍니다.</p>
         <p style={{marginTop:4,color:'#3a4250'}}>© 2026 네모혜 — 네 모든 혜택을 찾아드리는 서비스</p>
       </footer>
