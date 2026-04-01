@@ -1,15 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { StatusBar, Style } from '@capacitor/status-bar';
-import { App as CapApp } from '@capacitor/app';
-import { SplashScreen } from '@capacitor/splash-screen';
-
-// ─── Capacitor 모바일 초기화 ──────────────────────────────────────
-const IS_NATIVE = typeof window !== 'undefined' && !!(window.Capacitor?.isNativePlatform?.());
-if (IS_NATIVE) {
-  StatusBar.setStyle({ style: Style.Dark }).catch(()=>{});
-  StatusBar.setBackgroundColor({ color: '#0d1117' }).catch(()=>{});
-  SplashScreen.hide().catch(()=>{});
-}
 import {
   ADMIN_ID, ADMIN_PW,
   sendOTP, verifyOTP,
@@ -18,6 +7,22 @@ import {
   getAllUsers, deleteUser,
   formatPhone,
 } from './auth.js';
+
+// ─── Capacitor (모바일 네이티브 전용, 웹에서는 자동 무시) ──────────
+let StatusBar, Style, CapApp, SplashScreen;
+const IS_NATIVE = typeof window !== 'undefined' && !!(window?.Capacitor?.isNativePlatform?.());
+if (IS_NATIVE) {
+  Promise.all([
+    import('@capacitor/status-bar'),
+    import('@capacitor/app'),
+    import('@capacitor/splash-screen'),
+  ]).then(([sb, app, sp]) => {
+    sb.StatusBar.setStyle({ style: sb.Style.Dark }).catch(()=>{});
+    sb.StatusBar.setBackgroundColor({ color: '#0d1117' }).catch(()=>{});
+    sp.SplashScreen.hide().catch(()=>{});
+    CapApp = app.App;
+  }).catch(()=>{});
+}
 
 // ─── 환경변수에서 API 키 읽기 ─────────────────────────────────────
 // Vercel/Netlify 배포 시: 환경변수 VITE_ANTHROPIC_KEY 설정
@@ -700,15 +705,16 @@ export default function App() {
 
   // 안드로이드 뒤로가기 버튼: analyze 탭이면 앱 종료, 나머지는 analyze로 이동
   useEffect(() => {
-    if (!IS_NATIVE) return;
-    const handler = CapApp.addListener('backButton', ({ canGoBack }) => {
+    if (!IS_NATIVE || !CapApp) return;
+    let cleanup = null;
+    CapApp.addListener('backButton', () => {
       if (tab === 'analyze') {
-        CapApp.exitApp();
+        import('@capacitor/app').then(({ App }) => App.exitApp()).catch(()=>{});
       } else {
         setTab('analyze');
       }
-    });
-    return () => { handler.then(h => h.remove()); };
+    }).then(h => { cleanup = h; });
+    return () => { cleanup?.remove(); };
   }, [tab]);
 
   const login = (u) => { saveSession(u); setUser(u); };
