@@ -741,20 +741,42 @@ export default function App() {
         </div>
       )}
 
-      <header style={{background:'#0d1117',padding:'0 20px',paddingTop:'env(safe-area-inset-top, 0px)',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:200,height:'calc(56px + env(safe-area-inset-top, 0px))'}}>
-        <div onClick={()=>setTab('analyze')} style={{display:'flex',alignItems:'center',gap:9,cursor:'pointer'}}>
-          <Logo size={34}/>
-          <span style={{fontFamily:'serif',fontWeight:900,fontSize:'1.26rem',color:'#fff',letterSpacing:-0.5}}>네모<span style={{color:'#c9a84c'}}>혜</span></span>
+      <header style={{background:'#0d1117',position:'sticky',top:0,zIndex:200,paddingTop:'env(safe-area-inset-top, 0px)'}}>
+        {/* 1줄: 로고 + 로그아웃 */}
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 16px',height:52}}>
+          <div onClick={()=>setTab('analyze')} style={{display:'flex',alignItems:'center',gap:9,cursor:'pointer'}}>
+            <Logo size={32}/>
+            <span style={{fontFamily:'serif',fontWeight:900,fontSize:'1.18rem',color:'#fff',letterSpacing:-0.5}}>네모<span style={{color:'#c9a84c'}}>혜</span></span>
+          </div>
+          <button onClick={logout} style={{background:'transparent',border:'1px solid #3a4250',color:'#9ca3af',padding:'5px 12px',borderRadius:7,fontSize:12,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>로그아웃</button>
         </div>
-        <nav style={{display:'flex',gap:2}}>
+        {/* 2줄: 가로 스크롤 탭 */}
+        <nav style={{
+          display:'flex',overflowX:'auto',gap:2,
+          padding:'0 8px 6px',
+          scrollbarWidth:'none', // Firefox
+          WebkitOverflowScrolling:'touch',
+        }}>
+          <style>{`header nav::-webkit-scrollbar{display:none}`}</style>
           {NAV.map(([v,l])=>(
             <button key={v} onClick={()=>setTab(v)}
-              style={{background:tab===v?'rgba(255,255,255,0.1)':'transparent',color:tab===v?'#fff':'#6b7280',border:'none',padding:'7px 12px',borderRadius:8,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',transition:'all 0.15s'}}>
+              style={{
+                flexShrink:0,
+                background:tab===v?'rgba(255,255,255,0.12)':'transparent',
+                color:tab===v?'#fff':'#6b7280',
+                border:'none',
+                borderBottom:tab===v?'2px solid #c9a84c':'2px solid transparent',
+                padding:'6px 13px',
+                borderRadius:'8px 8px 0 0',
+                fontSize:13,fontWeight:700,
+                cursor:'pointer',fontFamily:'inherit',
+                transition:'all 0.15s',
+                whiteSpace:'nowrap',
+              }}>
               {l}
             </button>
           ))}
         </nav>
-        <button onClick={logout} style={{background:'transparent',border:'1px solid #3a4250',color:'#9ca3af',padding:'5px 12px',borderRadius:7,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>로그아웃</button>
       </header>
 
       {tab==='analyze' && (
