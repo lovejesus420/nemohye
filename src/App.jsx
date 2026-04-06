@@ -223,34 +223,101 @@ function Logo({size=38}){return(<svg width={size} height={size} viewBox="0 0 42 
 const R=()=><span style={{color:C.err,marginLeft:2}}>*</span>;
 function Divider({label}){return(<div style={{display:'flex',alignItems:'center',gap:10,margin:'22px 0 14px'}}><div style={{flex:1,height:1,background:C.border}}/><span style={{fontSize:11,fontWeight:700,color:C.text3,textTransform:'uppercase',letterSpacing:2,whiteSpace:'nowrap'}}>{label}</span><div style={{flex:1,height:1,background:C.border}}/></div>);}
 
-// ─── getBestApplyUrl: 홈페이지 메인 URL → 신청 페이지 URL 매핑 ───
-const APPLY_URL_MAP = {
-  'bokjiro.go.kr': 'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do',
-  'gov.kr': 'https://www.gov.kr/portal/serviceList',
-  'work.go.kr': 'https://www.work.go.kr/jobcenter/main.do',
-  'nhuf.molit.go.kr': 'https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp',
-  'youthcenter.go.kr': 'https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do',
-  'youth.go.kr': 'https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do',
-  'nhis.or.kr': 'https://www.nhis.or.kr/nhis/policy/wbhada02800m01.do',
-  'nps.or.kr': 'https://www.nps.or.kr/jsppage/service/apply/apply.jsp',
-  'kcomwel.or.kr': 'https://www.kcomwel.or.kr/kcomwel/paym/acci/acci.jsp',
-  'hf.go.kr': 'https://www.hf.go.kr/hf/sub04/sub04_01_01.do',
-  'lh.or.kr': 'https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWtWrtanc.do',
-  'sbcrc.or.kr': 'https://www.sbcrc.or.kr/site/main/apply/applyView',
+// ─── getBestApplyUrl: 혜택명/기관 키워드 → 실제 신청 페이지 URL ───
+// 키워드 배열 중 하나라도 title/institution에 포함되면 해당 URL로 이동
+const KNOWN_BENEFIT_URLS = [
+  // ── 국세청 / 세금 ──
+  {kw:['근로장려금','EITC'],url:'https://www.hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&menuCd=WME3000'},
+  {kw:['자녀장려금'],url:'https://www.hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&menuCd=WME3000'},
+  {kw:['종합소득세 환급','환급금 조회'],url:'https://www.hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&menuCd=WME1400'},
+  // ── 고용노동부 / 실업급여 / 취업 ──
+  {kw:['실업급여','구직급여'],url:'https://www.work.go.kr/benefitService/doReceivingBenefit.do'},
+  {kw:['국민취업지원제도','취업지원제도'],url:'https://www.work.go.kr/empSpt/doEmpSptInfo.do'},
+  {kw:['청년일자리도약장려금','일자리도약'],url:'https://www.work.go.kr/youngWork/doYoungWork.do'},
+  {kw:['청년내일채움공제','내일채움공제'],url:'https://www.work.go.kr/youngtomorrow/main/main.do'},
+  {kw:['육아휴직','출산전후휴가','배우자 출산휴가'],url:'https://www.moel.go.kr/policy/policyinfo/child/list7.do'},
+  {kw:['고용보험 환급','직업능력개발 환급'],url:'https://www.hrd.go.kr/hrdp/ma/pmmao/indexNew.do'},
+  // ── 복지로 (복지급여) ──
+  {kw:['기초생활','생계급여','의료급여','주거급여','교육급여'],url:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do'},
+  {kw:['에너지바우처'],url:'https://www.energyv.or.kr/user/cstmrRqstPage.do'},
+  {kw:['문화누리카드','문화바우처'],url:'https://www.mnuri.kr/mnuri/index.do'},
+  {kw:['청소년 증'],url:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do'},
+  {kw:['장애인 활동지원','장애인활동'],url:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do'},
+  {kw:['돌봄서비스','노인돌봄'],url:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do'},
+  {kw:['아이돌봄','아이 돌봄'],url:'https://idolbom.go.kr/front/main/main.do'},
+  {kw:['사회서비스 이용권','사회서비스바우처'],url:'https://www.socialservice.or.kr/user/main.do'},
+  // ── 국민건강보험 ──
+  {kw:['건강검진'],url:'https://www.nhis.or.kr/nhis/healthin/wbhaze01100m01.do'},
+  {kw:['임신','출산 진료비','국민행복카드'],url:'https://www.nhis.or.kr/nhis/policy/wbhada04000m01.do'},
+  {kw:['본인부담 상한제','본인부담금 환급'],url:'https://www.nhis.or.kr/nhis/policy/wbhada07300m01.do'},
+  {kw:['노인 장기요양','장기요양'],url:'https://www.longtermcare.or.kr/npbs/e/b/101/npeb101m01.web'},
+  // ── 국민연금 ──
+  {kw:['국민연금 반환일시금','반환일시금'],url:'https://www.nps.or.kr/jsppage/service/apply/apply.jsp'},
+  {kw:['국민연금 크레딧','출산 크레딧','군복무 크레딧'],url:'https://www.nps.or.kr/jsppage/info/easy/easy_04_01.jsp'},
+  // ── 주거 (LH / HF / 주택도시기금) ──
+  {kw:['청년월세','청년 월세'],url:'https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWtWrtanc.do'},
+  {kw:['행복주택'],url:'https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWtWrtanc.do'},
+  {kw:['전세임대','매입임대'],url:'https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWtWrtanc.do'},
+  {kw:['버팀목 전세자금','버팀목전세'],url:'https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp'},
+  {kw:['디딤돌 대출','디딤돌대출'],url:'https://nhuf.molit.go.kr/FP/FP05/FP0502/FP05020201.jsp'},
+  {kw:['주거급여'],url:'https://www.myhome.go.kr/hws/portal/sch/selectRsdtRcritNtcList.do'},
+  // ── 청년 특화 ──
+  {kw:['청년도약계좌'],url:'https://kinfa.or.kr/youth/youth01.do'},
+  {kw:['청년희망적금'],url:'https://kinfa.or.kr/youth/youth02.do'},
+  {kw:['청년저축계좌','내일저축계좌'],url:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do'},
+  {kw:['청년 정책','청년 지원','온통청년'],url:'https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do'},
+  {kw:['대학생 학자금','학자금 대출','한국장학재단'],url:'https://www.kosaf.go.kr/ko/loan.do?pg=loan01_01'},
+  {kw:['국가장학금'],url:'https://www.kosaf.go.kr/ko/scholarship.do?pg=scholarship01_01_01'},
+  // ── 소상공인 / 자영업 ──
+  {kw:['소상공인 지원','소상공인 대출','소상공인시장진흥공단'],url:'https://www.sbiz.or.kr/sup/main.do'},
+  {kw:['자영업자 고용보험'],url:'https://www.work.go.kr/empSpt/doEmpSptInfo.do'},
+  // ── 산재 / 보상 ──
+  {kw:['산재보험','산업재해','요양급여'],url:'https://www.kcomwel.or.kr/kcomwel/paym/acci/acci.jsp'},
+  // ── 정부24 통합 ──
+  {kw:['정부24'],url:'https://www.gov.kr/portal/serviceList'},
+];
+const APPLY_DOMAIN_MAP = {
+  'bokjiro.go.kr':'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do',
+  'gov.kr':'https://www.gov.kr/portal/serviceList',
+  'work.go.kr':'https://www.work.go.kr/benefitService/doReceivingBenefit.do',
+  'nhuf.molit.go.kr':'https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp',
+  'youthcenter.go.kr':'https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do',
+  'youth.go.kr':'https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do',
+  'nhis.or.kr':'https://www.nhis.or.kr/nhis/policy/wbhada02800m01.do',
+  'nps.or.kr':'https://www.nps.or.kr/jsppage/service/apply/apply.jsp',
+  'kcomwel.or.kr':'https://www.kcomwel.or.kr/kcomwel/paym/acci/acci.jsp',
+  'hf.go.kr':'https://www.hf.go.kr/hf/sub04/sub04_01_01.do',
+  'lh.or.kr':'https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWtWrtanc.do',
+  'apply.lh.or.kr':'https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWtWrtanc.do',
+  'sbcrc.or.kr':'https://www.sbcrc.or.kr/site/main/apply/applyView',
+  'kosaf.go.kr':'https://www.kosaf.go.kr/ko/loan.do?pg=loan01_01',
+  'hometax.go.kr':'https://www.hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&menuCd=WME3000',
+  'kinfa.or.kr':'https://kinfa.or.kr/youth/youth01.do',
+  'energyv.or.kr':'https://www.energyv.or.kr/user/cstmrRqstPage.do',
+  'mnuri.kr':'https://www.mnuri.kr/mnuri/index.do',
+  'longtermcare.or.kr':'https://www.longtermcare.or.kr/npbs/e/b/101/npeb101m01.web',
+  'idolbom.go.kr':'https://idolbom.go.kr/front/main/main.do',
+  'socialservice.or.kr':'https://www.socialservice.or.kr/user/main.do',
+  'sbiz.or.kr':'https://www.sbiz.or.kr/sup/main.do',
 };
-function getBestApplyUrl(url){
+function getBestApplyUrl(url, title='', institution=''){
+  const haystack=(title+' '+institution).toLowerCase();
+  // 1) 키워드 매핑 우선
+  for(const{kw,url:dest}of KNOWN_BENEFIT_URLS){
+    if(kw.some(k=>haystack.includes(k.toLowerCase())))return dest;
+  }
   if(!url)return'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do';
   try{
-    const host=new URL(url).hostname.replace(/^www\./,'');
-    // 이미 서브페이지(path가 있음)면 그대로 사용
-    const path=new URL(url).pathname;
-    if(path&&path!=='/'&&path.length>1)return url;
-    // 메인 홈페이지면 매핑된 신청 URL로 교체
-    for(const[domain,applyUrl]of Object.entries(APPLY_URL_MAP)){
-      if(host===domain||host.endsWith('.'+domain))return applyUrl;
+    const parsed=new URL(url);
+    const host=parsed.hostname.replace(/^www\./,'');
+    // 2) 이미 서브페이지면 그대로
+    if(parsed.pathname&&parsed.pathname!=='/'&&parsed.pathname.length>1)return url;
+    // 3) 도메인 매핑
+    for(const[domain,dest]of Object.entries(APPLY_DOMAIN_MAP)){
+      if(host===domain||host.endsWith('.'+domain))return dest;
     }
   }catch{}
-  return url;
+  return url||'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do';
 }
 
 // ─── BCard ────────────────────────────────────────────────────────
@@ -281,7 +348,7 @@ return(<div style={{background:C.surface,border:`1.5px solid ${isSaved?C.teal:b.
     </div>
     {b.requiredDocuments?.length>0&&(<div style={{marginBottom:10}}><div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:0.5,marginBottom:5}}>📂 필요 서류</div><div style={{display:'flex',flexWrap:'wrap',gap:4}}>{b.requiredDocuments.map(d=><span key={d} style={{background:'#f0ebe0',border:'1px solid #d4cdc2',borderRadius:5,padding:'3px 8px',fontSize:12}}>📄 {d}</span>)}</div></div>)}
     <div style={{display:'flex',gap:7,flexWrap:'wrap',alignItems:'center'}}>
-      <a href={getBestApplyUrl(b.applyUrl)} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:5,background:'#0d1117',color:'#fff',fontSize:13,fontWeight:700,padding:'8px 14px',borderRadius:7,textDecoration:'none'}}>신청하러 가기 →</a>
+      <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:5,background:'#0d1117',color:'#fff',fontSize:13,fontWeight:700,padding:'8px 14px',borderRadius:7,textDecoration:'none'}}>신청하러 가기 →</a>
       {dl&&(<div style={{position:'relative'}}>
         <button onClick={()=>setCalOpen(p=>!p)} style={BP({padding:'7px 12px',fontSize:13,borderRadius:7,background:'#edf6f6',color:'#1a6b6b',display:'flex',alignItems:'center',gap:5})}>📅 캘린더 알림</button>
         {calOpen&&(<div style={{position:'absolute',bottom:'calc(100% + 6px)',left:0,background:'#fff',border:'1.5px solid #d4cdc2',borderRadius:12,boxShadow:'0 8px 24px rgba(0,0,0,0.12)',zIndex:300,minWidth:220,overflow:'hidden'}}>
@@ -1091,7 +1158,7 @@ export default function App() {
           <div style={{position:'absolute',bottom:-1,left:0,right:0,height:32,background:C.bg,clipPath:'ellipse(55% 100% at 50% 100%)'}}/>
 
           <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(212,168,67,0.12)',border:`1px solid rgba(212,168,67,0.3)`,borderRadius:20,padding:'5px 14px',marginBottom:18}}>
-            <span style={{color:C.gold,fontSize:10,letterSpacing:2,fontWeight:700,textTransform:'uppercase'}}>✦ AI 맞춤 혜택 분석</span>
+            <span style={{color:C.gold,fontSize:10,letterSpacing:2,fontWeight:700,textTransform:'uppercase'}}>✦ 사용자 맞춤 혜택 분석</span>
           </div>
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginBottom:14}}>
             <Logo size={46}/>
