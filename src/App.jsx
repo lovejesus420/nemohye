@@ -131,6 +131,31 @@ async function callClaude(prompt, maxTokens = 4000) {
   return text.trim().replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/i,'').trim();
 }
 
+// ─── JSON 복구 헬퍼 (응답이 잘렸을 때 최대한 살림) ──────────────
+function repairJSON(raw) {
+  // 1) 정상 파싱 시도
+  try { return JSON.parse(raw); } catch {}
+
+  // 2) 마크다운 코드블록 제거 후 재시도
+  const cleaned = raw.trim()
+    .replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/i,'').trim();
+  try { return JSON.parse(cleaned); } catch {}
+
+  // 3) 마지막 완전한 benefit 객체까지만 잘라서 JSON 닫기
+  let idx = cleaned.length;
+  while (idx > 0) {
+    idx = cleaned.lastIndexOf('}', idx - 1);
+    if (idx === -1) break;
+    const slice = cleaned.slice(0, idx + 1);
+    // 여러 닫기 패턴 시도
+    for (const suffix of [']}', ']}}',' ]}', '  ]}']) {
+      try { return JSON.parse(slice + suffix); } catch {}
+    }
+  }
+
+  throw new Error('응답이 너무 길어 JSON을 처리할 수 없습니다. 잠시 후 다시 시도해 주세요.');
+}
+
 // ─── 날짜 헬퍼 ────────────────────────────────────────────────────
 function parseDeadline(str){if(!str||str==='수시 신청'||str==='수시')return null;const m=str.match(/(\d{4})[.\-년\s]+(\d{1,2})[.\-월\s]+(\d{1,2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);const m2=str.match(/(\d{1,2})[.\-월\s]+(\d{1,2})/);if(m2){const now=new Date();return new Date(now.getFullYear(),+m2[1]-1,+m2[2]);}return null;}
 function formatDate(d){if(!d)return null;return`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;}
@@ -455,7 +480,7 @@ function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='ful
 - 상조 서비스·보험 환급
 
 순수 JSON만 반환: {"benefits":[${SCHEMA}]}
-10~15개. isHidden은 모두 true. ${URL_GUIDE}`;
+8~12개. isHidden은 모두 true. 각 description은 1문장으로 간결하게. ${URL_GUIDE}`;
   }
 
   return `당신은 대한민국 최고 수준의 복지·혜택 전문가입니다. 아래 사람이 받을 수 있는 모든 혜택을 빠짐없이 분석해주세요.
@@ -474,7 +499,7 @@ function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='ful
 
 순수 JSON만 반환 (마크다운 코드블록 없이):
 {"summary":{"totalBenefits":숫자,"estimatedMonthlyBenefit":"금액범위","topPriority":"혜택명","hiddenCount":숫자},"benefits":[${SCHEMA}]}
-최소 20개 최대 30개. 실제 존재하는 혜택만. 마감일은 YYYY년 MM월 DD일 형식. ${URL_GUIDE}`;
+최소 12개 최대 18개. 실제 존재하는 혜택만. 마감일은 YYYY년 MM월 DD일 형식. 각 description은 1~2문장으로 간결하게. ${URL_GUIDE}`;
 }
 
 function AnalyzeTab({user,onSaved}){
@@ -499,8 +524,8 @@ function AnalyzeTab({user,onSaved}){
     if(!age||!gender||!job||!income||!address){alert('모든 필수 항목(*)을 입력해 주세요.');return;}
     setLoading(true);setResults(null);setErr('');setStep(0);setHiddenResults(null);setAnalyzedAt(null);
     try{
-      const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full'}),6000);
-      setResults(JSON.parse(raw));
+      const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full'}),8000);
+      setResults(repairJSON(raw));
       setAnalyzedAt(new Date());
     }catch(e){setErr(e.message);}
     finally{setLoading(false);}
@@ -510,8 +535,8 @@ function AnalyzeTab({user,onSaved}){
     if(!results)return;
     setHiddenLoading(true);
     try{
-      const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'hidden'}),4000);
-      const parsed=JSON.parse(raw);
+      const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'hidden'}),5000);
+      const parsed=repairJSON(raw);
       setHiddenResults(parsed.benefits||[]);
     }catch(e){showToast('추가 혜택 발굴 중 오류: '+e.message);}
     finally{setHiddenLoading(false);}
