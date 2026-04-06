@@ -57,7 +57,16 @@ const EXTRA_OPTIONS=[
   {value:'장애인 가구',label:'♿ 장애인 가구'},{value:'국가유공자/보훈 대상',label:'🎖️ 국가유공자 / 보훈'},
   {value:'기초생활수급자 또는 차상위계층',label:'📋 기초/차상위계층'},{value:'노인 단독 가구(65세 이상)',label:'👴 노인 단독 가구'},
 ];
-const LOADING_STEPS=["정부24, 복지로, 각 지자체 데이터 검토 중","나이 및 소득 조건 매칭 중","지역별 특화 혜택 검색 중","필요 서류 및 신청 기한 정리 중","최종 맞춤 혜택 목록 생성 중"];
+const LOADING_STEPS=[
+  "복지로·정부24 전국 복지 데이터 검토 중",
+  "고용노동부·국민건강보험 혜택 매칭 중",
+  "지자체 특화 지원사업 검색 중",
+  "은행·금융기관 특별 상품 확인 중",
+  "기업·협회·공공기관 숨겨진 혜택 발굴 중",
+  "나이·소득·상황별 조건 정밀 매칭 중",
+  "신청 가능한 실시간 진행 프로그램 확인 중",
+  "최종 맞춤 혜택 목록 구성 중",
+];
 const CAT_COLOR={'주거':'#dbeafe','의료':'#fee2e2','금융':'#fef9c3','교육':'#dcfce7','고용':'#ede9fe','보육':'#fce7f3','노인':'#e0f2fe','장애':'#ecfccb','청년':'#ede9fe','기타':'#f3f4f6'};
 const MONTH_KR=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 const DAY_KR=['일','월','화','수','목','금','토'];
@@ -220,21 +229,25 @@ function getBestApplyUrl(url){
 }
 
 // ─── BCard ────────────────────────────────────────────────────────
+const SOURCE_COLOR={'정부복지':'#1e3a5f','지자체':'#166534','금융/은행':'#1e40af','공공기관':'#5b21b6','기업/협회':'#b45309','민간/NGO':'#be185d'};
 function BCard({b,savedIds,onToggleSave}){const bg=CAT_COLOR[b.category]||'#f3f4f6';const isSaved=savedIds?.has(String(b.id));const dl=parseDeadline(b.deadline);const days=daysLeft(dl);const[calOpen,setCalOpen]=useState(false);
-return(<div style={{background:'#fff',border:`1.5px solid ${isSaved?'#1a6b6b':'#d4cdc2'}`,borderRadius:14,padding:'18px 20px',marginBottom:10,boxShadow:isSaved?'0 0 0 3px rgba(26,107,107,0.08)':'0 2px 10px rgba(0,0,0,0.05)'}}>
+const srcColor=SOURCE_COLOR[b.source]||'#374151';
+return(<div style={{background:C.surface,border:`1.5px solid ${isSaved?C.teal:b.isHidden?'#7c3aed':C.border}`,borderRadius:16,padding:'18px 20px',marginBottom:10,boxShadow:isSaved?`0 0 0 3px rgba(14,116,144,0.10)`:b.isHidden?'0 0 0 2px rgba(124,58,237,0.08)':'0 2px 12px rgba(15,23,42,0.05)',position:'relative',overflow:'hidden'}}>
+  {b.isHidden&&<div style={{position:'absolute',top:0,right:0,background:'linear-gradient(135deg,#7c3aed,#5b21b6)',color:'#fff',fontSize:9,fontWeight:700,padding:'3px 10px',borderRadius:'0 16px 0 10px',letterSpacing:1}}>숨겨진 혜택</div>}
   <div style={{display:'flex',gap:12,marginBottom:10}}>
-    <div style={{width:40,height:40,borderRadius:10,background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{b.categoryIcon||'📋'}</div>
+    <div style={{width:42,height:42,borderRadius:12,background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:21,flexShrink:0}}>{b.categoryIcon||'📋'}</div>
     <div style={{flex:1}}>
-      <div style={{display:'flex',flexWrap:'wrap',gap:4,marginBottom:4}}>
-        <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#ede8dc',color:'#6b6560'}}>{b.category}</span>
-        <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:b.scope==='전국'?'#dbeafe':'#fce7f3',color:b.scope==='전국'?'#1a5080':'#801a60'}}>{b.scope}</span>
-        {b.isUrgent&&<span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#fee2e2',color:'#c94f1a'}}>⚡ 긴급</span>}
-        {days!==null&&days<=30&&days>=0&&<span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#fef9c3',color:'#854f0b'}}>D-{days}</span>}
+      <div style={{display:'flex',flexWrap:'wrap',gap:4,marginBottom:5}}>
+        {b.source&&<span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:srcColor,color:'#fff'}}>{b.sourceIcon||''} {b.source}</span>}
+        <span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:C.bg,color:C.text2}}>{b.category}</span>
+        <span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:b.scope==='전국'?'#DBEAFE':'#FCE7F3',color:b.scope==='전국'?'#1e40af':'#9d174d'}}>{b.scope}</span>
+        {b.isUrgent&&<span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#FEE2E2',color:C.err}}>⚡ 긴급</span>}
+        {days!==null&&days<=30&&days>=0&&<span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#FEF9C3',color:'#854d0e'}}>D-{days}</span>}
       </div>
-      <div style={{fontFamily:'serif',fontSize:15,fontWeight:700,marginBottom:2}}>{b.title}</div>
-      <div style={{fontSize:12,color:'#6b6560'}}>{b.institution}</div>
+      <div style={{fontFamily:'serif',fontSize:15.4,fontWeight:700,marginBottom:2,color:C.text1}}>{b.title}</div>
+      <div style={{fontSize:12.5,color:C.text2}}>{b.institution}</div>
     </div>
-    {onToggleSave&&(<button onClick={()=>onToggleSave(b)} style={{width:36,height:36,flexShrink:0,border:`1.5px solid ${isSaved?'#1a6b6b':'#d4cdc2'}`,borderRadius:9,background:isSaved?'#edf6f6':'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}}>🔖</button>)}
+    {onToggleSave&&(<button onClick={()=>onToggleSave(b)} style={{width:36,height:36,flexShrink:0,border:`1.5px solid ${isSaved?C.teal:C.border}`,borderRadius:10,background:isSaved?'#E0F2F7':'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}}>🔖</button>)}
   </div>
   <div style={{borderTop:'1px solid #f0ebe0',paddingTop:12}}>
     <p style={{fontSize:13,color:'#3a3a3a',lineHeight:1.7,marginBottom:10}}>{b.description}</p>
@@ -417,24 +430,101 @@ return(
 </div>);}
 
 // ─── AnalyzeTab ───────────────────────────────────────────────────
+// ─── 혜택 분석 프롬프트 빌더 ─────────────────────────────────────
+function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='full'}){
+  const URL_GUIDE=`applyUrl규칙(필수): 홈페이지 메인 URL 금지. 신청 직접 페이지만. 복지로=https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do, 정부24=https://www.gov.kr/portal/serviceList, 고용24=https://www.work.go.kr/jobcenter/main.do, 주택도시기금=https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp, 청년정책=https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do, 건강보험=https://www.nhis.or.kr/nhis/policy/wbhada02800m01.do, 국민연금=https://www.nps.or.kr/jsppage/service/apply/apply.jsp`;
+  const SCHEMA=`{"id":숫자,"source":"정부복지|지자체|금융/은행|공공기관|기업/협회|민간/NGO 중 택1","sourceIcon":"이모지","category":"주거|의료|금융|교육|고용|보육|노인|장애|청년|세금|통신|문화|식품|기타 중 택1","categoryIcon":"이모지","scope":"전국 또는 지역명","isUrgent":false,"isHidden":false,"title":"혜택명","institution":"기관명","description":"설명2~3문장. 왜 이게 유리한지 포함","amount":"금액 또는 혜택 규모","deadline":"YYYY년 MM월 DD일 또는 수시 신청","requiredDocuments":["서류1"],"howToApply":"방법","applyUrl":"https://..."}`;
+
+  if(mode==='hidden'){
+    return `당신은 대한민국 복지·혜택 전문가입니다. 아래 사람이 놓치기 쉬운 숨겨진 혜택을 발굴해주세요.
+[정보] 나이:${age}세/성별:${gender}/직업:${job}/소득:${income}/거주:${address}/추가:${extra}/기준일:${today}
+
+★ 반드시 다음 분야에서 발굴하세요 (정부 복지 제외, 사람들이 잘 모르는 것 위주):
+- 시중 은행·인터넷은행 특별 금리·캐시백·적금 혜택 (카카오뱅크, 토스뱅크, 케이뱅크, 우리·국민·신한·하나은행 등)
+- 통신사 복지 혜택 (SKT·KT·LG U+ 요금 감면, 장애인/노인/저소득 할인)
+- 카드사 포인트·마일리지 활용 혜택
+- 근로복지공단 선택적 복지 포인트, 직장인 대출
+- 건강보험 환급금 (미청구 환급, 본인부담상한제 환급)
+- 국세청 연말정산 놓친 공제 항목
+- 각종 협회·노동조합 조합원 혜택
+- 지역 신협·새마을금고 특별 상품
+- 공공임대 주택 청약 (LH, SH, 지자체 매입임대)
+- 에너지바우처·알뜰폰 혜택·인터넷 요금 지원
+- 현재 진행 중인 국가 지원 사업 (취업 지원, 창업 자금, 교육비 지원)
+- 민간 장학재단·재단법인 지원
+- 상조 서비스·보험 환급
+
+순수 JSON만 반환: {"benefits":[${SCHEMA}]}
+10~15개. isHidden은 모두 true. ${URL_GUIDE}`;
+  }
+
+  return `당신은 대한민국 최고 수준의 복지·혜택 전문가입니다. 아래 사람이 받을 수 있는 모든 혜택을 빠짐없이 분석해주세요.
+[정보] 나이:${age}세/성별:${gender}/직업:${job}/소득:${income}/거주:${address}/추가:${extra}/기준일:${today}
+
+★ 반드시 다음 모든 출처에서 혜택을 찾아주세요:
+1. 정부 복지: 복지로, 정부24, 고용24, 국민건강보험, 국민연금, 건강보험 환급
+2. 지자체: ${address} 시·군·구청 특화 지원사업, 읍·면·동 주민센터 사업
+3. 금융기관: 주택도시기금, 서민금융진흥원, 햇살론, 사잇돌대출, 청년도약계좌, 청년희망적금
+4. 공공기관: 근로복지공단(선택복지·EAP), 한국장학재단, 한국고용정보원
+5. 에너지·통신: 에너지바우처, 통신요금 감면(장애인·저소득·노인), 인터넷 요금 지원
+6. 세금·환급: 근로장려금(EITC), 자녀장려금, 연말정산 추가공제, 건강보험 환급금
+7. 주거: LH·SH 공공임대, 전세자금 대출, 버팀목 전세자금, 청년 월세 지원
+8. 현재 모집 중인 시즌 프로그램: 국가기술자격 응시료 지원, 취업성공패키지, K-디지털 훈련
+9. 숨겨진 혜택: 사람들이 잘 모르는 것 최소 5개 포함 (isHidden:true 표시)
+
+순수 JSON만 반환 (마크다운 코드블록 없이):
+{"summary":{"totalBenefits":숫자,"estimatedMonthlyBenefit":"금액범위","topPriority":"혜택명","hiddenCount":숫자},"benefits":[${SCHEMA}]}
+최소 20개 최대 30개. 실제 존재하는 혜택만. 마감일은 YYYY년 MM월 DD일 형식. ${URL_GUIDE}`;
+}
+
 function AnalyzeTab({user,onSaved}){
   const[age,setAge]=useState('');const[gender,setGender]=useState('');const[job,setJob]=useState('');const[income,setIncome]=useState('');const[address,setAddress]=useState('');const[extras,setExtras]=useState([]);
   const[loading,setLoading]=useState(false);const[step,setStep]=useState(0);const[results,setResults]=useState(null);const[err,setErr]=useState('');const[savedIds,setSavedIds]=useState(new Set());const rRef=useRef();
+  const[analyzedAt,setAnalyzedAt]=useState(null);
+  const[hiddenLoading,setHiddenLoading]=useState(false);const[hiddenResults,setHiddenResults]=useState(null);
+  const[filterSource,setFilterSource]=useState('전체');
   const loadSavedIds=useCallback(()=>{const ids=new Set(sList(`benefit_item:${user.phone}:`).map(k=>k.split(':').pop()));setSavedIds(ids);},[user.phone]);
   useEffect(()=>{loadSavedIds();},[loadSavedIds]);
-  useEffect(()=>{if(!loading)return;let i=0;const t=setInterval(()=>{i=(i+1)%LOADING_STEPS.length;setStep(i);},2000);return()=>clearInterval(t);},[loading]);
+  useEffect(()=>{if(!loading)return;let i=0;const t=setInterval(()=>{i=(i+1)%LOADING_STEPS.length;setStep(i);},1800);return()=>clearInterval(t);},[loading]);
   useEffect(()=>{if(results&&rRef.current)rRef.current.scrollIntoView({behavior:'smooth'});},[results]);
   const toggleExtra=v=>setExtras(p=>p.includes(v)?p.filter(x=>x!==v):[...p,v]);
+
+  const buildCtx=()=>({
+    age,gender,job,income,address,
+    extra:extras.join(', ')||'없음',
+    today:new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'}),
+  });
+
   const analyze=async()=>{
     if(!age||!gender||!job||!income||!address){alert('모든 필수 항목(*)을 입력해 주세요.');return;}
-    setLoading(true);setResults(null);setErr('');setStep(0);
-    const today=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
-    const extra=extras.join(', ')||'없음';
-    const prompt=`당신은 대한민국 복지 전문가입니다. 아래 정보로 받을 수 있는 정부·지자체 복지 혜택을 분석해주세요.\n[정보] 나이:${age}세/성별:${gender}/직업:${job}/소득:${income}/거주:${address}/추가:${extra}/기준일:${today}\n순수 JSON만 반환 (마크다운 코드블록 없이):\n{"summary":{"totalBenefits":숫자,"estimatedMonthlyBenefit":"금액범위","topPriority":"혜택명"},"benefits":[{"id":1,"category":"주거/의료/금융/교육/고용/보육/노인/장애/청년/기타 중 택1","categoryIcon":"이모지","scope":"전국 또는 지역명","isUrgent":false,"title":"혜택명","institution":"기관명","description":"설명2~3문장","amount":"금액","deadline":"YYYY년 MM월 DD일 형식 또는 수시 신청","requiredDocuments":["서류1","서류2"],"howToApply":"방법","applyUrl":"https://..."}]}\n최소8개 최대15개. 실제 혜택만. 지역혜택은 ${address} 기준. 마감일은 YYYY년 MM월 DD일 형식으로.\napplyUrl 규칙(매우 중요): 홈페이지 메인 URL 절대 금지. 반드시 신청서 또는 서비스 목록 페이지 직접 URL을 사용할 것. 주요 포털 신청 URL: 복지로 신청=https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do, 정부24 신청=https://www.gov.kr/portal/serviceList, 고용24=https://www.work.go.kr/jobcenter/main.do, 주택도시기금=https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp, 청년정책포털=https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do, 국민건강보험=https://www.nhis.or.kr/nhis/policy/wbhada02800m01.do, 국민연금=https://www.nps.or.kr/jsppage/service/apply/apply.jsp, 근로복지공단=https://www.kcomwel.or.kr/kcomwel/paym/acci/acci.jsp. 모르는 경우 해당 기관의 민원 또는 신청 서브페이지 URL을 추론해서 넣을 것.`;
-    try{const raw=await callClaude(prompt);setResults(JSON.parse(raw));}catch(e){setErr(e.message);}finally{setLoading(false);}
+    setLoading(true);setResults(null);setErr('');setStep(0);setHiddenResults(null);setAnalyzedAt(null);
+    try{
+      const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full'}),6000);
+      setResults(JSON.parse(raw));
+      setAnalyzedAt(new Date());
+    }catch(e){setErr(e.message);}
+    finally{setLoading(false);}
   };
+
+  const loadHidden=async()=>{
+    if(!results)return;
+    setHiddenLoading(true);
+    try{
+      const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'hidden'}),4000);
+      const parsed=JSON.parse(raw);
+      setHiddenResults(parsed.benefits||[]);
+    }catch(e){showToast('추가 혜택 발굴 중 오류: '+e.message);}
+    finally{setHiddenLoading(false);}
+  };
+
   const toggleSave=(b)=>{const key=`benefit_item:${user.phone}:${b.id}`;if(savedIds.has(String(b.id))){sDel(key);setSavedIds(p=>{const n=new Set(p);n.delete(String(b.id));return n;});}else{sSet(key,{...b,savedAt:new Date().toISOString(),userPhone:user.phone});setSavedIds(p=>new Set([...p,String(b.id)]));}onSaved();};
-  const urgent=results?.benefits?.filter(b=>b.isUrgent)||[];const normal=results?.benefits?.filter(b=>!b.isUrgent)||[];
+
+  const allBenefits=[...(results?.benefits||[]),...(hiddenResults||[])];
+  const sources=['전체',...new Set(allBenefits.map(b=>b.source).filter(Boolean))];
+  const filtered=filterSource==='전체'?allBenefits:allBenefits.filter(b=>b.source===filterSource);
+  const urgent=filtered.filter(b=>b.isUrgent);
+  const hidden=filtered.filter(b=>b.isHidden&&!b.isUrgent);
+  const normal=filtered.filter(b=>!b.isUrgent&&!b.isHidden);
   return(<div>
     <div style={{...CS,marginBottom:20}}>
       <h2 style={{fontFamily:'serif',fontSize:'1.21rem',fontWeight:700,marginBottom:5}}>기본 정보 입력</h2>
@@ -452,14 +542,109 @@ function AnalyzeTab({user,onSaved}){
       </div>
       <button onClick={analyze} disabled={loading} style={BP({width:'100%',marginTop:22,padding:'14px',fontSize:15,borderRadius:10,opacity:loading?0.7:1,display:'flex',alignItems:'center',justifyContent:'center',gap:8})}><span style={{width:19,height:19,background:'#c9a84c',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11}}>✦</span>{loading?'분석 중...':'내게 맞는 혜택 분석하기'}</button>
     </div>
-    {loading&&<div style={{textAlign:'center',padding:'36px 0'}}><div style={{width:42,height:42,border:'3px solid #d4cdc2',borderTopColor:'#1a6b6b',borderRadius:'50%',animation:'spin 0.8s linear infinite',margin:'0 auto 12px'}}/><div style={{fontSize:14,color:'#6b6560'}}>전국 복지 혜택을 분석하고 있습니다...</div><div style={{fontSize:13,color:'#1a6b6b',marginTop:5,fontWeight:500}}>{LOADING_STEPS[step]}</div></div>}
-    {err&&<div style={{background:'#fee2e2',border:'1px solid #fca5a5',borderRadius:10,padding:'12px 16px',color:'#991b1b',fontSize:13,marginBottom:16}}><strong>오류:</strong><br/><code style={{fontSize:12,wordBreak:'break-all'}}>{err}</code></div>}
+    {loading&&(
+      <div style={{...CS,textAlign:'center',padding:'40px 24px'}}>
+        <div style={{position:'relative',width:56,height:56,margin:'0 auto 20px'}}>
+          <div style={{width:56,height:56,border:`3px solid ${C.border}`,borderTopColor:C.teal,borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
+          <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>✦</div>
+        </div>
+        <div style={{fontSize:15,fontWeight:700,color:C.text1,marginBottom:6}}>전국 혜택 데이터베이스 분석 중</div>
+        <div style={{fontSize:13,color:C.teal,fontWeight:600,marginBottom:16}}>{LOADING_STEPS[step]}</div>
+        <div style={{display:'flex',gap:4,justifyContent:'center'}}>
+          {LOADING_STEPS.map((_,i)=><div key={i} style={{width:i===step?16:6,height:6,borderRadius:3,background:i===step?C.teal:C.border,transition:'all 0.3s'}}/>)}
+        </div>
+      </div>
+    )}
+    {err&&<div style={{background:'#FEE2E2',border:'1px solid #FECACA',borderRadius:12,padding:'14px 16px',color:C.err,fontSize:13,marginBottom:16}}><strong>오류:</strong><br/><code style={{fontSize:12,wordBreak:'break-all'}}>{err}</code></div>}
     {results&&(<div ref={rRef}>
-      <div style={{marginBottom:16}}><div style={{display:'flex',gap:7,alignItems:'center',marginBottom:5}}><span style={{background:'#1a6b6b',color:'#fff',fontSize:11,fontWeight:700,padding:'3px 10px',borderRadius:20}}>분석 완료</span><span style={{fontSize:12,color:'#6b6560'}}>{age}세 · {gender} · {address}</span></div><div style={{fontFamily:'serif',fontSize:'1.32rem',fontWeight:700}}>총 <span style={{color:'#c94f1a'}}>{results.benefits?.length}개</span> 혜택 발견</div><div style={{fontSize:13,color:'#6b6560',marginTop:4}}>🔖 원하는 혜택 카드의 북마크 버튼으로 보관함에 저장하세요</div></div>
-      <div style={{background:'linear-gradient(135deg,#1a6b6b,#0d4f4f)',borderRadius:14,padding:22,color:'#fff',marginBottom:18}}><div style={{fontFamily:'serif',fontWeight:700,marginBottom:12,fontSize:15}}>📊 나의 복지 혜택 요약</div><div style={{display:'flex',gap:24,flexWrap:'wrap'}}>{[{v:results.benefits?.length,l:'혜택 수'},{v:results.summary?.estimatedMonthlyBenefit,l:'월 예상 혜택'},{v:results.benefits?.filter(b=>b.isUrgent).length,l:'긴급 신청'}].map(({v,l})=>(<div key={l}><div style={{fontSize:'1.76rem',fontWeight:900,color:'#c9a84c',lineHeight:1}}>{v}</div><div style={{fontSize:12,opacity:0.7,marginTop:3}}>{l}</div></div>))}</div>{results.summary?.topPriority&&<div style={{marginTop:12,paddingTop:12,borderTop:'1px solid rgba(255,255,255,0.15)',fontSize:13,opacity:0.85}}>⚡ 가장 먼저: <strong>{results.summary.topPriority}</strong></div>}</div>
-      {urgent.length>0&&<><Divider label="🔴 긴급 신청 필요"/>{urgent.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}</>}
-      {normal.length>0&&<><Divider label="전체 혜택 목록"/>{normal.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}</>}
-      <div style={{background:'#ede8dc',borderRadius:10,padding:'14px 16px',marginTop:20,fontSize:13,color:'#6b6560',lineHeight:1.7}}><strong style={{color:'#0d1117'}}>⚠️ 유의사항</strong><br/>본 분석은 참고 정보입니다. 실제 지원 조건·금액·기한은 해당 기관에 직접 확인하세요. (<strong>복지로 129</strong> / <strong>주민센터</strong>)</div>
+      {/* ── 요약 카드 ── */}
+      <div style={{background:`linear-gradient(135deg,${C.dark} 0%,#0f2744 100%)`,borderRadius:20,padding:'22px 24px',color:'#fff',marginBottom:16,position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',top:-20,right:-20,width:100,height:100,borderRadius:'50%',background:'rgba(212,168,67,0.08)'}}/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
+          <div>
+            <div style={{fontSize:11,letterSpacing:2,color:'rgba(255,255,255,0.5)',textTransform:'uppercase',marginBottom:6}}>분석 완료 · {age}세 {gender} · {address}</div>
+            <div style={{fontFamily:'serif',fontSize:'1.54rem',fontWeight:900,lineHeight:1.2}}>
+              총 <span style={{color:C.gold}}>{allBenefits.length}개</span> 혜택 발견
+            </div>
+          </div>
+          {analyzedAt&&<div style={{textAlign:'right',flexShrink:0}}>
+            <div style={{fontSize:10,color:'rgba(255,255,255,0.4)',marginBottom:2}}>업데이트</div>
+            <div style={{fontSize:11,color:'rgba(255,255,255,0.6)'}}>{analyzedAt.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}</div>
+          </div>}
+        </div>
+        <div style={{display:'flex',gap:0,borderRadius:12,overflow:'hidden',marginBottom:14}}>
+          {[
+            {v:allBenefits.length,l:'전체 혜택',icon:'✦'},
+            {v:results.summary?.estimatedMonthlyBenefit||'-',l:'월 예상액',icon:'💰'},
+            {v:allBenefits.filter(b=>b.isHidden).length+(hiddenResults?.length||0),l:'숨겨진 혜택',icon:'🔍'},
+            {v:urgent.length,l:'긴급 신청',icon:'⚡'},
+          ].map(({v,l,icon},i)=>(
+            <div key={l} style={{flex:1,background:'rgba(255,255,255,0.07)',padding:'10px 6px',textAlign:'center',borderRight:i<3?'1px solid rgba(255,255,255,0.08)':undefined}}>
+              <div style={{fontSize:9,color:'rgba(255,255,255,0.45)',marginBottom:3}}>{icon} {l}</div>
+              <div style={{fontSize:13,fontWeight:800,color:C.gold,lineHeight:1}}>{v}</div>
+            </div>
+          ))}
+        </div>
+        {results.summary?.topPriority&&<div style={{background:'rgba(255,255,255,0.07)',borderRadius:10,padding:'10px 14px',fontSize:13}}>
+          ⚡ 가장 먼저 신청: <strong style={{color:C.gold}}>{results.summary.topPriority}</strong>
+        </div>}
+      </div>
+
+      {/* ── 출처 필터 ── */}
+      {sources.length>1&&(
+        <div style={{display:'flex',gap:6,overflowX:'auto',marginBottom:14,paddingBottom:4,scrollbarWidth:'none'}}>
+          {sources.map(s=>(
+            <button key={s} onClick={()=>setFilterSource(s)} style={{
+              flexShrink:0,padding:'6px 12px',borderRadius:20,border:`1.5px solid ${filterSource===s?C.teal:C.border}`,
+              background:filterSource===s?C.teal:'#fff',color:filterSource===s?'#fff':C.text2,
+              fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',
+            }}>{s}{filterSource===s&&` (${filtered.length})`}</button>
+          ))}
+        </div>
+      )}
+
+      {/* ── 긴급 혜택 ── */}
+      {urgent.length>0&&(<>
+        <Divider label="⚡ 긴급 신청 필요"/>
+        {urgent.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}
+      </>)}
+
+      {/* ── 일반 혜택 ── */}
+      {normal.length>0&&(<>
+        <Divider label={`📋 맞춤 혜택 (${normal.length}개)`}/>
+        {normal.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}
+      </>)}
+
+      {/* ── 숨겨진 혜택 ── */}
+      {hidden.length>0&&(<>
+        <Divider label={`🔍 숨겨진 혜택 — 잘 알려지지 않은 것들 (${hidden.length}개)`}/>
+        {hidden.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}
+      </>)}
+
+      {/* ── 숨겨진 혜택 추가 발굴 버튼 ── */}
+      {!hiddenResults&&!hiddenLoading&&(
+        <div style={{...CS,textAlign:'center',padding:'24px',marginTop:8,border:`2px dashed ${C.border}`}}>
+          <div style={{fontSize:24,marginBottom:8}}>🔍</div>
+          <div style={{fontWeight:700,fontSize:15,color:C.text1,marginBottom:6}}>숨겨진 혜택 추가 발굴</div>
+          <div style={{fontSize:13,color:C.text2,marginBottom:16,lineHeight:1.6}}>은행 특별 상품, 건강보험 환급금, 협회 지원금,<br/>통신요금 감면 등 사람들이 잘 모르는 혜택을 더 찾아드려요</div>
+          <button onClick={loadHidden} style={BP({padding:'12px 24px',fontSize:14,borderRadius:10,background:`linear-gradient(135deg,#7c3aed,#5b21b6)`})}>
+            🔍 숨겨진 혜택 더 찾기
+          </button>
+        </div>
+      )}
+      {hiddenLoading&&(
+        <div style={{...CS,textAlign:'center',padding:'28px',marginTop:8}}>
+          <div style={{width:36,height:36,border:`3px solid ${C.border}`,borderTopColor:'#7c3aed',borderRadius:'50%',animation:'spin 0.8s linear infinite',margin:'0 auto 12px'}}/>
+          <div style={{fontSize:13,color:'#7c3aed',fontWeight:600}}>숨겨진 혜택을 발굴하고 있습니다...</div>
+        </div>
+      )}
+
+      {/* ── 유의사항 ── */}
+      <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:12,padding:'14px 16px',marginTop:16,fontSize:12.5,color:C.text2,lineHeight:1.8}}>
+        <strong style={{color:C.text1}}>⚠️ 유의사항</strong><br/>
+        본 분석은 AI 기반 참고 정보입니다. 실제 지원 조건·금액·기한은 해당 기관에 직접 확인하세요.<br/>
+        <strong>복지로 129</strong> / <strong>주민센터 방문</strong> / <strong>정부24 온라인 문의</strong>
+      </div>
     </div>)}
   </div>);}
 
