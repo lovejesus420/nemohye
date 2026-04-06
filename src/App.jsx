@@ -50,10 +50,13 @@ const REGIONS = {
 };
 
 const EXTRA_OPTIONS=[
+  {value:'청년(만 19~34세)',label:'🎓 청년 (만 19~34세)'},
+  {value:'청년 1인 가구',label:'🏠 청년 1인 가구'},
+  {value:'청년 창업 준비 중',label:'🚀 청년 창업 준비 중'},
+  {value:'자영업자/소상공인',label:'🏪 자영업자 / 소상공인'},
   {value:'임산부',label:'🤰 임산부'},{value:'출산 후 1년 이내',label:'👶 출산 후 1년 이내'},
   {value:'신혼부부(혼인 7년 이내)',label:'💍 신혼부부 (혼인 7년 이내)'},{value:'결혼 준비 중(예비 신혼부부)',label:'💒 결혼 준비 중 (예비 신혼부부)'},
   {value:'다자녀 가구(2명 이상)',label:'👨‍👩‍👧‍👦 다자녀 가구 (2명 이상)'},{value:'한부모 가정',label:'👤 한부모 가정'},
-  {value:'청년 1인 가구',label:'🏠 청년 1인 가구'},{value:'청년 창업 준비 중',label:'🚀 청년 창업 준비 중'},
   {value:'장애인 가구',label:'♿ 장애인 가구'},{value:'국가유공자/보훈 대상',label:'🎖️ 국가유공자 / 보훈'},
   {value:'기초생활수급자 또는 차상위계층',label:'📋 기초/차상위계층'},{value:'노인 단독 가구(65세 이상)',label:'👴 노인 단독 가구'},
 ];
@@ -275,6 +278,21 @@ const KNOWN_BENEFIT_URLS = [
   {kw:['산재보험','산업재해','요양급여'],url:'https://www.kcomwel.or.kr/kcomwel/paym/acci/acci.jsp'},
   // ── 정부24 통합 ──
   {kw:['정부24'],url:'https://www.gov.kr/portal/serviceList'},
+  // ── 소상공인 정책자금 / 대출 (ols.semas.or.kr) ──
+  {kw:['소상공인 정책자금','정책자금 대출','소상공인 직접대출'],url:'https://ols.semas.or.kr/ols/man/SMAN010M/page.do'},
+  {kw:['소상공인 대환대출','대환대출'],url:'https://ols.semas.or.kr/ols/man/SMAN010M/page.do'},
+  {kw:['소공인특화자금','소공인 특화'],url:'https://ols.semas.or.kr/ols/man/SMAN010M/page.do'},
+  {kw:['상생성장지원자금','상생성장 자금'],url:'https://ols.semas.or.kr/ols/man/SMAN010M/page.do'},
+  {kw:['소상공인 대리대출','대리대출 정책자금'],url:'https://ols.semas.or.kr/ols/man/SMAN010M/page.do'},
+  {kw:['혁신성장촉진자금'],url:'https://ols.semas.or.kr/ols/man/SMAN010M/page.do'},
+  // ── 소상공인 온라인 교육 (edu.sbiz.or.kr) ──
+  {kw:['소상공인 온라인 교육','소상공인 무료 교육','지식배움터','소상공인 교육','법정의무교육 소상공인'],url:'https://edu.sbiz.or.kr/edu/main/main.do'},
+  {kw:['소상공인 식품위생교육','소방안전교육 소상공인'],url:'https://edu.sbiz.or.kr/edu/main/main.do'},
+  // ── 소상공인 경영안정 바우처 (voucher.sbiz24.kr) ──
+  {kw:['소상공인 경영안정 바우처','경영안정 바우처','소상공인 바우처'],url:'https://voucher.sbiz24.kr/'},
+  // ── 소상공인 창업 지원 (sbiz24.kr) ──
+  {kw:['소상공인 창업 지원금','소상공인 창업 혜택','소상공인24 창업','창업 지원 소상공인'],url:'https://www.sbiz24.kr/#/pbanc?rcrtTypeCd=FN'},
+  {kw:['소상공인24','sbiz24'],url:'https://www.sbiz24.kr/'},
   // ── 서울복지포털 (wis.seoul.go.kr) ──
   {kw:['서울형 복지급여','서울 복지급여'],url:'https://wis.seoul.go.kr/main.do'},
   {kw:['서울 작은결혼식','서울시 결혼 지원','공정결혼','서울시 결혼','작은결혼'],url:'https://wis.seoul.go.kr/main.do'},
@@ -354,6 +372,12 @@ const APPLY_DOMAIN_MAP = {
   'sesac.seoul.kr':'https://sesac.seoul.kr/',
   'youthcultureseoul.kr':'https://www.youthcultureseoul.kr/',
   'smyc.kr':'https://www.smyc.kr/',
+  'ols.semas.or.kr':'https://ols.semas.or.kr/ols/man/SMAN010M/page.do',
+  'semas.or.kr':'https://ols.semas.or.kr/ols/man/SMAN010M/page.do',
+  'edu.sbiz.or.kr':'https://edu.sbiz.or.kr/edu/main/main.do',
+  'voucher.sbiz24.kr':'https://voucher.sbiz24.kr/',
+  'sbiz24.kr':'https://www.sbiz24.kr/#/pbanc?rcrtTypeCd=FN',
+  'www.sbiz24.kr':'https://www.sbiz24.kr/#/pbanc?rcrtTypeCd=FN',
 };
 function getBestApplyUrl(url, title='', institution=''){
   const haystack=(title+' '+institution).toLowerCase();
@@ -604,12 +628,32 @@ return(
 // ─── AnalyzeTab ───────────────────────────────────────────────────
 // ─── 혜택 분석 프롬프트 빌더 ─────────────────────────────────────
 function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='full'}){
-  const URL_GUIDE=`applyUrl규칙(필수): 홈페이지 메인 URL 금지. 신청 직접 페이지만. 복지로=https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do, 정부24=https://www.gov.kr/portal/serviceList, 고용24=https://www.work.go.kr/jobcenter/main.do, 주택도시기금=https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp, 청년정책=https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do, 건강보험=https://www.nhis.or.kr/nhis/policy/wbhada02800m01.do, 국민연금=https://www.nps.or.kr/jsppage/service/apply/apply.jsp, 서울복지포털=https://wis.seoul.go.kr/main.do, 서울탄생육아=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtList.do, 임산부교통비=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=34B5EA8BEB354E2DB26136CFE52AEFF2, 서울형산후조리=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=58D83411277E40D1BFF6255A10CBCDD5, 서울엄마아빠택시=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=3EF7489ACF614F939FEF8514308797D2, 서울청년수당=https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=V202600005, 희망두배청년통장=https://youth.seoul.go.kr/content.do?key=2310100069, 서울청년마음건강=https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=20250519005400210855, 청년월세서울=https://youth.seoul.go.kr/content.do?key=2310100046, 청년임차보증금이자=https://youth.seoul.go.kr/content.do?key=2310100047, 청년취업사관학교새싹=https://sesac.seoul.kr/, 미래청년일자리=https://youth.seoul.go.kr/youthConts.do?key=2310100011, 청년창업지원서울=https://youth.seoul.go.kr/content.do?key=2310100026, 서울청년문화패스=https://www.youthcultureseoul.kr/`;
-  const SCHEMA=`{"id":숫자,"source":"정부복지|지자체|금융/은행|공공기관|기업/협회|민간/NGO 중 택1","sourceIcon":"이모지","category":"주거|의료|금융|교육|고용|보육|노인|장애|청년|세금|통신|문화|식품|기타 중 택1","categoryIcon":"이모지","scope":"전국 또는 지역명","isUrgent":false,"isHidden":false,"title":"혜택명","institution":"기관명","description":"설명2~3문장. 왜 이게 유리한지 포함","amount":"금액 또는 혜택 규모","deadline":"YYYY년 MM월 DD일 또는 수시 신청","requiredDocuments":["서류1"],"howToApply":"방법","applyUrl":"https://..."}`;
+  const isYouth = extra.includes('청년');
+  const isSME   = extra.includes('자영업자/소상공인') || extra.includes('소상공인') || job.includes('자영업');
+  const isSeoul = address.includes('서울');
+
+  const URL_GUIDE=`applyUrl규칙(필수): 홈페이지 메인 URL 금지. 신청 직접 페이지만. 복지로=https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do, 정부24=https://www.gov.kr/portal/serviceList, 고용24=https://www.work.go.kr/jobcenter/main.do, 주택도시기금=https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp, 청년정책=https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do, 건강보험=https://www.nhis.or.kr/nhis/policy/wbhada02800m01.do, 국민연금=https://www.nps.or.kr/jsppage/service/apply/apply.jsp, 서울복지포털=https://wis.seoul.go.kr/main.do, 서울탄생육아=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtList.do, 임산부교통비=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=34B5EA8BEB354E2DB26136CFE52AEFF2, 서울형산후조리=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=58D83411277E40D1BFF6255A10CBCDD5, 서울엄마아빠택시=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=3EF7489ACF614F939FEF8514308797D2, 서울청년수당=https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=V202600005, 희망두배청년통장=https://youth.seoul.go.kr/content.do?key=2310100069, 서울청년마음건강=https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=20250519005400210855, 청년월세서울=https://youth.seoul.go.kr/content.do?key=2310100046, 청년임차보증금이자=https://youth.seoul.go.kr/content.do?key=2310100047, 청년취업사관학교새싹=https://sesac.seoul.kr/, 미래청년일자리=https://youth.seoul.go.kr/youthConts.do?key=2310100011, 청년창업지원서울=https://youth.seoul.go.kr/content.do?key=2310100026, 서울청년문화패스=https://www.youthcultureseoul.kr/, 소상공인정책자금=https://ols.semas.or.kr/ols/man/SMAN010M/page.do, 소상공인교육=https://edu.sbiz.or.kr/edu/main/main.do, 소상공인바우처=https://voucher.sbiz24.kr/, 소상공인창업지원=https://www.sbiz24.kr/#/pbanc?rcrtTypeCd=FN, 소상공인대출=https://ols.semas.or.kr/ols/man/SMAN010M/page.do`;
+  const SCHEMA=`{"id":숫자,"source":"정부복지|지자체|금융/은행|공공기관|기업/협회|민간/NGO 중 택1","sourceIcon":"이모지","category":"주거|의료|금융|교육|고용|보육|노인|장애|청년|소상공인|세금|통신|문화|식품|기타 중 택1","categoryIcon":"이모지","scope":"전국 또는 지역명","isUrgent":false,"isHidden":false,"title":"혜택명","institution":"기관명","description":"설명2~3문장. 왜 이게 유리한지 포함","amount":"금액 또는 혜택 규모","deadline":"YYYY년 MM월 DD일 또는 수시 신청","requiredDocuments":["서류1"],"howToApply":"방법","applyUrl":"https://..."}`;
+
+  // ── 청년 특화 섹션 ──
+  const YOUTH_SECTION = isYouth ? `
+★★ 청년(만 19~34세) 특화 혜택 — 반드시 포함:
+[전국] 청년도약계좌(월 최대 70만원·5년), 청년희망적금, 국민취업지원제도, 청년내일저축계좌, 청년내일채움공제, 국가장학금, 학자금대출 이자지원, 청년 버팀목전세자금, 청년 월세 지원(LH), 청년 마음건강 바우처(복지부), K-디지털 훈련, 취업성공패키지, 청년일자리도약장려금
+${isSeoul ? `[서울] 서울청년수당(월50만원·최대6개월→youth.seoul.go.kr), 희망두배청년통장(youth.seoul.go.kr/content.do?key=2310100069), 서울청년마음건강지원(plcyBizId=20250519005400210855), 미래청년일자리점프업(key=2310100011), 청년취업사관학교새싹(sesac.seoul.kr), 서울형청년인턴직무캠프(key=2310100012), 청년월세지원서울(key=2310100046), 청년임차보증금이자지원(key=2310100047), 청년부동산중개보수·이사비(R2024040321345), 청년창업지원(key=2310100026), 서울청년문화패스(youthcultureseoul.kr), 미취업청년자격증응시료(R2024041821928), 은둔청년지원(R2023050912524)` : ''}` : '';
+
+  // ── 소상공인 특화 섹션 ──
+  const SME_SECTION = isSME ? `
+★★ 자영업자/소상공인 특화 혜택 — 반드시 포함:
+[정책자금/대출] 소상공인 정책자금 직접대출(ols.semas.or.kr), 대리대출 2분기 정책자금, 소상공인 대환대출, 소공인특화자금, 상생성장지원자금, 혁신성장촉진자금 — 신청URL: https://ols.semas.or.kr/ols/man/SMAN010M/page.do
+[교육] 소상공인 온라인 무료 교육(AI비즈니스·마케팅·노무·법정의무교육 등) — https://edu.sbiz.or.kr/edu/main/main.do
+[바우처] 소상공인 경영안정 바우처(컨설팅·법률·노무·세무 등 전문 서비스 바우처) — https://voucher.sbiz24.kr/
+[창업지원] 소상공인 창업 지원 사업(자금·컨설팅·공간 등) — https://www.sbiz24.kr/#/pbanc?rcrtTypeCd=FN
+[기타] 노란우산공제(소기업소상공인공제부금), 소상공인 고용보험료 지원, 카드수수료 환급, 노란우산 희망장려금` : '';
 
   if(mode==='hidden'){
     return `당신은 대한민국 복지·혜택 전문가입니다. 아래 사람이 놓치기 쉬운 숨겨진 혜택을 발굴해주세요.
 [정보] 나이:${age}세/성별:${gender}/직업:${job}/소득:${income}/거주:${address}/추가:${extra}/기준일:${today}
+${YOUTH_SECTION}${SME_SECTION}
 
 ★ 반드시 다음 분야에서 발굴하세요 (정부 복지 제외, 사람들이 잘 모르는 것 위주):
 - 시중 은행·인터넷은행 특별 금리·캐시백·적금 혜택 (카카오뱅크, 토스뱅크, 케이뱅크, 우리·국민·신한·하나은행 등)
@@ -621,7 +665,6 @@ function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='ful
 - 각종 협회·노동조합 조합원 혜택
 - 지역 신협·새마을금고 특별 상품
 - 공공임대 주택 청약 (LH, SH, 지자체 매입임대)
-- 서울 거주자: 서울청년수당(월50만원), 희망두배청년통장, 청년마음건강지원, 청년취업사관학교새싹(SeSAC), 서울청년문화패스, 청년부동산중개보수·이사비지원, 미취업청년자격증응시료지원, 은둔청년지원, 서울형가사서비스(70만원), 서울형산후조리경비(100만원), 임산부교통비(70만원) (youth.seoul.go.kr / wis.seoul.go.kr / umppa.seoul.go.kr)
 - 에너지바우처·알뜰폰 혜택·인터넷 요금 지원
 - 현재 진행 중인 국가 지원 사업 (취업 지원, 창업 자금, 교육비 지원)
 - 민간 장학재단·재단법인 지원
@@ -633,10 +676,11 @@ function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='ful
 
   return `당신은 대한민국 최고 수준의 복지·혜택 전문가입니다. 아래 사람이 받을 수 있는 모든 혜택을 빠짐없이 분석해주세요.
 [정보] 나이:${age}세/성별:${gender}/직업:${job}/소득:${income}/거주:${address}/추가:${extra}/기준일:${today}
+${YOUTH_SECTION}${SME_SECTION}
 
 ★ 반드시 다음 모든 출처에서 혜택을 찾아주세요:
 1. 정부 복지: 복지로, 정부24, 고용24, 국민건강보험, 국민연금, 건강보험 환급
-2. 지자체: ${address} 시·군·구청 특화 지원사업, 읍·면·동 주민센터 사업. 서울 거주자라면 반드시 포함 — ①서울청년몽땅정보통(youth.seoul.go.kr): 서울청년수당(월50만원·최대6개월), 희망두배청년통장, 청년마음건강지원, 미래청년일자리(점프업), 청년취업사관학교새싹(SeSAC), 서울형청년인턴, 청년월세지원, 청년임차보증금이자지원, 청년부동산중개보수·이사비, 청년창업지원, 서울청년문화패스, 미취업청년자격증응시료, 은둔청년지원 ②서울복지포털(wis.seoul.go.kr): 서울형복지급여·작은결혼식지원 ③서울탄생육아몽땅정보통(umppa.seoul.go.kr): 임산부교통비·산후조리경비100만원·엄마아빠택시·손주돌봄수당·가사서비스지원70만원·난자동결시술비
+2. 지자체: ${address} 시·군·구청 특화 지원사업, 읍·면·동 주민센터 사업${isSeoul ? '. 서울청년몽땅정보통(youth.seoul.go.kr) + 서울복지포털(wis.seoul.go.kr) + 서울탄생육아(umppa.seoul.go.kr) 혜택 포함' : ''}
 3. 금융기관: 주택도시기금, 서민금융진흥원, 햇살론, 사잇돌대출, 청년도약계좌, 청년희망적금
 4. 공공기관: 근로복지공단(선택복지·EAP), 한국장학재단, 한국고용정보원
 5. 에너지·통신: 에너지바우처, 통신요금 감면(장애인·저소득·노인), 인터넷 요금 지원
