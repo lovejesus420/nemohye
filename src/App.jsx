@@ -139,21 +139,55 @@ function sendKakaoMe(b){const dl=parseDeadline(b.deadline);const docs=(b.require
 function buildKakaoText(items){const lines=['[네모혜] 혜택·일정 마감 알림 📋\n'];items.forEach((b,i)=>{const dl=parseDeadline(b.deadline);lines.push(`${i+1}. ${b.categoryIcon||b.icon||'📌'} ${b.title||b.action}`);lines.push(`   마감: ${dl?formatDate(dl):'수시'}`);lines.push(`   서류: ${(b.requiredDocuments||b.documents||[]).slice(0,2).join(', ')||'기관 문의'}`);if(i<items.length-1)lines.push('');});return lines.join('\n');}
 
 let toastTimer=null;
-function showToast(msg){let el=document.getElementById('nemo-toast');if(!el){el=document.createElement('div');el.id='nemo-toast';el.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#0d1117;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-family:inherit;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.25);max-width:320px;text-align:center;line-height:1.5;transition:opacity 0.3s;pointer-events:none;';document.body.appendChild(el);}el.textContent=msg;el.style.opacity='1';clearTimeout(toastTimer);toastTimer=setTimeout(()=>{el.style.opacity='0';},3500);}
+function showToast(msg){let el=document.getElementById('nemo-toast');if(!el){el=document.createElement('div');el.id='nemo-toast';el.style.cssText='position:fixed;bottom:calc(76px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(8px);background:#1E293B;color:#fff;padding:12px 20px;border-radius:12px;font-size:13.5px;font-family:inherit;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,0.28);max-width:320px;text-align:center;line-height:1.5;transition:opacity 0.25s,transform 0.25s;pointer-events:none;opacity:0;';document.body.appendChild(el);}el.textContent=msg;el.style.opacity='1';el.style.transform='translateX(-50%) translateY(0)';clearTimeout(toastTimer);toastTimer=setTimeout(()=>{el.style.opacity='0';el.style.transform='translateX(-50%) translateY(8px)';},3200);}
 
 // ─── 주소 자동완성 ────────────────────────────────────────────────
 function buildSugg(q){if(!q)return[];const out=[];for(const[sido,guguns]of Object.entries(REGIONS)){guguns.forEach(gu=>{const full=`${sido} ${gu}`;if(sido.startsWith(q)||full.startsWith(q)||full.includes(q)||gu.startsWith(q))out.push({full,sido});});}out.sort((a,b)=>(a.full.startsWith(q)?0:1)-(b.full.startsWith(q)?0:1)||a.full.localeCompare(b.full,'ko'));return out.slice(0,8);}
 function AddrInput({value,onChange}){const[sugg,setSugg]=useState([]);const[ai,setAi]=useState(-1);const[open,setOpen]=useState(false);const ref=useRef();useEffect(()=>{const h=e=>{if(ref.current&&!ref.current.contains(e.target))setOpen(false);};document.addEventListener('mousedown',h);return()=>document.removeEventListener('mousedown',h);},[]);const onInput=v=>{onChange(v);const s=buildSugg(v.trim());setSugg(s);setOpen(s.length>0);setAi(-1);};const pick=s=>{onChange(s.full);setOpen(false);setSugg([]);};const hi=(t,q)=>{const i=t.indexOf(q);if(i<0)return t;return<>{t.slice(0,i)}<strong style={{color:'#1a6b6b'}}>{t.slice(i,i+q.length)}</strong>{t.slice(i+q.length)}</>;};return(<div ref={ref} style={{position:'relative'}}><input value={value} onChange={e=>onInput(e.target.value)} placeholder="예: 서울특별시 마포구" autoComplete="off" style={IS} onFocus={()=>{if(sugg.length)setOpen(true);}} onKeyDown={e=>{if(!open)return;if(e.key==='ArrowDown'){e.preventDefault();setAi(i=>Math.min(i+1,sugg.length-1));}else if(e.key==='ArrowUp'){e.preventDefault();setAi(i=>Math.max(i-1,0));}else if(e.key==='Enter'&&ai>=0){e.preventDefault();pick(sugg[ai]);}else if(e.key==='Escape')setOpen(false);}}/>{open&&sugg.length>0&&(<div style={{position:'absolute',top:'calc(100% + 4px)',left:0,right:0,background:'#fff',border:'1.5px solid #1a6b6b',borderRadius:10,boxShadow:'0 8px 24px rgba(0,0,0,0.12)',zIndex:500,overflow:'hidden',maxHeight:220,overflowY:'auto'}}>{sugg.map((s,i)=>(<div key={s.full} onMouseDown={()=>pick(s)} style={{padding:'10px 14px',cursor:'pointer',borderBottom:'1px solid #f0ebe0',background:i===ai?'#edf6f6':'#fff',fontSize:14}}><div style={{fontWeight:600}}>{hi(s.full,value.trim())}</div><div style={{fontSize:12,color:'#6b6560'}}>{s.sido}</div></div>))}</div>)}<p style={{fontSize:12,color:'#9ca3af',marginTop:3}}>시/도와 시/군/구까지 입력하면 자동완성됩니다</p></div>);}
 
+// ─── 디자인 토큰 ──────────────────────────────────────────────────
+const C={
+  bg:'#F4F6FB',          // 앱 배경
+  surface:'#FFFFFF',     // 카드 배경
+  dark:'#0D1117',        // 네이게이션·헤더
+  gold:'#D4A843',        // 골드 액센트
+  teal:'#0E7490',        // 틸 액센트
+  text1:'#0F172A',       // 본문
+  text2:'#64748B',       // 서브텍스트
+  text3:'#94A3B8',       // 힌트
+  border:'#E2E8F0',      // 테두리
+  err:'#DC2626',
+  ok:'#059669',
+};
+
 // ─── 공통 스타일 상수 ─────────────────────────────────────────────
-const IS={width:'100%',background:'#faf7f2',border:'1.5px solid #d4cdc2',borderRadius:10,padding:'11px 14px',fontSize:15,fontFamily:'inherit',color:'#0d1117',outline:'none',boxSizing:'border-box'};
-const SS={...IS,appearance:'none',WebkitAppearance:'none',cursor:'pointer',backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6560' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,backgroundRepeat:'no-repeat',backgroundPosition:'right 14px center',paddingRight:40};
-const LS={fontSize:12,fontWeight:700,color:'#0d1117',letterSpacing:'0.5px',textTransform:'uppercase',display:'block',marginBottom:7};
-const BP=(x={})=>({background:'#0d1117',color:'#fff',border:'none',borderRadius:10,padding:'12px 20px',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:'inherit',...x});
-const CS={background:'#fff',border:'1px solid #d4cdc2',borderRadius:16,padding:'24px',boxShadow:'0 2px 16px rgba(13,17,23,0.07)'};
-function Logo({size=38}){return(<svg width={size} height={size} viewBox="0 0 42 42" fill="none"><rect x="2" y="2" width="38" height="38" rx="9" stroke="#c9a84c" strokeWidth="2.2"/><line x1="21" y1="11.5" x2="21" y2="14.5" stroke="#c9a84c" strokeWidth="1.8" strokeLinecap="round"/><line x1="21" y1="27.5" x2="21" y2="30.5" stroke="#c9a84c" strokeWidth="1.8" strokeLinecap="round"/><line x1="11.5" y1="21" x2="14.5" y2="21" stroke="#c9a84c" strokeWidth="1.8" strokeLinecap="round"/><line x1="27.5" y1="21" x2="30.5" y2="21" stroke="#c9a84c" strokeWidth="1.8" strokeLinecap="round"/><line x1="14.3" y1="14.3" x2="16.4" y2="16.4" stroke="#c9a84c" strokeWidth="1.8" strokeLinecap="round"/><line x1="25.6" y1="25.6" x2="27.7" y2="27.7" stroke="#c9a84c" strokeWidth="1.8" strokeLinecap="round"/><line x1="27.7" y1="14.3" x2="25.6" y2="16.4" stroke="#c9a84c" strokeWidth="1.8" strokeLinecap="round"/><line x1="14.3" y1="27.7" x2="16.4" y2="25.6" stroke="#c9a84c" strokeWidth="1.8" strokeLinecap="round"/><circle cx="21" cy="21" r="4.5" fill="#c9a84c"/></svg>);}
-const R=()=><span style={{color:'#c94f1a',marginLeft:2}}>*</span>;
-function Divider({label}){return(<div style={{display:'flex',alignItems:'center',gap:10,margin:'20px 0 12px'}}><div style={{flex:1,height:1,background:'#d4cdc2'}}/><span style={{fontSize:11,fontWeight:700,color:'#6b6560',textTransform:'uppercase',letterSpacing:2,whiteSpace:'nowrap'}}>{label}</span><div style={{flex:1,height:1,background:'#d4cdc2'}}/></div>);}
+const IS={
+  width:'100%',background:C.surface,border:`1.5px solid ${C.border}`,
+  borderRadius:12,padding:'13px 16px',fontSize:15.4,fontFamily:'inherit',
+  color:C.text1,outline:'none',boxSizing:'border-box',
+  transition:'border-color 0.15s',
+};
+const SS={
+  ...IS,appearance:'none',WebkitAppearance:'none',cursor:'pointer',
+  backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
+  backgroundRepeat:'no-repeat',backgroundPosition:'right 14px center',paddingRight:44,
+};
+const LS={fontSize:12,fontWeight:700,color:C.text2,letterSpacing:'0.6px',textTransform:'uppercase',display:'block',marginBottom:8};
+const BP=(x={})=>({
+  background:`linear-gradient(135deg,${C.dark} 0%,#1E293B 100%)`,
+  color:'#fff',border:'none',borderRadius:12,padding:'14px 22px',
+  fontSize:15.4,fontWeight:700,cursor:'pointer',fontFamily:'inherit',
+  boxShadow:`0 4px 14px rgba(13,17,23,0.22)`,
+  transition:'transform 0.12s,box-shadow 0.12s',
+  ...x,
+});
+const CS={
+  background:C.surface,border:`1px solid ${C.border}`,borderRadius:20,padding:'24px',
+  boxShadow:'0 1px 3px rgba(15,23,42,0.04),0 8px 28px rgba(15,23,42,0.07)',
+};
+function Logo({size=38}){return(<svg width={size} height={size} viewBox="0 0 42 42" fill="none"><rect x="2" y="2" width="38" height="38" rx="9" stroke={C.gold} strokeWidth="2.2"/><line x1="21" y1="11.5" x2="21" y2="14.5" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="21" y1="27.5" x2="21" y2="30.5" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="11.5" y1="21" x2="14.5" y2="21" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="27.5" y1="21" x2="30.5" y2="21" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="14.3" y1="14.3" x2="16.4" y2="16.4" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="25.6" y1="25.6" x2="27.7" y2="27.7" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="27.7" y1="14.3" x2="25.6" y2="16.4" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="14.3" y1="27.7" x2="16.4" y2="25.6" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><circle cx="21" cy="21" r="4.5" fill={C.gold}/></svg>);}
+const R=()=><span style={{color:C.err,marginLeft:2}}>*</span>;
+function Divider({label}){return(<div style={{display:'flex',alignItems:'center',gap:10,margin:'22px 0 14px'}}><div style={{flex:1,height:1,background:C.border}}/><span style={{fontSize:11,fontWeight:700,color:C.text3,textTransform:'uppercase',letterSpacing:2,whiteSpace:'nowrap'}}>{label}</span><div style={{flex:1,height:1,background:C.border}}/></div>);}
 
 // ─── getBestApplyUrl: 홈페이지 메인 URL → 신청 페이지 URL 매핑 ───
 const APPLY_URL_MAP = {
@@ -298,49 +332,86 @@ function AuthScreen({onLogin}){
     }else{showErr('관리자 ID 또는 비밀번호가 틀렸습니다.');}
   };
 
-  const MsgBox=()=>msg.text?(<div style={{background:msg.type==='err'?'#fee2e2':'#dcfce7',border:`1px solid ${msg.type==='err'?'#fca5a5':'#86efac'}`,borderRadius:8,padding:'10px 14px',fontSize:13,color:msg.type==='err'?'#991b1b':'#166534',marginBottom:16}}>{msg.text}</div>):null;
-  const STEPS=[['phone','① 번호 입력'],['otp','② 코드 확인'],['name','③ 이름 등록']];
+  const STEP_IDX={phone:0,otp:1,name:2};
+  const STEP_LABELS=['번호 입력','코드 확인','이름 등록'];
 
-return(<div style={{minHeight:'100vh',background:'#0d1117',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24}}>
-  <div style={{marginBottom:28,textAlign:'center'}}>
-    <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginBottom:8}}><Logo size={50}/><span style={{fontFamily:'serif',fontSize:'2.42rem',fontWeight:900,color:'#fff',letterSpacing:-1}}>네모<span style={{color:'#c9a84c'}}>혜</span></span></div>
-    <p style={{color:'#6b7280',fontSize:14}}>네 모든 혜택을 찾아드리는 서비스</p>
+return(
+<div style={{minHeight:'100vh',background:`linear-gradient(160deg,${C.dark} 0%,#0f2744 55%,#0d1117 100%)`,display:'flex',flexDirection:'column',padding:'env(safe-area-inset-top,0px) 0 0'}}>
+  {/* 상단 브랜드 영역 */}
+  <div style={{flex:'0 0 auto',padding:'48px 32px 36px',textAlign:'center'}}>
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:14,marginBottom:12}}>
+      <Logo size={52}/>
+      <span style={{fontFamily:'serif',fontSize:'2.64rem',fontWeight:900,color:'#fff',letterSpacing:-1.5}}>네모<span style={{color:C.gold}}>혜</span></span>
+    </div>
+    <p style={{color:'rgba(255,255,255,0.45)',fontSize:14,letterSpacing:0.5}}>내게 맞는 모든 혜택을 한 번에</p>
   </div>
-  <div style={{...CS,width:'100%',maxWidth:420,padding:'32px 28px'}}>
+
+  {/* 카드 */}
+  <div style={{flex:1,background:C.bg,borderRadius:'28px 28px 0 0',padding:'32px 24px 40px',overflow:'auto'}}>
     {step!=='admin'&&(<>
-      <div style={{display:'flex',gap:6,marginBottom:24}}>
-        {STEPS.map(([s,l])=>(<div key={s} style={{flex:1,textAlign:'center',padding:'7px 0',borderRadius:8,fontSize:12,fontWeight:700,background:step===s?'#0d1117':'#f5f0e8',color:step===s?'#fff':'#9ca3af'}}>{l}</div>))}
+      {/* 스텝 인디케이터 */}
+      <div style={{display:'flex',alignItems:'center',marginBottom:28,gap:4}}>
+        {STEP_LABELS.map((l,i)=>{
+          const done=STEP_IDX[step]>i;
+          const active=STEP_IDX[step]===i;
+          return(<div key={i} style={{display:'flex',alignItems:'center',gap:4,flex:i<STEP_LABELS.length-1?'none':1}}>
+            <div style={{width:24,height:24,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,background:done?C.teal:active?C.dark:'#E2E8F0',color:done||active?'#fff':C.text3,flexShrink:0}}>
+              {done?'✓':i+1}
+            </div>
+            <span style={{fontSize:12,color:active?C.text1:C.text3,fontWeight:active?700:400,whiteSpace:'nowrap'}}>{l}</span>
+            {i<STEP_LABELS.length-1&&<div style={{flex:1,height:1,background:done?C.teal:C.border,minWidth:16,margin:'0 4px'}}/>}
+          </div>);
+        })}
       </div>
+
       {step==='phone'&&(<>
-        <div style={{marginBottom:16}}><label style={LS}>휴대폰 번호</label><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="010-1234-5678" style={IS} onKeyDown={e=>e.key==='Enter'&&doSendOTP()}/></div>
-        <MsgBox/>
-        <button onClick={doSendOTP} disabled={busy} style={BP({width:'100%',padding:'14px',fontSize:17,borderRadius:10,opacity:busy?0.7:1})}>{busy?'발송 중...':'인증코드 받기'}</button>
-        <p style={{textAlign:'center',fontSize:12,color:'#9ca3af',marginTop:12}}>문자로 6자리 인증코드가 발송됩니다</p>
+        <h2 style={{fontSize:20,fontWeight:800,color:C.text1,marginBottom:6}}>휴대폰 번호로 시작하기</h2>
+        <p style={{fontSize:14,color:C.text2,marginBottom:22}}>번호로 간편하게 가입·로그인 할 수 있어요</p>
+        <div style={{marginBottom:16}}>
+          <label style={LS}>휴대폰 번호</label>
+          <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="010-1234-5678" style={IS} type="tel" inputMode="numeric" onKeyDown={e=>e.key==='Enter'&&doSendOTP()}/>
+        </div>
+        {msg.text&&<div style={{background:msg.type==='err'?'#FEE2E2':'#DCFCE7',borderRadius:10,padding:'11px 14px',fontSize:13.5,color:msg.type==='err'?C.err:C.ok,marginBottom:16}}>{msg.text}</div>}
+        <button onClick={doSendOTP} disabled={busy} style={BP({width:'100%',padding:'15px',fontSize:16,borderRadius:12,opacity:busy?0.7:1})}>{busy?'발송 중...':'인증코드 받기'}</button>
+        <p style={{textAlign:'center',fontSize:12.5,color:C.text3,marginTop:14}}>문자로 6자리 인증코드가 발송됩니다</p>
       </>)}
+
       {step==='otp'&&(<>
-        <div style={{background:'#f0fdf4',border:'1px solid #86efac',borderRadius:8,padding:'10px 14px',fontSize:13,color:'#166534',marginBottom:16}}>📱 {phone} 으로 코드를 발송했습니다</div>
-        <div style={{marginBottom:16}}><label style={LS}>인증 코드 (6자리)</label><input value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,'').slice(0,6))} placeholder="000000" style={{...IS,fontSize:22,letterSpacing:6,textAlign:'center'}} onKeyDown={e=>e.key==='Enter'&&doVerifyOTP()}/></div>
-        <MsgBox/>
-        <button onClick={doVerifyOTP} disabled={busy} style={BP({width:'100%',padding:'14px',fontSize:17,borderRadius:10,opacity:busy?0.7:1})}>{busy?'확인 중...':'확인'}</button>
-        <button onClick={()=>{setStep('phone');setCode('');clearMsg();}} style={{width:'100%',marginTop:10,background:'none',border:'none',color:'#9ca3af',fontSize:13,cursor:'pointer',fontFamily:'inherit',padding:'8px 0'}}>← 번호 다시 입력</button>
+        <h2 style={{fontSize:20,fontWeight:800,color:C.text1,marginBottom:6}}>코드를 입력해 주세요</h2>
+        <p style={{fontSize:14,color:C.text2,marginBottom:22}}>📱 <strong>{phone}</strong>으로 발송됐습니다</p>
+        <div style={{marginBottom:16}}>
+          <label style={LS}>인증 코드 (6자리)</label>
+          <input value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,'').slice(0,6))} placeholder="000000" style={{...IS,fontSize:26,letterSpacing:10,textAlign:'center',fontWeight:700}} inputMode="numeric" onKeyDown={e=>e.key==='Enter'&&doVerifyOTP()}/>
+        </div>
+        {msg.text&&<div style={{background:msg.type==='err'?'#FEE2E2':'#DCFCE7',borderRadius:10,padding:'11px 14px',fontSize:13.5,color:msg.type==='err'?C.err:C.ok,marginBottom:16}}>{msg.text}</div>}
+        <button onClick={doVerifyOTP} disabled={busy} style={BP({width:'100%',padding:'15px',fontSize:16,borderRadius:12,opacity:busy?0.7:1})}>{busy?'확인 중...':'확인'}</button>
+        <button onClick={()=>{setStep('phone');setCode('');clearMsg();}} style={{width:'100%',marginTop:12,background:'none',border:'none',color:C.text3,fontSize:13.5,cursor:'pointer',fontFamily:'inherit',padding:'8px 0'}}>← 번호 다시 입력</button>
       </>)}
+
       {step==='name'&&(<>
-        <div style={{background:'#f0fdf4',border:'1px solid #86efac',borderRadius:8,padding:'10px 14px',fontSize:13,color:'#166534',marginBottom:16}}>✅ 인증 완료! 처음 오셨군요. 이름을 입력해 주세요.</div>
-        <div style={{marginBottom:20}}><label style={LS}>이름</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="홍길동" style={IS} onKeyDown={e=>e.key==='Enter'&&doRegister()}/></div>
-        <MsgBox/>
-        <button onClick={doRegister} style={BP({width:'100%',padding:'14px',fontSize:17,borderRadius:10})}>가입 완료 →</button>
+        <h2 style={{fontSize:20,fontWeight:800,color:C.text1,marginBottom:6}}>반갑습니다! 👋</h2>
+        <p style={{fontSize:14,color:C.text2,marginBottom:22}}>서비스 이용을 위해 이름을 입력해 주세요</p>
+        <div style={{marginBottom:20}}>
+          <label style={LS}>이름</label>
+          <input value={name} onChange={e=>setName(e.target.value)} placeholder="홍길동" style={IS} onKeyDown={e=>e.key==='Enter'&&doRegister()}/>
+        </div>
+        {msg.text&&<div style={{background:'#FEE2E2',borderRadius:10,padding:'11px 14px',fontSize:13.5,color:C.err,marginBottom:16}}>{msg.text}</div>}
+        <button onClick={doRegister} style={BP({width:'100%',padding:'15px',fontSize:16,borderRadius:12,background:`linear-gradient(135deg,${C.teal},#0a5f70)`})}>시작하기 →</button>
       </>)}
-      <p style={{textAlign:'center',fontSize:12,color:'#9ca3af',marginTop:20,borderTop:'1px solid #f0ebe0',paddingTop:16}}>
-        <button onClick={()=>{setStep('admin');clearMsg();}} style={{background:'none',border:'none',color:'#6b6560',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>관리자 로그인</button>
-      </p>
+
+      <div style={{marginTop:24,paddingTop:20,borderTop:`1px solid ${C.border}`,textAlign:'center'}}>
+        <button onClick={()=>{setStep('admin');clearMsg();}} style={{background:'none',border:'none',color:C.text3,fontSize:12.5,cursor:'pointer',fontFamily:'inherit',padding:'4px 8px'}}>관리자 로그인</button>
+      </div>
     </>)}
+
     {step==='admin'&&(<>
-      <div style={{textAlign:'center',marginBottom:20}}><span style={{fontSize:22}}>⚙️</span><div style={{fontWeight:700,fontSize:15,marginTop:6,color:'#0d1117'}}>관리자 로그인</div></div>
+      <h2 style={{fontSize:20,fontWeight:800,color:C.text1,marginBottom:6}}>⚙️ 관리자 로그인</h2>
+      <p style={{fontSize:14,color:C.text2,marginBottom:22}}>관리자 전용 페이지입니다</p>
       <div style={{marginBottom:14}}><label style={LS}>관리자 ID</label><input value={adminId} onChange={e=>setAdminId(e.target.value)} style={IS}/></div>
       <div style={{marginBottom:20}}><label style={LS}>비밀번호</label><input type="password" value={adminPw} onChange={e=>setAdminPw(e.target.value)} style={IS} onKeyDown={e=>e.key==='Enter'&&doAdminLogin()}/></div>
-      <MsgBox/>
-      <button onClick={doAdminLogin} style={BP({width:'100%',padding:'14px',fontSize:17,borderRadius:10})}>로그인</button>
-      <button onClick={()=>{setStep('phone');clearMsg();setAdminId('');setAdminPw('');}} style={{width:'100%',marginTop:10,background:'none',border:'none',color:'#9ca3af',fontSize:13,cursor:'pointer',fontFamily:'inherit',padding:'8px 0'}}>← 일반 로그인으로</button>
+      {msg.text&&<div style={{background:'#FEE2E2',borderRadius:10,padding:'11px 14px',fontSize:13.5,color:C.err,marginBottom:16}}>{msg.text}</div>}
+      <button onClick={doAdminLogin} style={BP({width:'100%',padding:'15px',fontSize:16,borderRadius:12})}>로그인</button>
+      <button onClick={()=>{setStep('phone');clearMsg();setAdminId('');setAdminPw('');}} style={{width:'100%',marginTop:12,background:'none',border:'none',color:C.text3,fontSize:13.5,cursor:'pointer',fontFamily:'inherit',padding:'8px 0'}}>← 일반 로그인으로</button>
     </>)}
   </div>
 </div>);}
@@ -725,97 +796,153 @@ export default function App() {
   }, [user]);
   useEffect(() => { refreshCount(); }, [refreshCount]);
 
-  if (!ready) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#0d1117',color:'#c9a84c',fontFamily:'serif',fontSize:'1.32rem',fontWeight:700}}>네모혜</div>;
+  if (!ready) return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',background:`linear-gradient(160deg,${C.dark} 0%,#0f2744 100%)`}}>
+      <Logo size={56}/>
+      <span style={{fontFamily:'serif',fontWeight:900,fontSize:'1.76rem',color:'#fff',letterSpacing:-1,marginTop:16}}>네모<span style={{color:C.gold}}>혜</span></span>
+      <div style={{width:32,height:3,background:C.gold,borderRadius:4,marginTop:20,animation:'wid 1s ease-in-out infinite alternate'}}/>
+      <style>{`@keyframes wid{from{width:20px}to{width:44px}}`}</style>
+    </div>
+  );
   if (!user) return <AuthScreen onLogin={login} />;
 
-  const NAV = [['analyze','🔍 혜택설계'],['life','🗺 인생설계'],['wedding','💍 결혼설계'],['realestate','🏠 부동산'],['saved',`📁 보관함${savedCount>0?` ${savedCount}`:''}`],['profile','👤 내 정보'],...(user?.isAdmin?[['admin','⚙️ Admin']]:[])];
+  // 하단 탭 바 정의 (아이콘, 레이블, 탭ID)
+  const BOTTOM_TABS = [
+    {v:'analyze', icon:'✦', label:'혜택'},
+    {v:'life',    icon:'🗺', label:'인생'},
+    {v:'wedding', icon:'💍', label:'결혼'},
+    {v:'realestate',icon:'🏠',label:'부동산'},
+    {v:'saved',   icon:'📁', label:`보관함${savedCount>0?` ${savedCount}`:''}` },
+    {v:'profile', icon:'👤', label:'MY'},
+  ];
+
+  // 페이지별 메타
+  const PAGE_META = {
+    analyze:     {title:'혜택 설계', sub:'나이·지역·상황을 입력하면 맞춤 혜택을 찾아드려요'},
+    life:        {title:'인생 설계', sub:'목표와 재정 상황으로 현실적인 단계별 플랜을 설계해드려요'},
+    wedding:     {title:'결혼 설계', sub:'예산·지역·스타일 입력 → 스드메·웨딩홀 추천 + 일정 캘린더'},
+    realestate:  {title:'부동산 설계', sub:'집 유형과 조건으로 매물·대출·정부 지원을 한 번에 분석해드려요'},
+    saved:       {title:'내 혜택 보관함', sub:'저장한 혜택과 마감 캘린더를 확인하세요'},
+    profile:     {title:'내 정보', sub:''},
+    admin:       {title:'Admin 회원 관리', sub:''},
+  };
+  const meta = PAGE_META[tab] || PAGE_META.analyze;
 
   return (
-    <div style={{fontFamily:"'Noto Sans KR', sans-serif",background:'#f5f0e8',minHeight:'100vh',color:'#0d1117'}}>
+    <div style={{fontFamily:"'Noto Sans KR', sans-serif",background:C.bg,minHeight:'100vh',color:C.text1}}>
+      <style>{`*{-webkit-tap-highlight-color:transparent}input:focus,select:focus{border-color:${C.teal}!important;box-shadow:0 0 0 3px rgba(14,116,144,0.12)}`}</style>
+
       {/* API 키 없을 때 경고 배너 */}
       {noKey && (
-        <div style={{background:'#c94f1a',color:'#fff',padding:'10px 20px',textAlign:'center',fontSize:14,lineHeight:1.6}}>
+        <div style={{background:'#DC2626',color:'#fff',padding:'10px 20px',textAlign:'center',fontSize:13.5,lineHeight:1.6,paddingTop:'calc(10px + env(safe-area-inset-top,0px))'}}>
           ⚠️ <strong>VITE_ANTHROPIC_KEY</strong> 환경변수가 설정되지 않았습니다.
-          프로젝트 루트에 <code style={{background:'rgba(255,255,255,0.2)',padding:'2px 6px',borderRadius:4}}>.env</code> 파일을 만들고{' '}
-          <code style={{background:'rgba(255,255,255,0.2)',padding:'2px 6px',borderRadius:4}}>VITE_ANTHROPIC_KEY=sk-ant-...</code>를 추가하세요.
         </div>
       )}
 
-      <header style={{background:'#0d1117',position:'sticky',top:0,zIndex:200,paddingTop:'env(safe-area-inset-top, 0px)'}}>
-        {/* 1줄: 로고 + 로그아웃 */}
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 16px',height:52}}>
-          <div onClick={()=>setTab('analyze')} style={{display:'flex',alignItems:'center',gap:9,cursor:'pointer'}}>
-            <Logo size={32}/>
-            <span style={{fontFamily:'serif',fontWeight:900,fontSize:'1.18rem',color:'#fff',letterSpacing:-0.5}}>네모<span style={{color:'#c9a84c'}}>혜</span></span>
+      {/* ── 상단 헤더 ─────────────────────────────────────── */}
+      <header style={{
+        background:C.dark,
+        position:'sticky',top:0,zIndex:200,
+        paddingTop:'env(safe-area-inset-top,0px)',
+        boxShadow:'0 1px 0 rgba(255,255,255,0.06)',
+      }}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 20px',height:56}}>
+          <div onClick={()=>setTab('analyze')} style={{display:'flex',alignItems:'center',gap:10,cursor:'pointer'}}>
+            <Logo size={34}/>
+            <span style={{fontFamily:'serif',fontWeight:900,fontSize:'1.22rem',color:'#fff',letterSpacing:-0.5}}>
+              네모<span style={{color:C.gold}}>혜</span>
+            </span>
           </div>
-          <button onClick={logout} style={{background:'transparent',border:'1px solid #3a4250',color:'#9ca3af',padding:'5px 12px',borderRadius:7,fontSize:12,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>로그아웃</button>
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            {user?.isAdmin&&(
+              <button onClick={()=>setTab('admin')} style={{background:'rgba(255,255,255,0.08)',border:'none',color:'#fff',width:34,height:34,borderRadius:10,cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>⚙️</button>
+            )}
+            {/* 아바타 */}
+            <div onClick={()=>setTab('profile')} style={{
+              width:34,height:34,borderRadius:'50%',cursor:'pointer',flexShrink:0,
+              background:`linear-gradient(135deg,${C.teal},#0a5268)`,
+              display:'flex',alignItems:'center',justifyContent:'center',
+              color:'#fff',fontSize:13,fontWeight:800,
+              boxShadow:`0 0 0 2px ${tab==='profile'?C.gold:'transparent'}`,
+              transition:'box-shadow 0.15s',
+            }}>
+              {user.name?.charAt(0)||'👤'}
+            </div>
+          </div>
         </div>
-        {/* 2줄: 가로 스크롤 탭 */}
-        <nav style={{
-          display:'flex',overflowX:'auto',gap:2,
-          padding:'0 8px 6px',
-          scrollbarWidth:'none', // Firefox
-          WebkitOverflowScrolling:'touch',
-        }}>
-          <style>{`header nav::-webkit-scrollbar{display:none}`}</style>
-          {NAV.map(([v,l])=>(
-            <button key={v} onClick={()=>setTab(v)}
-              style={{
-                flexShrink:0,
-                background:tab===v?'rgba(255,255,255,0.12)':'transparent',
-                color:tab===v?'#fff':'#6b7280',
-                border:'none',
-                borderBottom:tab===v?'2px solid #c9a84c':'2px solid transparent',
-                padding:'6px 13px',
-                borderRadius:'8px 8px 0 0',
-                fontSize:13,fontWeight:700,
-                cursor:'pointer',fontFamily:'inherit',
-                transition:'all 0.15s',
-                whiteSpace:'nowrap',
-              }}>
-              {l}
-            </button>
-          ))}
-        </nav>
       </header>
 
-      {tab==='analyze' && (
-        <div style={{background:'#0d1117',padding:'36px 20px 52px',textAlign:'center',position:'relative',overflow:'hidden'}}>
-          <div style={{position:'absolute',bottom:-2,left:0,right:0,height:32,background:'#f5f0e8',clipPath:'ellipse(55% 100% at 50% 100%)'}}/>
-          <div style={{display:'inline-block',background:'rgba(201,168,76,0.15)',border:'1px solid #c9a84c',color:'#c9a84c',fontSize:11,letterSpacing:3,textTransform:'uppercase',padding:'5px 14px',borderRadius:20,marginBottom:14}}>✦ 네 모든 혜택 분석</div>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:11,marginBottom:12}}><Logo size={44}/><span style={{fontFamily:'serif',fontSize:'2.20rem',fontWeight:900,color:'#fff',letterSpacing:-1}}>네모<span style={{color:'#c9a84c'}}>혜</span></span></div>
-          <p style={{color:'#9ba3ae',fontSize:14,lineHeight:1.7}}>안녕하세요, <strong style={{color:'#c9a84c'}}>{user.name}</strong>님 👋<br/>나이, 성별, 직업, 소득, 주소를 입력하면 맞춤 혜택을 찾아드려요</p>
+      {/* ── 페이지 히어로 (혜택설계 탭) ───────────────────── */}
+      {tab==='analyze'&&(
+        <div style={{background:`linear-gradient(135deg,${C.dark} 0%,#0f2744 100%)`,padding:'32px 20px 56px',textAlign:'center',position:'relative',overflow:'hidden'}}>
+          {/* 배경 장식 원 */}
+          <div style={{position:'absolute',top:-40,right:-40,width:160,height:160,borderRadius:'50%',background:'rgba(212,168,67,0.06)',pointerEvents:'none'}}/>
+          <div style={{position:'absolute',bottom:-30,left:-30,width:120,height:120,borderRadius:'50%',background:'rgba(14,116,144,0.08)',pointerEvents:'none'}}/>
+          <div style={{position:'absolute',bottom:-1,left:0,right:0,height:32,background:C.bg,clipPath:'ellipse(55% 100% at 50% 100%)'}}/>
+
+          <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(212,168,67,0.12)',border:`1px solid rgba(212,168,67,0.3)`,borderRadius:20,padding:'5px 14px',marginBottom:18}}>
+            <span style={{color:C.gold,fontSize:10,letterSpacing:2,fontWeight:700,textTransform:'uppercase'}}>✦ AI 맞춤 혜택 분석</span>
+          </div>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginBottom:14}}>
+            <Logo size={46}/>
+            <span style={{fontFamily:'serif',fontSize:'2.42rem',fontWeight:900,color:'#fff',letterSpacing:-1.5}}>네모<span style={{color:C.gold}}>혜</span></span>
+          </div>
+          <p style={{color:'rgba(255,255,255,0.6)',fontSize:14.5,lineHeight:1.8,maxWidth:320,margin:'0 auto'}}>
+            안녕하세요, <strong style={{color:C.gold}}>{user.name}</strong>님 👋<br/>
+            정보를 입력하면 받을 수 있는 혜택을 모두 찾아드려요
+          </p>
         </div>
       )}
 
-      {tab!=='analyze' && (
-        <div style={{background:'#fff',borderBottom:'1px solid #d4cdc2',padding:'18px 20px'}}>
+      {/* ── 비-혜택설계 탭 페이지 헤더 ─────────────────────── */}
+      {tab!=='analyze'&&(
+        <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,padding:'20px 20px 18px'}}>
           <div style={{maxWidth:760,margin:'0 auto'}}>
-            <h1 style={{fontFamily:'serif',fontSize:'1.32rem',fontWeight:700}}>
-              {tab==='life'?'🗺 인생 설계':tab==='wedding'?'💍 결혼 설계':tab==='realestate'?'🏠 부동산 설계':tab==='saved'?'📁 내 혜택 보관함':tab==='admin'?'⚙️ Admin 회원 관리':'👤 내 정보'}
-            </h1>
-            {tab==='life'&&<p style={{fontSize:13,color:'#6b6560',marginTop:3}}>목표와 재정 상황을 입력하면 현실적인 단계별 인생 플랜을 설계해드려요</p>}
-            {tab==='wedding'&&<p style={{fontSize:13,color:'#6b6560',marginTop:3}}>예산·지역·스타일 입력 → 스드메·웨딩홀 추천 + 준비 일정 캘린더 동기화</p>}
-            {tab==='realestate'&&<p style={{fontSize:13,color:'#6b6560',marginTop:3}}>집 유형과 조건을 입력하면 추천 매물·대출 상품·정부 지원을 한번에 분석해드려요</p>}
-            {tab==='saved'&&<p style={{fontSize:13,color:'#6b6560',marginTop:3}}>저장한 혜택 목록과 캘린더 알림을 확인할 수 있어요</p>}
+            <h1 style={{fontFamily:'serif',fontSize:'1.45rem',fontWeight:800,color:C.text1,marginBottom:4}}>{meta.title}</h1>
+            {meta.sub&&<p style={{fontSize:13.5,color:C.text2,lineHeight:1.6}}>{meta.sub}</p>}
           </div>
         </div>
       )}
 
-      <div style={{maxWidth:760,margin:'0 auto',padding:tab==='analyze'?'0 20px 60px':'20px 20px 60px',position:'relative',zIndex:10,marginTop:tab==='analyze'?-14:0}}>
-        {tab==='analyze' && <AnalyzeTab user={user} onSaved={refreshCount}/>}
-        {tab==='life'    && <LifeTab user={user}/>}
-        {tab==='wedding' && <WeddingTab user={user}/>}
+      {/* ── 탭 콘텐츠 ─────────────────────────────────────── */}
+      <div style={{maxWidth:760,margin:'0 auto',padding:tab==='analyze'?'0 16px 100px':'16px 16px 100px',position:'relative',zIndex:10,marginTop:tab==='analyze'?-16:0}}>
+        {tab==='analyze'    && <AnalyzeTab user={user} onSaved={refreshCount}/>}
+        {tab==='life'       && <LifeTab user={user}/>}
+        {tab==='wedding'    && <WeddingTab user={user}/>}
         {tab==='realestate' && <RealEstateTab user={user}/>}
-        {tab==='saved'   && <SavedTab user={user}/>}
-        {tab==='profile' && <ProfileTab user={user} onLogout={logout} savedCount={savedCount}/>}
+        {tab==='saved'      && <SavedTab user={user}/>}
+        {tab==='profile'    && <ProfileTab user={user} onLogout={logout} savedCount={savedCount}/>}
         {tab==='admin' && user?.isAdmin && <AdminTab/>}
       </div>
 
-      <footer style={{background:'#0d1117',padding:'20px 24px',paddingBottom:'calc(20px + env(safe-area-inset-bottom, 0px))',textAlign:'center',color:'#5a6270',fontSize:12,lineHeight:1.8}}>
-        <p>본 서비스는 복지 안내 서비스로, 실제 수혜 여부는 관할 기관에 직접 문의하시기 바랍니다.</p>
-        <p style={{marginTop:4,color:'#3a4250'}}>© 2026 네모혜 — 네 모든 혜택을 찾아드리는 서비스</p>
-      </footer>
+      {/* ── 하단 탭 바 ───────────────────────────────────── */}
+      <nav style={{
+        position:'fixed',bottom:0,left:0,right:0,
+        background:C.surface,
+        borderTop:`1px solid ${C.border}`,
+        paddingBottom:'env(safe-area-inset-bottom,0px)',
+        display:'flex',
+        zIndex:200,
+        boxShadow:'0 -4px 24px rgba(15,23,42,0.09)',
+      }}>
+        {BOTTOM_TABS.map(({v,icon,label})=>{
+          const active=tab===v;
+          return(
+            <button key={v} onClick={()=>setTab(v)} style={{
+              flex:1,display:'flex',flexDirection:'column',alignItems:'center',
+              justifyContent:'center',gap:3,height:60,border:'none',
+              background:'transparent',cursor:'pointer',fontFamily:'inherit',
+              padding:'6px 2px',position:'relative',
+              transition:'color 0.15s',
+            }}>
+              {/* 상단 액티브 바 */}
+              {active&&<div style={{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)',width:28,height:3,background:C.gold,borderRadius:'0 0 3px 3px'}}/>}
+              <span style={{fontSize:18,lineHeight:1,filter:active?'none':'grayscale(40%) opacity(0.6)'}}>{icon}</span>
+              <span style={{fontSize:10,fontWeight:active?700:500,color:active?C.teal:C.text3,letterSpacing:0.2,whiteSpace:'nowrap'}}>{label}</span>
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }
