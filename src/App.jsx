@@ -275,6 +275,54 @@ const KNOWN_BENEFIT_URLS = [
   {kw:['산재보험','산업재해','요양급여'],url:'https://www.kcomwel.or.kr/kcomwel/paym/acci/acci.jsp'},
   // ── 정부24 통합 ──
   {kw:['정부24'],url:'https://www.gov.kr/portal/serviceList'},
+  // ── 서울복지포털 (wis.seoul.go.kr) ──
+  {kw:['서울형 복지급여','서울 복지급여'],url:'https://wis.seoul.go.kr/main.do'},
+  {kw:['서울 작은결혼식','서울시 결혼 지원','공정결혼','서울시 결혼','작은결혼'],url:'https://wis.seoul.go.kr/main.do'},
+  {kw:['서울커리업','중장년 경력설계'],url:'https://wis.seoul.go.kr/main.do'},
+  {kw:['돌봄SOS','돌봄 SOS'],url:'https://wis.seoul.go.kr/main.do'},
+  {kw:['가족돌봄청년','청년 돌봄'],url:'https://wis.seoul.go.kr/main.do'},
+  {kw:['신중년사회공헌','신중년 사회공헌'],url:'https://wis.seoul.go.kr/main.do'},
+  // ── 서울청년몽땅정보통 (youth.seoul.go.kr) — 금융/복지 ──
+  {kw:['서울 청년수당','서울청년수당','청년 수당'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=V202600005'},
+  {kw:['희망두배 청년통장','희망두배청년통장'],url:'https://youth.seoul.go.kr/content.do?key=2310100069'},
+  {kw:['서울 청년 마음건강','청년 마음건강 지원','청년마음건강'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=20250519005400210855'},
+  {kw:['은둔청년','고립청년','청년 고립'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=R2023050912524'},
+  // ── 서울청년몽땅정보통 — 주거 ──
+  {kw:['서울 청년 월세','서울청년 월세 지원'],url:'https://youth.seoul.go.kr/content.do?key=2310100046'},
+  {kw:['청년 임차보증금 이자','청년 전세자금 이자'],url:'https://youth.seoul.go.kr/content.do?key=2310100047'},
+  {kw:['청년 중개보수','청년 이사비','부동산 중개보수 이사비'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=R2024040321345'},
+  // ── 서울청년몽땅정보통 — 일자리/취업 ──
+  {kw:['미래 청년 일자리','점프업 청년'],url:'https://youth.seoul.go.kr/youthConts.do?key=2310100011'},
+  {kw:['서울형 청년인턴','청년 직무캠프'],url:'https://youth.seoul.go.kr/content.do?key=2310100012'},
+  {kw:['청년취업사관학교','새싹 SeSAC','SeSAC'],url:'https://sesac.seoul.kr/'},
+  {kw:['서울 청년 예비 인턴'],url:'https://youth.seoul.go.kr/youthConts.do?key=2404040001'},
+  {kw:['서울 매력일자리'],url:'https://youth.seoul.go.kr/api/jobNewDealBiz/list.do?key=2309240002'},
+  {kw:['미취업 청년 자격증','청년 자격증 응시료','자격증 응시료 지원'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=R2024041821928'},
+  // ── 서울청년몽땅정보통 — 창업 ──
+  {kw:['서울 청년 창업지원시설','청년 창업 공간'],url:'https://youth.seoul.go.kr/content.do?key=2310100024'},
+  {kw:['지역연계형 청년창업','청년 창업 지원'],url:'https://youth.seoul.go.kr/content.do?key=2310100026'},
+  {kw:['청년쿡 비즈니스','청년 쿡 비즈니스'],url:'https://youth.seoul.go.kr/content.do?key=2310100028'},
+  // ── 서울청년몽땅정보통 — 문화 ──
+  {kw:['서울청년문화패스','청년 문화패스','청년 문화 바우처'],url:'https://www.youthcultureseoul.kr/'},
+  // ── 서울 탄생육아 몽땅정보통 (umppa.seoul.go.kr) ──
+  {kw:['임산부 교통비','임산부교통비'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=34B5EA8BEB354E2DB26136CFE52AEFF2'},
+  {kw:['난자동결'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=DEC40D648D8647CABC7A5D7279EFCFB6'},
+  {kw:['한의약 난임','난임 치료'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtList.do'},
+  {kw:['정난관 복원','난관 복원'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtList.do'},
+  {kw:['35세 이상 임산부','고령 임산부 의료비'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=BB80BABF442E40D3BF59EBA63F4DF1D7'},
+  {kw:['엄마 북돋움','북돋움'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=4ECE63A5582C4749A34BF4867436AAB1'},
+  {kw:['서울형 산후조리','산후조리경비'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=58D83411277E40D1BFF6255A10CBCDD5'},
+  {kw:['서울엄마아빠택시','엄마아빠택시'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=3EF7489ACF614F939FEF8514308797D2'},
+  {kw:['자영업자 임산부 출산급여','1인 자영업자 출산급여'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=16A62AE6CE142993E063A6022162A5D2'},
+  {kw:['자영업자 배우자 출산휴가','1인 자영업자 배우자'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=CED87B1387034FF8B72CFF94402F9F87'},
+  {kw:['자녀출산 무주택','출산 무주택 주거비'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=197DA8F773AAE8DCE063A6022162FF67'},
+  {kw:['서울형 손주돌봄','손주돌봄수당'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=59F45FE9BC024848AD07143C962E6869'},
+  {kw:['서울형 가사서비스','가사서비스 지원'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=9F04398B4B3648348729DB5796A4DC39'},
+  {kw:['둘째 출산 첫째 돌봄','둘째 출산시 첫째'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=062A1CE5D5848B7EE063A602216299A4'},
+  {kw:['소상공인 민간 아이돌봄','소상공인 아이돌봄'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=E9FF6E0FEFF74EBCA2E954130EAA7C74'},
+  {kw:['서울아기 건강 첫걸음','건강 첫걸음'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtList.do'},
+  {kw:['유축기 대여'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtList.do'},
+  {kw:['서울키즈 오케이존','키즈 오케이존'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=99341E4FE02244FFA897EF1BF7678DD1'},
 ];
 const APPLY_DOMAIN_MAP = {
   'bokjiro.go.kr':'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do',
@@ -299,6 +347,13 @@ const APPLY_DOMAIN_MAP = {
   'idolbom.go.kr':'https://idolbom.go.kr/front/main/main.do',
   'socialservice.or.kr':'https://www.socialservice.or.kr/user/main.do',
   'sbiz.or.kr':'https://www.sbiz.or.kr/sup/main.do',
+  'wis.seoul.go.kr':'https://wis.seoul.go.kr/main.do',
+  'welfare.seoul.kr':'https://wis.seoul.go.kr/main.do',
+  'umppa.seoul.go.kr':'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtList.do',
+  'youth.seoul.go.kr':'https://youth.seoul.go.kr/mainB.do',
+  'sesac.seoul.kr':'https://sesac.seoul.kr/',
+  'youthcultureseoul.kr':'https://www.youthcultureseoul.kr/',
+  'smyc.kr':'https://www.smyc.kr/',
 };
 function getBestApplyUrl(url, title='', institution=''){
   const haystack=(title+' '+institution).toLowerCase();
@@ -320,9 +375,25 @@ function getBestApplyUrl(url, title='', institution=''){
   return url||'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do';
 }
 
+// ─── 청년도약계좌 은행 목록 ────────────────────────────────────────
+const DOYAK_BANKS = [
+  {name:'KB국민은행', icon:'🟡', url:'https://obank.kbstar.com/quics?page=C021590'},
+  {name:'신한은행',   icon:'🔵', url:'https://bank.shinhan.com/index.jsp#010203040000'},
+  {name:'하나은행',   icon:'🟢', url:'https://www.kebhana.com/cont/mall/mall08/mall0808/mall080801/1474584_115099.jsp'},
+  {name:'우리은행',   icon:'🔵', url:'https://spot.wooribank.com/pot/Dream?withyou=PODEP0104'},
+  {name:'NH농협은행', icon:'🟢', url:'https://banking.nonghyup.com/nhbank.html'},
+  {name:'IBK기업은행',icon:'🔵', url:'https://www.ibk.co.kr/contents.do?menuNo=100491'},
+  {name:'BNK부산은행',icon:'🟠', url:'https://bbs.bnkfg.com/'},
+  {name:'BNK경남은행',icon:'🟠', url:'https://www.knbank.co.kr/'},
+  {name:'DGB대구은행',icon:'🟣', url:'https://www.dgb.co.kr/'},
+  {name:'광주은행',   icon:'🔴', url:'https://www.kjbank.com/'},
+  {name:'전북은행',   icon:'🔴', url:'https://www.jbbank.co.kr/'},
+];
+function isDoyak(title=''){ return title.includes('청년도약계좌'); }
+
 // ─── BCard ────────────────────────────────────────────────────────
 const SOURCE_COLOR={'정부복지':'#1e3a5f','지자체':'#166534','금융/은행':'#1e40af','공공기관':'#5b21b6','기업/협회':'#b45309','민간/NGO':'#be185d'};
-function BCard({b,savedIds,onToggleSave}){const bg=CAT_COLOR[b.category]||'#f3f4f6';const isSaved=savedIds?.has(String(b.id));const dl=parseDeadline(b.deadline);const days=daysLeft(dl);const[calOpen,setCalOpen]=useState(false);
+function BCard({b,savedIds,onToggleSave}){const bg=CAT_COLOR[b.category]||'#f3f4f6';const isSaved=savedIds?.has(String(b.id));const dl=parseDeadline(b.deadline);const days=daysLeft(dl);const[calOpen,setCalOpen]=useState(false);const[bankOpen,setBankOpen]=useState(false);
 const srcColor=SOURCE_COLOR[b.source]||'#374151';
 return(<div style={{background:C.surface,border:`1.5px solid ${isSaved?C.teal:b.isHidden?'#7c3aed':C.border}`,borderRadius:16,padding:'18px 20px',marginBottom:10,boxShadow:isSaved?`0 0 0 3px rgba(14,116,144,0.10)`:b.isHidden?'0 0 0 2px rgba(124,58,237,0.08)':'0 2px 12px rgba(15,23,42,0.05)',position:'relative',overflow:'hidden'}}>
   {b.isHidden&&<div style={{position:'absolute',top:0,right:0,background:'linear-gradient(135deg,#7c3aed,#5b21b6)',color:'#fff',fontSize:9,fontWeight:700,padding:'3px 10px',borderRadius:'0 16px 0 10px',letterSpacing:1}}>숨겨진 혜택</div>}
@@ -348,7 +419,16 @@ return(<div style={{background:C.surface,border:`1.5px solid ${isSaved?C.teal:b.
     </div>
     {b.requiredDocuments?.length>0&&(<div style={{marginBottom:10}}><div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:0.5,marginBottom:5}}>📂 필요 서류</div><div style={{display:'flex',flexWrap:'wrap',gap:4}}>{b.requiredDocuments.map(d=><span key={d} style={{background:'#f0ebe0',border:'1px solid #d4cdc2',borderRadius:5,padding:'3px 8px',fontSize:12}}>📄 {d}</span>)}</div></div>)}
     <div style={{display:'flex',gap:7,flexWrap:'wrap',alignItems:'center'}}>
-      <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:5,background:'#0d1117',color:'#fff',fontSize:13,fontWeight:700,padding:'8px 14px',borderRadius:7,textDecoration:'none'}}>신청하러 가기 →</a>
+      {isDoyak(b.title)
+        ? (<div style={{position:'relative'}}>
+            <button onClick={()=>setBankOpen(p=>!p)} style={{display:'inline-flex',alignItems:'center',gap:5,background:'#0d1117',color:'#fff',fontSize:13,fontWeight:700,padding:'8px 14px',borderRadius:7,border:'none',cursor:'pointer',fontFamily:'inherit'}}>🏦 은행 선택하기 ▾</button>
+            {bankOpen&&(<div style={{position:'absolute',bottom:'calc(100% + 6px)',left:0,background:'#fff',border:'1.5px solid #d4cdc2',borderRadius:14,boxShadow:'0 10px 32px rgba(0,0,0,0.14)',zIndex:400,minWidth:210,overflow:'hidden'}}>
+              <div style={{padding:'10px 14px',background:'#0d1117',fontSize:12,fontWeight:700,color:'rgba(255,255,255,0.8)',textTransform:'uppercase',letterSpacing:1}}>청년도약계좌 신청 은행</div>
+              {DOYAK_BANKS.map(bk=>(<a key={bk.name} href={bk.url} target="_blank" rel="noreferrer" onClick={()=>setBankOpen(false)} style={{display:'flex',alignItems:'center',gap:10,padding:'11px 14px',borderBottom:'1px solid #f0ebe0',textDecoration:'none',color:'#0d1117',fontSize:14,fontWeight:600,background:'#fff'}}><span style={{fontSize:18}}>{bk.icon}</span>{bk.name}<span style={{marginLeft:'auto',fontSize:11,color:'#94a3b8'}}>신청 →</span></a>))}
+            </div>)}
+          </div>)
+        : (<a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:5,background:'#0d1117',color:'#fff',fontSize:13,fontWeight:700,padding:'8px 14px',borderRadius:7,textDecoration:'none'}}>신청하러 가기 →</a>)
+      }
       {dl&&(<div style={{position:'relative'}}>
         <button onClick={()=>setCalOpen(p=>!p)} style={BP({padding:'7px 12px',fontSize:13,borderRadius:7,background:'#edf6f6',color:'#1a6b6b',display:'flex',alignItems:'center',gap:5})}>📅 캘린더 알림</button>
         {calOpen&&(<div style={{position:'absolute',bottom:'calc(100% + 6px)',left:0,background:'#fff',border:'1.5px solid #d4cdc2',borderRadius:12,boxShadow:'0 8px 24px rgba(0,0,0,0.12)',zIndex:300,minWidth:220,overflow:'hidden'}}>
@@ -524,7 +604,7 @@ return(
 // ─── AnalyzeTab ───────────────────────────────────────────────────
 // ─── 혜택 분석 프롬프트 빌더 ─────────────────────────────────────
 function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='full'}){
-  const URL_GUIDE=`applyUrl규칙(필수): 홈페이지 메인 URL 금지. 신청 직접 페이지만. 복지로=https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do, 정부24=https://www.gov.kr/portal/serviceList, 고용24=https://www.work.go.kr/jobcenter/main.do, 주택도시기금=https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp, 청년정책=https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do, 건강보험=https://www.nhis.or.kr/nhis/policy/wbhada02800m01.do, 국민연금=https://www.nps.or.kr/jsppage/service/apply/apply.jsp`;
+  const URL_GUIDE=`applyUrl규칙(필수): 홈페이지 메인 URL 금지. 신청 직접 페이지만. 복지로=https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do, 정부24=https://www.gov.kr/portal/serviceList, 고용24=https://www.work.go.kr/jobcenter/main.do, 주택도시기금=https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp, 청년정책=https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do, 건강보험=https://www.nhis.or.kr/nhis/policy/wbhada02800m01.do, 국민연금=https://www.nps.or.kr/jsppage/service/apply/apply.jsp, 서울복지포털=https://wis.seoul.go.kr/main.do, 서울탄생육아=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtList.do, 임산부교통비=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=34B5EA8BEB354E2DB26136CFE52AEFF2, 서울형산후조리=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=58D83411277E40D1BFF6255A10CBCDD5, 서울엄마아빠택시=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=3EF7489ACF614F939FEF8514308797D2, 서울청년수당=https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=V202600005, 희망두배청년통장=https://youth.seoul.go.kr/content.do?key=2310100069, 서울청년마음건강=https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=20250519005400210855, 청년월세서울=https://youth.seoul.go.kr/content.do?key=2310100046, 청년임차보증금이자=https://youth.seoul.go.kr/content.do?key=2310100047, 청년취업사관학교새싹=https://sesac.seoul.kr/, 미래청년일자리=https://youth.seoul.go.kr/youthConts.do?key=2310100011, 청년창업지원서울=https://youth.seoul.go.kr/content.do?key=2310100026, 서울청년문화패스=https://www.youthcultureseoul.kr/`;
   const SCHEMA=`{"id":숫자,"source":"정부복지|지자체|금융/은행|공공기관|기업/협회|민간/NGO 중 택1","sourceIcon":"이모지","category":"주거|의료|금융|교육|고용|보육|노인|장애|청년|세금|통신|문화|식품|기타 중 택1","categoryIcon":"이모지","scope":"전국 또는 지역명","isUrgent":false,"isHidden":false,"title":"혜택명","institution":"기관명","description":"설명2~3문장. 왜 이게 유리한지 포함","amount":"금액 또는 혜택 규모","deadline":"YYYY년 MM월 DD일 또는 수시 신청","requiredDocuments":["서류1"],"howToApply":"방법","applyUrl":"https://..."}`;
 
   if(mode==='hidden'){
@@ -541,6 +621,7 @@ function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='ful
 - 각종 협회·노동조합 조합원 혜택
 - 지역 신협·새마을금고 특별 상품
 - 공공임대 주택 청약 (LH, SH, 지자체 매입임대)
+- 서울 거주자: 서울청년수당(월50만원), 희망두배청년통장, 청년마음건강지원, 청년취업사관학교새싹(SeSAC), 서울청년문화패스, 청년부동산중개보수·이사비지원, 미취업청년자격증응시료지원, 은둔청년지원, 서울형가사서비스(70만원), 서울형산후조리경비(100만원), 임산부교통비(70만원) (youth.seoul.go.kr / wis.seoul.go.kr / umppa.seoul.go.kr)
 - 에너지바우처·알뜰폰 혜택·인터넷 요금 지원
 - 현재 진행 중인 국가 지원 사업 (취업 지원, 창업 자금, 교육비 지원)
 - 민간 장학재단·재단법인 지원
@@ -555,7 +636,7 @@ function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='ful
 
 ★ 반드시 다음 모든 출처에서 혜택을 찾아주세요:
 1. 정부 복지: 복지로, 정부24, 고용24, 국민건강보험, 국민연금, 건강보험 환급
-2. 지자체: ${address} 시·군·구청 특화 지원사업, 읍·면·동 주민센터 사업
+2. 지자체: ${address} 시·군·구청 특화 지원사업, 읍·면·동 주민센터 사업. 서울 거주자라면 반드시 포함 — ①서울청년몽땅정보통(youth.seoul.go.kr): 서울청년수당(월50만원·최대6개월), 희망두배청년통장, 청년마음건강지원, 미래청년일자리(점프업), 청년취업사관학교새싹(SeSAC), 서울형청년인턴, 청년월세지원, 청년임차보증금이자지원, 청년부동산중개보수·이사비, 청년창업지원, 서울청년문화패스, 미취업청년자격증응시료, 은둔청년지원 ②서울복지포털(wis.seoul.go.kr): 서울형복지급여·작은결혼식지원 ③서울탄생육아몽땅정보통(umppa.seoul.go.kr): 임산부교통비·산후조리경비100만원·엄마아빠택시·손주돌봄수당·가사서비스지원70만원·난자동결시술비
 3. 금융기관: 주택도시기금, 서민금융진흥원, 햇살론, 사잇돌대출, 청년도약계좌, 청년희망적금
 4. 공공기관: 근로복지공단(선택복지·EAP), 한국장학재단, 한국고용정보원
 5. 에너지·통신: 에너지바우처, 통신요금 감면(장애인·저소득·노인), 인터넷 요금 지원
