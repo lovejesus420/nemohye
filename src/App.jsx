@@ -513,10 +513,10 @@ function LandingScreen({onStartAuth}){
   };
 
   return(
-    <div style={{width:'100%',height:'100vh',background:'#fff',fontFamily:"'Noto Sans KR','Inter',sans-serif",overflowX:'hidden',overflowY:'auto',position:'relative',display:'flex',flexDirection:'column',justifyContent:'space-between'}}>
+    <div style={{width:'100%',height:'100vh',background:'#fff',fontFamily:"'Noto Sans KR','Inter',sans-serif",overflow:'hidden',position:'relative',display:'flex',flexDirection:'column'}}>
       <style>{`
-        @keyframes landFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-15px) rotate(4deg)}}
-        @keyframes landFloatD{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(20px) rotate(-4deg)}}
+        @keyframes landFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+        @keyframes landFloatD{0%,100%{transform:translateY(0)}50%{transform:translateY(14px)}}
         @keyframes landPulse{0%,100%{opacity:0.5}50%{opacity:0.8}}
         @keyframes shimmer{100%{transform:translateX(200%) skewX(-20deg)}}
         .land-float{animation:landFloat 6s ease-in-out infinite}
@@ -531,144 +531,140 @@ function LandingScreen({onStartAuth}){
       <div className="land-blob" style={{position:'absolute',top:'-10%',left:'-20%',width:'80%',height:'40%',background:'rgba(209,250,229,0.5)',borderRadius:'50%',mixBlendMode:'multiply',filter:'blur(80px)',pointerEvents:'none',zIndex:0}}/>
       <div style={{position:'absolute',bottom:'10%',right:'-10%',width:'70%',height:'50%',background:'rgba(240,253,244,0.6)',borderRadius:'50%',mixBlendMode:'multiply',filter:'blur(100px)',pointerEvents:'none',zIndex:0}}/>
 
-      {/* ── 헤더 ── */}
-      <header style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'0 24px',paddingTop:'calc(48px + env(safe-area-inset-top,0px))',paddingBottom:12,position:'relative',zIndex:20}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginBottom:8}}>
-          <div style={{width:52,height:52,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 6px 20px rgba(22,163,74,0.5)',flexShrink:0}}>
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              {/* 박스 몸체 */}
-              <rect x="4" y="17" width="24" height="13" rx="3" fill="white"/>
-              {/* 리본 가로 띠 */}
-              <rect x="3" y="13" width="26" height="6" rx="3" fill="rgba(255,255,255,0.75)"/>
-              {/* 리본 세로 띠 */}
-              <rect x="13" y="13" width="6" height="17" rx="2" fill="white"/>
-              {/* 나비매듭 왼쪽 */}
-              <path d="M16,13 C14,9 8,6 6.5,9 C5,12 11,14.5 16,13Z" fill="rgba(255,255,255,0.9)"/>
-              {/* 나비매듭 오른쪽 */}
-              <path d="M16,13 C18,9 24,6 25.5,9 C27,12 21,14.5 16,13Z" fill="rgba(255,255,255,0.9)"/>
-              {/* 매듭 중심 */}
-              <circle cx="16" cy="13" r="2.8" fill="white"/>
-              {/* 별 반짝이 */}
-              <circle cx="26" cy="7" r="1.2" fill="rgba(255,255,255,0.7)"/>
-              <circle cx="7" cy="20" r="0.9" fill="rgba(255,255,255,0.5)"/>
-            </svg>
-          </div>
-          <span style={{fontFamily:'serif',fontSize:'2.4rem',fontWeight:900,color:'#111827',letterSpacing:-1.5}}>네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
-        </div>
-        <p style={{color:'#9ca3af',fontSize:13,letterSpacing:0.3,textAlign:'center',margin:0}}>내게 맞는 모든 혜택을 한 번에</p>
-      </header>
+      {/* ── 스크롤 가능한 콘텐츠 영역 ── */}
+      <div style={{flex:1,overflowY:'auto',display:'flex',flexDirection:'column'}}>
 
-      {/* ── 히어로 숫자 ── */}
-      <div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'20px 24px 8px',position:'relative',zIndex:20}}>
-        <p style={{color:'#6b7280',fontSize:13,fontWeight:700,letterSpacing:0.8,marginBottom:8,textAlign:'center'}}>네모혜로 받을 수 있는 최대 혜택</p>
-        <div style={{display:'flex',alignItems:'flex-start',gap:3}}>
-          <span style={{fontSize:'1.6rem',fontWeight:700,color:'#059669',marginTop:6}}>₩</span>
-          <span style={{fontSize:'3.2rem',fontWeight:800,letterSpacing:-2,color:'#111827',lineHeight:1}}>{displayNum.toLocaleString()}</span>
-        </div>
-        <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'#f0fdf4',border:'1px solid #dcfce7',borderRadius:999,padding:'5px 12px',marginTop:10}}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="13 7 19 7 19 13"/><polyline points="19 7 11 15 7 11 1 17"/>
-          </svg>
-          <span style={{fontSize:11,fontWeight:700,color:'#065f46'}}>사용자들의 월 수입 15% 증가</span>
-        </div>
-      </div>
-
-      {/* ── 카드 영역 ── */}
-      <div style={{position:'relative',flexGrow:1,width:'100%',zIndex:10,marginTop:32,minHeight:340}}>
-
-        {/* 메인 글래스 카드 (기울어짐) */}
-        <div style={{...glassCard,position:'absolute',left:24,right:24,top:32,borderRadius:24,padding:20,zIndex:20,transform:'rotate(-2deg)'}}>
-          {/* 코인 3D 플로팅 */}
-          <div className="land-float" style={{
-            position:'absolute',right:-12,top:-32,width:64,height:64,borderRadius:'50%',zIndex:30,
-            background:'linear-gradient(135deg,#fde68a 0%,#fbbf24 50%,#f59e0b 100%)',
-            boxShadow:'inset -4px -4px 8px rgba(0,0,0,0.15),inset 4px 4px 8px rgba(255,255,255,0.5),0 10px 20px rgba(251,191,36,0.3),0 2px 0 #f59e0b,0 4px 0 #d97706,0 6px 0 #b45309',
-            border:'1px solid rgba(251,191,36,0.8)',
-            display:'flex',alignItems:'center',justifyContent:'center',
-          }}>
-            <span style={{fontSize:24,fontWeight:900,color:'rgba(255,255,255,0.95)',textShadow:'0 1px 3px rgba(0,0,0,0.2)'}}>₩</span>
-          </div>
-
-          {/* 카드 헤더 */}
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24}}>
-            <div style={{display:'flex',alignItems:'center',gap:12}}>
-              <div style={{width:40,height:40,borderRadius:'50%',background:'#f0fdf4',border:'1px solid #dcfce7',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/>
-                </svg>
-              </div>
-              <div>
-                <div style={{fontWeight:600,color:'#1f2937',fontSize:14}}>정부 &amp; 지자체 혜택</div>
-                <div style={{fontSize:12,color:'#9ca3af'}}>청년지원 혜택</div>
-              </div>
+        {/* ── 헤더 ── */}
+        <header style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'0 24px',paddingTop:'calc(28px + env(safe-area-inset-top,0px))',paddingBottom:8,position:'relative',zIndex:20}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,marginBottom:6}}>
+            <div style={{width:44,height:44,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:11,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 4px 14px rgba(22,163,74,0.45)',flexShrink:0}}>
+              <svg width="26" height="26" viewBox="0 0 30 30" fill="none">
+                <rect x="4" y="16" width="22" height="12" rx="2.5" fill="white"/>
+                <rect x="3" y="12" width="24" height="5" rx="2.5" fill="rgba(255,255,255,0.85)"/>
+                <rect x="13" y="12" width="4" height="16" rx="1.5" fill="rgba(20,83,45,0.18)"/>
+                <circle cx="9" cy="10" r="4" fill="white" opacity="0.9"/>
+                <circle cx="21" cy="10" r="4" fill="white" opacity="0.9"/>
+                <circle cx="15" cy="12" r="2.5" fill="white"/>
+              </svg>
             </div>
-            <span style={{padding:'4px 8px',background:'#dcfce7',color:'#15803d',fontSize:10,fontWeight:700,borderRadius:4,textTransform:'uppercase',letterSpacing:1}}>사용가능</span>
+            <span style={{fontFamily:'serif',fontSize:'1.7rem',fontWeight:900,color:'#111827',letterSpacing:-1}}>네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
           </div>
+          <p style={{color:'#9ca3af',fontSize:12,letterSpacing:0.3,textAlign:'center',margin:0}}>내게 맞는 모든 혜택을 한 번에</p>
+        </header>
 
-          {/* 혜택 리스트 */}
-          {[
-            {label:'청년월세지원',val:'월+₩500,000'},
-            {label:'미취업청년수당',val:'월+₩500,000'},
-            {label:'결혼지원금',val:'월+₩1,000,000'},
-            {label:'아기 첫만남이용권',val:'+₩2,000,000'},
-            {label:'아이돌봄비 지원',val:'+₩300,000'},
-          ].map((item,i,arr)=>(
-            <div key={item.label}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'2px 0'}}>
-                <span style={{fontSize:14,color:'#4b5563'}}>{item.label}</span>
-                <span style={{fontSize:14,fontWeight:600,color:'#111827'}}>{item.val}</span>
-              </div>
-              {i<arr.length-1&&<div style={{height:1,background:'linear-gradient(90deg,transparent,#e5e7eb,transparent)',margin:'10px 0'}}/>}
-            </div>
-          ))}
-        </div>
-
-        {/* 집 3D 아이콘 (좌하단 플로팅) */}
-        <div className="land-float-d" style={{
-          position:'absolute',left:16,top:330,width:64,height:64,borderRadius:16,zIndex:30,
-          background:'linear-gradient(135deg,#10b981 0%,#059669 50%,#064e3b 100%)',
-          boxShadow:'inset -4px -4px 8px rgba(0,0,0,0.2),inset 4px 4px 8px rgba(255,255,255,0.4),0 10px 20px rgba(16,185,129,0.2),0 2px 0 #065f46,0 4px 0 #064e3b,0 6px 0 #022c22',
-          display:'flex',alignItems:'center',justifyContent:'center',
-        }}>
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{filter:'drop-shadow(0 1px 2px rgba(0,0,0,0.3))'}}>
-            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m10-11l2 2m-2-2v10a1 1 0 0 1-1 1h-3m-6 0a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1m-6 0h6"/>
-          </svg>
-        </div>
-
-        {/* 미니 바 차트 카드 (우하단 플로팅) */}
-        <div className="land-float" style={{...glassCard,position:'absolute',right:24,top:330,width:140,borderRadius:16,padding:12,zIndex:20}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
-            <span style={{fontSize:12,color:'#9ca3af'}}>나의 혜택</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="18 15 12 9 6 15"/>
+        {/* ── 히어로 숫자 ── */}
+        <div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'12px 24px 0',position:'relative',zIndex:20}}>
+          <p style={{color:'#6b7280',fontSize:11,fontWeight:700,letterSpacing:0.8,marginBottom:6,textAlign:'center'}}>네모혜로 받을 수 있는 최대 혜택</p>
+          <div style={{display:'flex',alignItems:'flex-start',gap:2}}>
+            <span style={{fontSize:'1.1rem',fontWeight:700,color:'#059669',marginTop:5}}>₩</span>
+            <span style={{fontSize:'2.4rem',fontWeight:800,letterSpacing:-2,color:'#111827',lineHeight:1}}>{displayNum.toLocaleString()}</span>
+          </div>
+          <div style={{display:'inline-flex',alignItems:'center',gap:5,background:'#f0fdf4',border:'1px solid #dcfce7',borderRadius:999,padding:'4px 10px',marginTop:20}}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="13 7 19 7 19 13"/><polyline points="19 7 11 15 7 11 1 17"/>
             </svg>
+            <span style={{fontSize:10,fontWeight:700,color:'#065f46'}}>사용자들의 월 수입 15% 증가</span>
           </div>
-          <div style={{display:'flex',alignItems:'flex-end',gap:4,height:32,marginTop:8}}>
-            {[{h:'40%',bg:'#e5e7eb'},{h:'60%',bg:'#d1d5db'},{h:'80%',bg:'#bbf7d0'},{h:'100%',bg:'#10b981'}].map((b,i)=>(
-              <div key={i} style={{flex:1,height:b.h,background:b.bg,borderRadius:'2px 2px 0 0'}}/>
+        </div>
+
+        {/* ── 카드 영역 ── */}
+        <div style={{position:'relative',flex:1,width:'100%',zIndex:10,marginTop:16,minHeight:280}}>
+
+          {/* 메인 글래스 카드 */}
+          <div style={{...glassCard,position:'absolute',left:20,right:20,top:16,borderRadius:20,padding:16,zIndex:20}}>
+            {/* 코인 플로팅 */}
+            <div className="land-float" style={{
+              position:'absolute',right:-10,top:-26,width:52,height:52,borderRadius:'50%',zIndex:30,
+              background:'linear-gradient(135deg,#fde68a 0%,#fbbf24 50%,#f59e0b 100%)',
+              boxShadow:'inset -3px -3px 6px rgba(0,0,0,0.15),inset 3px 3px 6px rgba(255,255,255,0.5),0 8px 16px rgba(251,191,36,0.3)',
+              border:'1px solid rgba(251,191,36,0.8)',
+              display:'flex',alignItems:'center',justifyContent:'center',
+            }}>
+              <span style={{fontSize:20,fontWeight:900,color:'rgba(255,255,255,0.95)',textShadow:'0 1px 3px rgba(0,0,0,0.2)'}}>₩</span>
+            </div>
+
+            {/* 카드 헤더 */}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <div style={{width:34,height:34,borderRadius:'50%',background:'#f0fdf4',border:'1px solid #dcfce7',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/>
+                  </svg>
+                </div>
+                <div>
+                  <div style={{fontWeight:600,color:'#1f2937',fontSize:13}}>정부 &amp; 지자체 혜택</div>
+                  <div style={{fontSize:11,color:'#9ca3af'}}>청년지원 혜택</div>
+                </div>
+              </div>
+              <span style={{padding:'3px 7px',background:'#dcfce7',color:'#15803d',fontSize:9,fontWeight:700,borderRadius:4,textTransform:'uppercase',letterSpacing:1}}>사용가능</span>
+            </div>
+
+            {/* 혜택 리스트 */}
+            {[
+              {label:'청년월세지원',val:'월+₩500,000'},
+              {label:'미취업청년수당',val:'월+₩500,000'},
+              {label:'결혼지원금',val:'월+₩1,000,000'},
+              {label:'아기 첫만남이용권',val:'+₩2,000,000'},
+              {label:'아이돌봄비 지원',val:'+₩300,000'},
+            ].map((item,i,arr)=>(
+              <div key={item.label}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'1px 0'}}>
+                  <span style={{fontSize:12,color:'#4b5563'}}>{item.label}</span>
+                  <span style={{fontSize:12,fontWeight:600,color:'#111827'}}>{item.val}</span>
+                </div>
+                {i<arr.length-1&&<div style={{height:1,background:'linear-gradient(90deg,transparent,#e5e7eb,transparent)',margin:'7px 0'}}/>}
+              </div>
             ))}
           </div>
-        </div>
-      </div>
 
-      {/* ── 하단 CTA ── */}
-      <div style={{width:'100%',padding:'0 24px 40px',paddingBottom:'calc(40px + env(safe-area-inset-bottom,0px))',paddingTop:48,background:'linear-gradient(to top,#fff 70%,transparent)',position:'relative',zIndex:30}}>
+          {/* 집 아이콘 (좌하단 플로팅) */}
+          <div className="land-float-d" style={{
+            position:'absolute',left:14,top:248,width:52,height:52,borderRadius:14,zIndex:30,
+            background:'linear-gradient(135deg,#10b981 0%,#059669 50%,#064e3b 100%)',
+            boxShadow:'inset -3px -3px 6px rgba(0,0,0,0.2),inset 3px 3px 6px rgba(255,255,255,0.3),0 8px 16px rgba(16,185,129,0.2)',
+            display:'flex',alignItems:'center',justifyContent:'center',
+          }}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m10-11l2 2m-2-2v10a1 1 0 0 1-1 1h-3m-6 0a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1m-6 0h6"/>
+            </svg>
+          </div>
+
+          {/* 미니 바 차트 카드 (우하단 플로팅) */}
+          <div className="land-float" style={{...glassCard,position:'absolute',right:20,top:248,width:120,borderRadius:14,padding:10,zIndex:20}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+              <span style={{fontSize:11,color:'#9ca3af'}}>나의 혜택</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="18 15 12 9 6 15"/>
+              </svg>
+            </div>
+            <div style={{display:'flex',alignItems:'flex-end',gap:3,height:26,marginTop:6}}>
+              {[{h:'40%',bg:'#e5e7eb'},{h:'60%',bg:'#d1d5db'},{h:'80%',bg:'#bbf7d0'},{h:'100%',bg:'#10b981'}].map((b,i)=>(
+                <div key={i} style={{flex:1,height:b.h,background:b.bg,borderRadius:'2px 2px 0 0'}}/>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      </div>{/* 스크롤 끝 */}
+
+      {/* ── 하단 CTA (화면 하단 고정) ── */}
+      <div style={{flexShrink:0,width:'100%',padding:'12px 20px',paddingBottom:'calc(16px + env(safe-area-inset-bottom,0px))',background:'linear-gradient(to top,#fff 80%,rgba(255,255,255,0.95))',zIndex:30}}>
         <button onClick={onStartAuth} className="land-cta" style={{
           width:'100%',
           background:'linear-gradient(135deg,#10b981 0%,#059669 100%)',
-          boxShadow:'0 10px 20px rgba(16,185,129,0.25),inset 0 2px 0 rgba(255,255,255,0.2)',
-          color:'#fff',fontWeight:700,fontSize:18,borderRadius:16,
-          padding:'16px 0',border:'none',cursor:'pointer',fontFamily:'inherit',
+          boxShadow:'0 8px 16px rgba(16,185,129,0.25),inset 0 2px 0 rgba(255,255,255,0.2)',
+          color:'#fff',fontWeight:700,fontSize:16,borderRadius:14,
+          padding:'14px 0',border:'none',cursor:'pointer',fontFamily:'inherit',
           display:'flex',alignItems:'center',justifyContent:'center',gap:8,
           position:'relative',overflow:'hidden',transition:'all 0.15s',
         }}>
           <span className="shimmer"/>
           <span>나의 혜택 받기</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 18 15 12 9 6"/>
           </svg>
         </button>
-        <p style={{textAlign:'center',fontSize:12,color:'#9ca3af',marginTop:16,fontWeight:500}}>1초만에 회원가입하고 혜택 누리기</p>
+        <p style={{textAlign:'center',fontSize:11,color:'#9ca3af',marginTop:10,fontWeight:500}}>1초만에 회원가입하고 혜택 누리기</p>
       </div>
     </div>
   );
@@ -736,15 +732,13 @@ return(
   <div style={{flex:'0 0 auto',padding:'48px 32px 36px',textAlign:'center'}}>
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:14,marginBottom:12}}>
       <div style={{width:52,height:52,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 6px 20px rgba(22,163,74,0.5)',flexShrink:0}}>
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-          <rect x="4" y="17" width="24" height="13" rx="3" fill="white"/>
-          <rect x="3" y="13" width="26" height="6" rx="3" fill="rgba(255,255,255,0.75)"/>
-          <rect x="13" y="13" width="6" height="17" rx="2" fill="white"/>
-          <path d="M16,13 C14,9 8,6 6.5,9 C5,12 11,14.5 16,13Z" fill="rgba(255,255,255,0.9)"/>
-          <path d="M16,13 C18,9 24,6 25.5,9 C27,12 21,14.5 16,13Z" fill="rgba(255,255,255,0.9)"/>
-          <circle cx="16" cy="13" r="2.8" fill="white"/>
-          <circle cx="26" cy="7" r="1.2" fill="rgba(255,255,255,0.7)"/>
-          <circle cx="7" cy="20" r="0.9" fill="rgba(255,255,255,0.5)"/>
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+          <rect x="4" y="16" width="22" height="12" rx="2.5" fill="white"/>
+          <rect x="3" y="12" width="24" height="5" rx="2.5" fill="rgba(255,255,255,0.85)"/>
+          <rect x="13" y="12" width="4" height="16" rx="1.5" fill="rgba(20,83,45,0.18)"/>
+          <circle cx="9" cy="10" r="4" fill="white" opacity="0.9"/>
+          <circle cx="21" cy="10" r="4" fill="white" opacity="0.9"/>
+          <circle cx="15" cy="12" r="2.5" fill="white"/>
         </svg>
       </div>
       <span style={{fontFamily:'serif',fontSize:'2.64rem',fontWeight:900,color:'#fff',letterSpacing:-1.5}}>네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
