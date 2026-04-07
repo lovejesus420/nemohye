@@ -732,8 +732,19 @@ return(
   {/* 상단 브랜드 영역 */}
   <div style={{flex:'0 0 auto',padding:'48px 32px 36px',textAlign:'center'}}>
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:14,marginBottom:12}}>
-      <Logo size={52}/>
-      <span style={{fontFamily:'serif',fontSize:'2.64rem',fontWeight:900,color:'#fff',letterSpacing:-1.5}}>네모<span style={{color:C.gold}}>혜</span></span>
+      <div style={{width:52,height:52,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 4px 18px rgba(22,163,74,0.45)',flexShrink:0}}>
+        <div style={{width:36,height:36,background:'white',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+            <rect x="3" y="13" width="20" height="11" rx="1.5" fill="#16A34A"/>
+            <rect x="2" y="10" width="22" height="4" rx="2" fill="#14532D"/>
+            <rect x="10.5" y="10" width="5" height="14" rx="1.5" fill="#22C55E"/>
+            <path d="M13 10 C13 10 9 5 6.5 7 C4 9 8 11 13 10Z" fill="#14532D"/>
+            <path d="M13 10 C13 10 17 5 19.5 7 C22 9 18 11 13 10Z" fill="#14532D"/>
+            <circle cx="13" cy="10" r="2.5" fill="#22C55E"/>
+          </svg>
+        </div>
+      </div>
+      <span style={{fontFamily:'serif',fontSize:'2.64rem',fontWeight:900,color:'#fff',letterSpacing:-1.5}}>네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
     </div>
     <p style={{color:'rgba(255,255,255,0.45)',fontSize:14,letterSpacing:0.5}}>내게 맞는 모든 혜택을 한 번에</p>
   </div>
