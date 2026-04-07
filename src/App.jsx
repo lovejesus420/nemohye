@@ -534,17 +534,24 @@ function LandingScreen({onStartAuth}){
       {/* ── 헤더 ── */}
       <header style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'0 24px',paddingTop:'calc(48px + env(safe-area-inset-top,0px))',paddingBottom:12,position:'relative',zIndex:20}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginBottom:8}}>
-          <div style={{width:52,height:52,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 4px 18px rgba(22,163,74,0.45)',flexShrink:0}}>
-            <div style={{width:36,height:36,background:'white',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}>
-              <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-                <rect x="3" y="13" width="20" height="11" rx="1.5" fill="#16A34A"/>
-                <rect x="2" y="10" width="22" height="4" rx="2" fill="#14532D"/>
-                <rect x="10.5" y="10" width="5" height="14" rx="1.5" fill="#22C55E"/>
-                <path d="M13 10 C13 10 9 5 6.5 7 C4 9 8 11 13 10Z" fill="#14532D"/>
-                <path d="M13 10 C13 10 17 5 19.5 7 C22 9 18 11 13 10Z" fill="#14532D"/>
-                <circle cx="13" cy="10" r="2.5" fill="#22C55E"/>
-              </svg>
-            </div>
+          <div style={{width:52,height:52,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 6px 20px rgba(22,163,74,0.5)',flexShrink:0}}>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              {/* 박스 몸체 */}
+              <rect x="4" y="17" width="24" height="13" rx="3" fill="white"/>
+              {/* 리본 가로 띠 */}
+              <rect x="3" y="13" width="26" height="6" rx="3" fill="rgba(255,255,255,0.75)"/>
+              {/* 리본 세로 띠 */}
+              <rect x="13" y="13" width="6" height="17" rx="2" fill="white"/>
+              {/* 나비매듭 왼쪽 */}
+              <path d="M16,13 C14,9 8,6 6.5,9 C5,12 11,14.5 16,13Z" fill="rgba(255,255,255,0.9)"/>
+              {/* 나비매듭 오른쪽 */}
+              <path d="M16,13 C18,9 24,6 25.5,9 C27,12 21,14.5 16,13Z" fill="rgba(255,255,255,0.9)"/>
+              {/* 매듭 중심 */}
+              <circle cx="16" cy="13" r="2.8" fill="white"/>
+              {/* 별 반짝이 */}
+              <circle cx="26" cy="7" r="1.2" fill="rgba(255,255,255,0.7)"/>
+              <circle cx="7" cy="20" r="0.9" fill="rgba(255,255,255,0.5)"/>
+            </svg>
           </div>
           <span style={{fontFamily:'serif',fontSize:'2.4rem',fontWeight:900,color:'#111827',letterSpacing:-1.5}}>네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
         </div>
@@ -728,17 +735,17 @@ return(
   {/* 상단 브랜드 영역 */}
   <div style={{flex:'0 0 auto',padding:'48px 32px 36px',textAlign:'center'}}>
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:14,marginBottom:12}}>
-      <div style={{width:52,height:52,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 4px 18px rgba(22,163,74,0.45)',flexShrink:0}}>
-        <div style={{width:36,height:36,background:'white',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-            <rect x="3" y="13" width="20" height="11" rx="1.5" fill="#16A34A"/>
-            <rect x="2" y="10" width="22" height="4" rx="2" fill="#14532D"/>
-            <rect x="10.5" y="10" width="5" height="14" rx="1.5" fill="#22C55E"/>
-            <path d="M13 10 C13 10 9 5 6.5 7 C4 9 8 11 13 10Z" fill="#14532D"/>
-            <path d="M13 10 C13 10 17 5 19.5 7 C22 9 18 11 13 10Z" fill="#14532D"/>
-            <circle cx="13" cy="10" r="2.5" fill="#22C55E"/>
-          </svg>
-        </div>
+      <div style={{width:52,height:52,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 6px 20px rgba(22,163,74,0.5)',flexShrink:0}}>
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect x="4" y="17" width="24" height="13" rx="3" fill="white"/>
+          <rect x="3" y="13" width="26" height="6" rx="3" fill="rgba(255,255,255,0.75)"/>
+          <rect x="13" y="13" width="6" height="17" rx="2" fill="white"/>
+          <path d="M16,13 C14,9 8,6 6.5,9 C5,12 11,14.5 16,13Z" fill="rgba(255,255,255,0.9)"/>
+          <path d="M16,13 C18,9 24,6 25.5,9 C27,12 21,14.5 16,13Z" fill="rgba(255,255,255,0.9)"/>
+          <circle cx="16" cy="13" r="2.8" fill="white"/>
+          <circle cx="26" cy="7" r="1.2" fill="rgba(255,255,255,0.7)"/>
+          <circle cx="7" cy="20" r="0.9" fill="rgba(255,255,255,0.5)"/>
+        </svg>
       </div>
       <span style={{fontFamily:'serif',fontSize:'2.64rem',fontWeight:900,color:'#fff',letterSpacing:-1.5}}>네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
     </div>
