@@ -45,6 +45,17 @@ export const ADMIN_PW = 'kim159753';
 // 현재 인증 세션에서 임시로 OTP 토큰 보관
 let _otpToken = null;
 
+// 네이티브 앱(Capacitor)에서는 상대 URL이 동작하지 않으므로 절대 URL 사용
+// VITE_API_BASE 에 Vercel 배포 URL을 설정하면 네이티브에서도 동작
+// 예: VITE_API_BASE=https://nemohye.vercel.app
+const _API_BASE = (() => {
+  // 빌드 타임 환경변수가 있으면 우선 사용
+  const envBase = import.meta.env.VITE_API_BASE;
+  if (envBase) return envBase.replace(/\/$/, '');
+  // 런타임에 Capacitor 네이티브 플랫폼이면 오류 방지용 빈 값 (envBase 필수)
+  return '';
+})();
+
 /**
  * SMS 인증코드 발송
  * @param {string} phone        - 한국 휴대폰 번호 (010-xxxx-xxxx 등 다양한 형식 허용)
@@ -53,7 +64,7 @@ let _otpToken = null;
 export async function sendOTP(phone, _containerId) {
   _otpToken = null;
 
-  const res = await fetch('/api/send-otp', {
+  const res = await fetch(`${_API_BASE}/api/send-otp`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ phone }),
@@ -73,7 +84,7 @@ export async function sendOTP(phone, _containerId) {
 export async function verifyOTP(code) {
   if (!_otpToken) throw new Error('먼저 인증 코드를 요청하세요.');
 
-  const res = await fetch('/api/verify-otp', {
+  const res = await fetch(`${_API_BASE}/api/verify-otp`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token: _otpToken, code }),
