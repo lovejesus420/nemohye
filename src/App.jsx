@@ -532,41 +532,37 @@ function LandingScreen({onStartAuth}){
       <div style={{position:'absolute',bottom:'10%',right:'-10%',width:'70%',height:'50%',background:'rgba(240,253,244,0.6)',borderRadius:'50%',mixBlendMode:'multiply',filter:'blur(100px)',pointerEvents:'none',zIndex:0}}/>
 
       {/* ── 헤더 ── */}
-      <header style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'0 24px',paddingTop:'calc(48px + env(safe-area-inset-top,0px))',paddingBottom:8,position:'relative',zIndex:20}}>
-        <div style={{display:'flex',alignItems:'center',gap:10}}>
-          {/* 로고 아이콘: 2x2 그리드 */}
-          <div style={{width:40,height:40,borderRadius:10,background:'#10b981',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 4px 14px rgba(16,185,129,0.3)',position:'relative',flexShrink:0}}>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:2,width:20,height:20,position:'relative'}}>
-              {[0,1,2,3].map(i=><div key={i} style={{background:'rgba(255,255,255,0.9)',borderRadius:1}}/>)}
-              <div style={{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)',width:1,height:'100%',background:'#10b981',zIndex:2}}/>
-              <div style={{position:'absolute',top:'50%',left:0,transform:'translateY(-50%)',width:'100%',height:1,background:'#10b981',zIndex:2}}/>
+      <header style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'0 24px',paddingTop:'calc(48px + env(safe-area-inset-top,0px))',paddingBottom:12,position:'relative',zIndex:20}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginBottom:8}}>
+          <div style={{width:52,height:52,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 4px 18px rgba(22,163,74,0.45)',flexShrink:0}}>
+            <div style={{width:36,height:36,background:'white',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+                <rect x="3" y="13" width="20" height="11" rx="1.5" fill="#16A34A"/>
+                <rect x="2" y="10" width="22" height="4" rx="2" fill="#14532D"/>
+                <rect x="10.5" y="10" width="5" height="14" rx="1.5" fill="#22C55E"/>
+                <path d="M13 10 C13 10 9 5 6.5 7 C4 9 8 11 13 10Z" fill="#14532D"/>
+                <path d="M13 10 C13 10 17 5 19.5 7 C22 9 18 11 13 10Z" fill="#14532D"/>
+                <circle cx="13" cy="10" r="2.5" fill="#22C55E"/>
+              </svg>
             </div>
           </div>
-          <div style={{display:'flex',flexDirection:'column'}}>
-            <span style={{fontWeight:700,fontSize:'1.2rem',letterSpacing:-0.5,color:'#111827',lineHeight:1.2}}>네모혜</span>
-            <span style={{fontSize:10,color:'#9ca3af',fontWeight:500}}>네가 받을 수 있는 모든 혜택</span>
-          </div>
+          <span style={{fontFamily:'serif',fontSize:'2.4rem',fontWeight:900,color:'#111827',letterSpacing:-1.5}}>네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
         </div>
-        <button style={{width:40,height:40,borderRadius:'50%',background:'rgba(243,244,246,0.8)',border:'1px solid #e5e7eb',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',backdropFilter:'blur(4px)'}}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
-          </svg>
-        </button>
+        <p style={{color:'#9ca3af',fontSize:13,letterSpacing:0.3,textAlign:'center',margin:0}}>내게 맞는 모든 혜택을 한 번에</p>
       </header>
 
       {/* ── 히어로 숫자 ── */}
-      <div style={{display:'flex',flexDirection:'column',padding:'24px 24px 8px',position:'relative',zIndex:20}}>
-        <p style={{color:'#6b7280',fontSize:14,fontWeight:800,letterSpacing:1,marginBottom:12}}>네모혜로 받을 수 있는 최대 혜택</p>
-        <div style={{display:'flex',alignItems:'flex-start',gap:4}}>
-          <span style={{fontSize:'1.9rem',fontWeight:700,color:'#059669',marginTop:8}}>₩</span>
-          <span style={{fontSize:'3.8rem',fontWeight:800,letterSpacing:-2,color:'#111827',lineHeight:1}}>{displayNum.toLocaleString()}</span>
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'20px 24px 8px',position:'relative',zIndex:20}}>
+        <p style={{color:'#6b7280',fontSize:13,fontWeight:700,letterSpacing:0.8,marginBottom:8,textAlign:'center'}}>네모혜로 받을 수 있는 최대 혜택</p>
+        <div style={{display:'flex',alignItems:'flex-start',gap:3}}>
+          <span style={{fontSize:'1.6rem',fontWeight:700,color:'#059669',marginTop:6}}>₩</span>
+          <span style={{fontSize:'3.2rem',fontWeight:800,letterSpacing:-2,color:'#111827',lineHeight:1}}>{displayNum.toLocaleString()}</span>
         </div>
-        {/* 배지 */}
-        <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'#f0fdf4',border:'1px solid #dcfce7',borderRadius:999,padding:'6px 12px',marginTop:16,width:'max-content'}}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'#f0fdf4',border:'1px solid #dcfce7',borderRadius:999,padding:'5px 12px',marginTop:10}}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="13 7 19 7 19 13"/><polyline points="19 7 11 15 7 11 1 17"/>
           </svg>
-          <span style={{fontSize:12,fontWeight:700,color:'#065f46'}}>사용자들의 월 수입 15% 증가</span>
+          <span style={{fontSize:11,fontWeight:700,color:'#065f46'}}>사용자들의 월 수입 15% 증가</span>
         </div>
       </div>
 
@@ -649,7 +645,7 @@ function LandingScreen({onStartAuth}){
       </div>
 
       {/* ── 하단 CTA ── */}
-      <div style={{width:'100%',padding:'0 24px 40px',paddingBottom:'calc(40px + env(safe-area-inset-bottom,0px))',paddingTop:64,background:'linear-gradient(to top,#fff 70%,transparent)',position:'relative',zIndex:30}}>
+      <div style={{width:'100%',padding:'0 24px 40px',paddingBottom:'calc(40px + env(safe-area-inset-bottom,0px))',paddingTop:48,background:'linear-gradient(to top,#fff 70%,transparent)',position:'relative',zIndex:30}}>
         <button onClick={onStartAuth} className="land-cta" style={{
           width:'100%',
           background:'linear-gradient(135deg,#10b981 0%,#059669 100%)',
