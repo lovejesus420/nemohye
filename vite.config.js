@@ -13,6 +13,22 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
+        '/api/welfare': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+        },
+        '/api/gov24': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+        },
+        '/api/gg': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+        },
+        '/api/seoul': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+        },
         '/api/claude': {
           target: 'https://api.anthropic.com',
           changeOrigin: true,
