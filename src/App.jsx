@@ -538,13 +538,14 @@ function LandingScreen({onStartAuth}){
         <header style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'0 24px',paddingTop:'calc(28px + env(safe-area-inset-top,0px))',paddingBottom:8,position:'relative',zIndex:20}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,marginBottom:6}}>
             <div style={{width:44,height:44,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:11,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 4px 14px rgba(22,163,74,0.45)',flexShrink:0}}>
-              <svg width="26" height="26" viewBox="0 0 30 30" fill="none">
-                <rect x="4" y="16" width="22" height="12" rx="2.5" fill="white"/>
-                <rect x="3" y="12" width="24" height="5" rx="2.5" fill="rgba(255,255,255,0.85)"/>
-                <rect x="13" y="12" width="4" height="16" rx="1.5" fill="rgba(20,83,45,0.18)"/>
-                <circle cx="9" cy="10" r="4" fill="white" opacity="0.9"/>
-                <circle cx="21" cy="10" r="4" fill="white" opacity="0.9"/>
-                <circle cx="15" cy="12" r="2.5" fill="white"/>
+              <svg width="26" height="26" viewBox="125 75 250 225" fill="none" stroke="white" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="175" y="180" width="150" height="110" strokeWidth="14"/>
+                <rect x="160" y="150" width="180" height="30" rx="4" strokeWidth="14"/>
+                <line x1="250" y1="150" x2="250" y2="290" strokeWidth="14"/>
+                <path d="M 250 150 C 200 90, 140 130, 190 150 Z" strokeWidth="12"/>
+                <path d="M 250 150 C 300 90, 360 130, 310 150 Z" strokeWidth="12"/>
+                <path d="M 250 150 L 210 200" strokeWidth="12"/>
+                <path d="M 250 150 L 290 200" strokeWidth="12"/>
               </svg>
             </div>
             <span style={{fontFamily:'serif',fontSize:'1.7rem',fontWeight:900,color:'#111827',letterSpacing:-1}}>네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
@@ -603,9 +604,7 @@ function LandingScreen({onStartAuth}){
             {[
               {label:'청년월세지원',val:'월+₩500,000'},
               {label:'미취업청년수당',val:'월+₩500,000'},
-              {label:'결혼지원금',val:'월+₩1,000,000'},
-              {label:'아기 첫만남이용권',val:'+₩2,000,000'},
-              {label:'아이돌봄비 지원',val:'+₩300,000'},
+              {label:'결혼지원금',val:'+₩1,000,000'},
             ].map((item,i,arr)=>(
               <div key={item.label}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'1px 0'}}>
@@ -619,7 +618,7 @@ function LandingScreen({onStartAuth}){
 
           {/* 집 아이콘 (좌하단 플로팅) */}
           <div className="land-float-d" style={{
-            position:'absolute',left:14,top:248,width:52,height:52,borderRadius:14,zIndex:30,
+            position:'absolute',left:14,top:182,width:52,height:52,borderRadius:14,zIndex:30,
             background:'linear-gradient(135deg,#10b981 0%,#059669 50%,#064e3b 100%)',
             boxShadow:'inset -3px -3px 6px rgba(0,0,0,0.2),inset 3px 3px 6px rgba(255,255,255,0.3),0 8px 16px rgba(16,185,129,0.2)',
             display:'flex',alignItems:'center',justifyContent:'center',
@@ -630,7 +629,7 @@ function LandingScreen({onStartAuth}){
           </div>
 
           {/* 미니 바 차트 카드 (우하단 플로팅) */}
-          <div className="land-float" style={{...glassCard,position:'absolute',right:20,top:248,width:120,borderRadius:14,padding:10,zIndex:20}}>
+          <div className="land-float" style={{...glassCard,position:'absolute',right:20,top:192,width:120,borderRadius:14,padding:10,zIndex:20}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
               <span style={{fontSize:11,color:'#9ca3af'}}>나의 혜택</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -648,7 +647,7 @@ function LandingScreen({onStartAuth}){
       </div>{/* 스크롤 끝 */}
 
       {/* ── 하단 CTA (화면 하단 고정) ── */}
-      <div style={{flexShrink:0,width:'100%',padding:'12px 20px',paddingBottom:'calc(16px + env(safe-area-inset-bottom,0px))',background:'linear-gradient(to top,#fff 80%,rgba(255,255,255,0.95))',zIndex:30}}>
+      <div style={{flexShrink:0,width:'100%',paddingTop:0,paddingLeft:20,paddingRight:20,paddingBottom:'calc(20px + env(safe-area-inset-bottom,0px))',background:'#fff',zIndex:30}}>
         <button onClick={onStartAuth} className="land-cta" style={{
           width:'100%',
           background:'linear-gradient(135deg,#10b981 0%,#059669 100%)',
@@ -732,13 +731,14 @@ return(
   <div style={{flex:'0 0 auto',padding:'48px 32px 36px',textAlign:'center'}}>
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:14,marginBottom:12}}>
       <div style={{width:52,height:52,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 6px 20px rgba(22,163,74,0.5)',flexShrink:0}}>
-        <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
-          <rect x="4" y="16" width="22" height="12" rx="2.5" fill="white"/>
-          <rect x="3" y="12" width="24" height="5" rx="2.5" fill="rgba(255,255,255,0.85)"/>
-          <rect x="13" y="12" width="4" height="16" rx="1.5" fill="rgba(20,83,45,0.18)"/>
-          <circle cx="9" cy="10" r="4" fill="white" opacity="0.9"/>
-          <circle cx="21" cy="10" r="4" fill="white" opacity="0.9"/>
-          <circle cx="15" cy="12" r="2.5" fill="white"/>
+        <svg width="34" height="34" viewBox="125 75 250 225" fill="none" stroke="white" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="175" y="180" width="150" height="110" strokeWidth="14"/>
+          <rect x="160" y="150" width="180" height="30" rx="4" strokeWidth="14"/>
+          <line x1="250" y1="150" x2="250" y2="290" strokeWidth="14"/>
+          <path d="M 250 150 C 200 90, 140 130, 190 150 Z" strokeWidth="12"/>
+          <path d="M 250 150 C 300 90, 360 130, 310 150 Z" strokeWidth="12"/>
+          <path d="M 250 150 L 210 200" strokeWidth="12"/>
+          <path d="M 250 150 L 290 200" strokeWidth="12"/>
         </svg>
       </div>
       <span style={{fontFamily:'serif',fontSize:'2.64rem',fontWeight:900,color:'#fff',letterSpacing:-1.5}}>네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
@@ -1447,9 +1447,19 @@ export default function App() {
       }}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 20px',height:56}}>
           <div onClick={()=>setTab('analyze')} style={{display:'flex',alignItems:'center',gap:10,cursor:'pointer'}}>
-            <Logo size={34}/>
+            <div style={{width:34,height:34,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 3px 10px rgba(22,163,74,0.4)',flexShrink:0}}>
+              <svg width="21" height="21" viewBox="125 75 250 225" fill="none" stroke="white" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="175" y="180" width="150" height="110" strokeWidth="14"/>
+                <rect x="160" y="150" width="180" height="30" rx="4" strokeWidth="14"/>
+                <line x1="250" y1="150" x2="250" y2="290" strokeWidth="14"/>
+                <path d="M 250 150 C 200 90, 140 130, 190 150 Z" strokeWidth="12"/>
+                <path d="M 250 150 C 300 90, 360 130, 310 150 Z" strokeWidth="12"/>
+                <path d="M 250 150 L 210 200" strokeWidth="12"/>
+                <path d="M 250 150 L 290 200" strokeWidth="12"/>
+              </svg>
+            </div>
             <span style={{fontFamily:'serif',fontWeight:900,fontSize:'1.22rem',color:'#fff',letterSpacing:-0.5}}>
-              네모<span style={{color:C.gold}}>혜</span>
+              네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span>
             </span>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:8}}>
