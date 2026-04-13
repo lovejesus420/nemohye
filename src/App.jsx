@@ -1655,62 +1655,85 @@ export default function App() {
         </div>
       )}
 
-      {/* ── 상단 헤더 ─────────────────────────────────────── */}
-      <header style={{
-        background:C.dark,
-        position:'sticky',top:0,zIndex:200,
-        paddingTop:'env(safe-area-inset-top,0px)',
-      }}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 20px',height:56}}>
-          <div onClick={()=>setTab('analyze')} style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}>
-            <div style={{width:32,height:32,background:'rgba(255,255,255,0.2)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-              </svg>
-            </div>
-            <span style={{fontWeight:700,fontSize:'1.2rem',color:'#fff',letterSpacing:-0.3}}>네모혜</span>
-          </div>
-          <div style={{display:'flex',alignItems:'center',gap:10}}>
-            {user?.isAdmin&&(
-              <button onClick={()=>setTab('admin')} style={{background:'rgba(255,255,255,0.12)',border:'none',color:'#fff',width:36,height:36,borderRadius:'50%',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                </svg>
-              </button>
-            )}
-            {/* 아바타 */}
-            <div onClick={()=>setTab('profile')} style={{
-              width:36,height:36,borderRadius:'50%',cursor:'pointer',flexShrink:0,
-              background:'#fff',
-              display:'flex',alignItems:'center',justifyContent:'center',
-              color:'#177a4a',fontSize:14,fontWeight:800,
-              boxShadow:'0 2px 6px rgba(0,0,0,0.15)',
-              transition:'box-shadow 0.15s',
-            }}>
-              {user.name?.charAt(0)||'?'}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* ── 페이지 히어로 (혜택설계 탭) ───────────────────── */}
+      {/* ── 혜택설계 탭: 헤더 + 히어로 통합 그린 블록 ───── */}
       {tab==='analyze'&&(
-        <div style={{background:C.grad,padding:'22px 20px 36px',textAlign:'center',position:'relative',overflow:'hidden',borderRadius:'0 0 32px 32px'}}>
-          <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.25)',borderRadius:20,padding:'6px 14px',marginBottom:14}}>
-            <svg width="13" height="13" viewBox="0 0 20 20" fill="#fde047"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <span style={{color:'#fff',fontSize:11,fontWeight:600,letterSpacing:0.5}}>사용자 맞춤 혜택 분석</span>
+        <div style={{
+          background:'linear-gradient(145deg,#14613d 0%,#177a4a 50%,#239a60 100%)',
+          borderRadius:'0 0 36px 36px',
+          overflow:'hidden',
+          paddingTop:'env(safe-area-inset-top,0px)',
+          position:'relative',
+        }}>
+          {/* 헤더 행 */}
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 20px',height:56}}>
+            <div onClick={()=>setTab('analyze')} style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}>
+              <div style={{width:32,height:32,background:'rgba(255,255,255,0.18)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+              </div>
+              <span style={{fontWeight:700,fontSize:'1.2rem',color:'#fff',letterSpacing:-0.3}}>네모혜</span>
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+              {user?.isAdmin&&(
+                <button onClick={()=>setTab('admin')} style={{background:'rgba(255,255,255,0.12)',border:'none',color:'#fff',width:36,height:36,borderRadius:'50%',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l-.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                  </svg>
+                </button>
+              )}
+              <div onClick={()=>setTab('profile')} style={{width:36,height:36,borderRadius:'50%',cursor:'pointer',flexShrink:0,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',color:'#177a4a',fontSize:14,fontWeight:800,boxShadow:'0 2px 6px rgba(0,0,0,0.15)'}}>
+                {user.name?.charAt(0)||'?'}
+              </div>
+            </div>
           </div>
-          <h1 style={{color:'#fff',fontSize:22,fontWeight:700,lineHeight:1.3,margin:'0 0 6px',letterSpacing:-0.3}}>
-            안녕하세요, <span style={{color:'#fff'}}>{user.name}</span>님 👋
-          </h1>
-          <p style={{color:'rgba(255,255,255,0.8)',fontSize:15,fontWeight:500,margin:0,lineHeight:1.4}}>
-            숨은 혜택을 모두 찾아드려요
-          </p>
+          {/* 히어로 본문 */}
+          <div style={{padding:'16px 20px 52px',textAlign:'center'}}>
+            <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.25)',borderRadius:20,padding:'6px 14px',marginBottom:14}}>
+              <svg width="13" height="13" viewBox="0 0 20 20" fill="#fde047"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <span style={{color:'#fff',fontSize:11,fontWeight:600,letterSpacing:0.5}}>사용자 맞춤 혜택 분석</span>
+            </div>
+            <h1 style={{color:'#fff',fontSize:22,fontWeight:700,lineHeight:1.3,margin:'0 0 8px',letterSpacing:-0.3}}>
+              안녕하세요, {user.name}님 👋
+            </h1>
+            <p style={{color:'rgba(255,255,255,0.8)',fontSize:15,fontWeight:500,margin:0,lineHeight:1.4}}>
+              숨은 혜택을 모두 찾아드려요
+            </p>
+          </div>
         </div>
       )}
 
-      {/* ── 비-혜택설계 탭 페이지 헤더 ─────────────────────── */}
+      {/* ── 다른 탭: sticky 헤더 ─────────────────────────── */}
+      {tab!=='analyze'&&(
+        <header style={{background:C.dark,position:'sticky',top:0,zIndex:200,paddingTop:'env(safe-area-inset-top,0px)'}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 20px',height:56}}>
+            <div onClick={()=>setTab('analyze')} style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}>
+              <div style={{width:32,height:32,background:'rgba(255,255,255,0.18)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+              </div>
+              <span style={{fontWeight:700,fontSize:'1.2rem',color:'#fff',letterSpacing:-0.3}}>네모혜</span>
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+              {user?.isAdmin&&(
+                <button onClick={()=>setTab('admin')} style={{background:'rgba(255,255,255,0.12)',border:'none',color:'#fff',width:36,height:36,borderRadius:'50%',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l-.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                  </svg>
+                </button>
+              )}
+              <div onClick={()=>setTab('profile')} style={{width:36,height:36,borderRadius:'50%',cursor:'pointer',flexShrink:0,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',color:'#177a4a',fontSize:14,fontWeight:800,boxShadow:'0 2px 6px rgba(0,0,0,0.15)'}}>
+                {user.name?.charAt(0)||'?'}
+              </div>
+            </div>
+          </div>
+        </header>
+      )}
+
+      {/* ── 비-혜택설계 탭 페이지 서브헤더 ─────────────────── */}
       {tab!=='analyze'&&(
         <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,padding:'20px 20px 18px'}}>
           <div style={{maxWidth:760,margin:'0 auto'}}>
@@ -1721,7 +1744,7 @@ export default function App() {
       )}
 
       {/* ── 탭 콘텐츠 ─────────────────────────────────────── */}
-      <div style={{maxWidth:760,margin:'0 auto',padding:tab==='analyze'?'16px 16px 100px':'16px 16px 100px',position:'relative',zIndex:10}}>
+      <div style={{maxWidth:760,margin:'0 auto',padding:'16px 16px 100px',position:'relative',zIndex:10,marginTop:tab==='analyze'?-28:0}}>
         {tab==='analyze'    && <AnalyzeTab user={user} onSaved={refreshCount}/>}
         {tab==='life'       && <LifeTab user={user}/>}
         {tab==='wedding'    && <WeddingTab user={user}/>}
