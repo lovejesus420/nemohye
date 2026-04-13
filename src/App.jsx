@@ -401,7 +401,8 @@ const KNOWN_BENEFIT_URLS = [
   {kw:['서울 청년 마음건강','청년 마음건강 지원','청년마음건강'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=20250519005400210855'},
   {kw:['은둔청년','고립청년','청년 고립'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=R2023050912524'},
   // ── 서울청년몽땅정보통 — 주거 ──
-  {kw:['서울 청년 월세','서울청년 월세 지원'],url:'https://youth.seoul.go.kr/content.do?key=2310100046'},
+  {kw:['서울 청년 월세','서울청년 월세 지원','청년 월세 지원'],url:'https://housing.seoul.go.kr/site/main/content/sh01_060513'},
+  {kw:['신혼부부 월세','신혼 월세 지원','서울 신혼부부 월세'],url:'https://housing.seoul.go.kr/site/main/content/sh01_060513'},
   {kw:['청년 임차보증금 이자','청년 전세자금 이자'],url:'https://youth.seoul.go.kr/content.do?key=2310100047'},
   {kw:['청년 중개보수','청년 이사비','부동산 중개보수 이사비'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=R2024040321345'},
   // ── 서울청년몽땅정보통 — 일자리/취업 ──
