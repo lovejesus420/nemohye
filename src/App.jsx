@@ -494,6 +494,22 @@ function getBestApplyUrl(url, title='', institution=''){
   return url||'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do';
 }
 
+// ─── 청년미래적금 (출시 예정 고정 혜택) ──────────────────────────────
+const YOUTH_FUTURE_SAVINGS = {
+  id:'youth-future-savings-static',
+  source:'금융/은행', sourceIcon:'🏦',
+  category:'금융', categoryIcon:'💰',
+  scope:'전국', isUrgent:false, isHidden:false, isComingSoon:true,
+  title:'청년미래적금',
+  institution:'금융위원회 · 서민금융진흥원',
+  description:'청년도약계좌의 뒤를 잇는 정부 정책 적금으로 2025년 하반기 출시 예정입니다. 청년이 매월 일정 금액을 납입하면 정부가 기여금을 매칭하고, 이자소득 비과세 혜택을 제공합니다.',
+  amount:'월 최대 50만원 납입 · 정부 기여금 매칭 (예정)',
+  deadline:'2025년 하반기 출시 예정',
+  requiredDocuments:['신분증 (주민등록증 또는 운전면허증)','소득 확인 서류 (건강보험료 납부 확인서 등)','청년 연령 확인 서류 (만 19~34세)','은행 계좌 개설 서류'],
+  howToApply:'출시 후 서민금융진흥원 및 참여 은행 앱·영업점에서 신청 예정',
+  applyUrl:'https://kinfa.or.kr',
+};
+
 // ─── BCard 카테고리 아이콘 색상 ─────────────────────────────────────
 const CAT_ICON_STYLE={'주거':{bg:'#f0fdf4',color:'#16a34a'},'의료':{bg:'#fef2f2',color:'#dc2626'},'금융':{bg:'#eff6ff',color:'#2563eb'},'교육':{bg:'#f0fdf4',color:'#16a34a'},'고용':{bg:'#f5f3ff',color:'#7c3aed'},'보육':{bg:'#fdf2f8',color:'#db2777'},'노인':{bg:'#e0f2fe',color:'#0284c7'},'장애':{bg:'#ecfccb',color:'#65a30d'},'청년':{bg:'#f5f3ff',color:'#7c3aed'},'취업/직장':{bg:'#eff6ff',color:'#2563eb'},'생활/교통':{bg:'#fff7ed',color:'#ea580c'},'기타':{bg:'#f9fafb',color:'#6b7280'}};
 function calcTotalYearly(benefits){let total=0;for(const b of benefits){const s=(b.amount||'').replace(/,/g,'');const monthly=/월/.test(s)&&!/연/.test(s);const m=s.match(/(\d+)\s*만/);if(m){const v=parseInt(m[1]);total+=monthly?v*12:v;}const o=s.match(/(\d+)\s*억/);if(o)total+=parseInt(o[1])*10000;}return total;}
@@ -507,6 +523,125 @@ function BenefitDetail({b,onClose,days,dl}){
     {n:4,title:'결과 통보',icon:'📣',bg:'#fce7f3',color:'#9d174d',items:[],text:'심사 완료 후 SMS, 우편 또는 홈페이지를 통해 결과를 안내받습니다.'},
     {n:5,title:'혜택 수령',icon:'✅',bg:'#dcfce7',color:'#166534',items:[],text:`지원금은 ${b.amount||'해당 혜택에 따라'} 지급됩니다.`},
   ];
+
+  // ── 출시 예정 전용 레이아웃 ──
+  if(b.isComingSoon){
+    const infoRows=[
+      {icon:'🎯',label:'가입 대상',value:'만 19~34세 대한민국 청년'},
+      {icon:'💵',label:'월 납입 한도',value:'월 최대 50만원 (예정)'},
+      {icon:'📅',label:'적금 기간',value:'3년 (예정)'},
+      {icon:'🏛️',label:'정부 기여금',value:'납입액 대비 최대 6% 매칭 지원 (예정)'},
+      {icon:'🚫',label:'세금 혜택',value:'이자소득 비과세 적용 (예정)'},
+      {icon:'📈',label:'적용 금리',value:'시중 우대금리 + 정부 혜택 가산 (예정)'},
+      {icon:'🏦',label:'취급 기관',value:'서민금융진흥원 · 참여 은행 (출시 시 공개)'},
+      {icon:'🗓️',label:'출시 일정',value:'2025년 하반기 예정'},
+    ];
+    const prepSteps=[
+      {icon:'📋',title:'가입 자격 미리 확인',desc:'만 19~34세이며, 직전 연도 총급여 7,500만원 이하(예정) 여부를 확인하세요.'},
+      {icon:'📂',title:'소득 증빙 서류 준비',desc:'건강보험료 납부 확인서, 근로소득 원천징수 영수증 등을 미리 발급해 두세요.'},
+      {icon:'📱',title:'거래 은행 앱 업데이트',desc:'출시 직후 빠르게 신청할 수 있도록 주거래 은행 앱을 최신 버전으로 유지하세요.'},
+      {icon:'✅',title:'기존 청년 상품 수령 확인',desc:'청년희망적금 등 기존 정책 적금 만기·해지 여부를 확인하세요. 중복 가입 제한이 있을 수 있습니다.'},
+      {icon:'🔔',title:'출시 알림 신청',desc:'서민금융진흥원(kinfa.or.kr) 또는 주거래 은행 앱에서 출시 알림을 사전에 등록하세요.'},
+    ];
+    return(
+      <div style={{position:'fixed',inset:0,zIndex:1000,display:'flex',flexDirection:'column'}}>
+        <div onClick={onClose} style={{flex:1,background:'rgba(0,0,0,0.5)'}}/>
+        <div style={{background:'#fff',borderRadius:'28px 28px 0 0',maxHeight:'92vh',overflowY:'auto',paddingBottom:'env(safe-area-inset-bottom,20px)'}}>
+          {/* 헤더 */}
+          <div style={{padding:'16px 20px',position:'sticky',top:0,background:'#fff',borderBottom:'1px solid #f3f4f6',zIndex:1}}>
+            <div style={{width:36,height:4,borderRadius:2,background:'#d1d5db',margin:'0 auto 14px'}}/>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+              <div style={{flex:1,paddingRight:12}}>
+                <div style={{display:'flex',gap:6,marginBottom:8,flexWrap:'wrap'}}>
+                  <span style={{fontSize:11,fontWeight:700,color:'#2563eb',background:'#eff6ff',padding:'3px 10px',borderRadius:20}}>금융</span>
+                  <span style={{fontSize:11,fontWeight:700,color:'#fff',background:'linear-gradient(90deg,#7c3aed,#2563eb)',padding:'3px 10px',borderRadius:20}}>🔜 출시 예정</span>
+                  <span style={{fontSize:11,fontWeight:700,color:'#374151',background:'#f3f4f6',padding:'3px 10px',borderRadius:20}}>전국</span>
+                </div>
+                <h2 style={{fontSize:18,fontWeight:800,color:'#111827',lineHeight:1.3,margin:0}}>청년미래적금</h2>
+                <p style={{fontSize:13,color:'#6b7280',margin:'4px 0 0'}}>금융위원회 · 서민금융진흥원</p>
+              </div>
+              <button onClick={onClose} style={{background:'#f3f4f6',border:'none',borderRadius:'50%',width:34,height:34,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0,fontFamily:'inherit'}}>✕</button>
+            </div>
+          </div>
+          <div style={{padding:'20px'}}>
+            {/* 출시 예정 배너 */}
+            <div style={{background:'linear-gradient(135deg,#ede9fe 0%,#dbeafe 100%)',borderRadius:16,padding:'16px',marginBottom:20,display:'flex',gap:12,alignItems:'flex-start'}}>
+              <span style={{fontSize:28,flexShrink:0}}>🚀</span>
+              <div>
+                <div style={{fontSize:13,fontWeight:800,color:'#4c1d95',marginBottom:4}}>2025년 하반기 출시 예정</div>
+                <p style={{fontSize:13,color:'#3730a3',lineHeight:1.65,margin:0}}>청년도약계좌의 후속 상품으로, 매월 납입 시 정부 기여금 매칭과 이자 비과세 혜택을 제공합니다. 정확한 조건은 출시 시 확정됩니다.</p>
+              </div>
+            </div>
+            {/* 상품 정보 그리드 */}
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+              <div style={{width:4,height:16,background:'#2563eb',borderRadius:2}}/>
+              <h3 style={{fontSize:15,fontWeight:700,color:'#111827',margin:0}}>상품 주요 정보 (예정)</h3>
+            </div>
+            <div style={{background:'#f9fafb',borderRadius:16,padding:'4px 16px',marginBottom:20}}>
+              {infoRows.map(({icon,label,value})=>(
+                <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'11px 0',borderBottom:'1px solid #f0f0f0'}}>
+                  <span style={{fontSize:13,color:'#6b7280',flexShrink:0,marginRight:8}}>{icon} {label}</span>
+                  <span style={{fontSize:13,fontWeight:600,color:'#111827',textAlign:'right',flex:1}}>{value}</span>
+                </div>
+              ))}
+            </div>
+            {/* 청년도약계좌 비교 */}
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+              <div style={{width:4,height:16,background:'#7c3aed',borderRadius:2}}/>
+              <h3 style={{fontSize:15,fontWeight:700,color:'#111827',margin:0}}>청년도약계좌와 비교</h3>
+            </div>
+            <div style={{borderRadius:14,overflow:'hidden',border:'1px solid #e5e7eb',marginBottom:20}}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',background:'#111827'}}>
+                {['구분','청년도약계좌(폐지)','청년미래적금(예정)'].map(h=>(
+                  <div key={h} style={{padding:'10px 12px',fontSize:11,fontWeight:700,color:'rgba(255,255,255,0.85)',textAlign:'center'}}>{h}</div>
+                ))}
+              </div>
+              {[
+                ['납입 한도','월 최대 70만원','월 최대 50만원'],
+                ['기간','5년','3년'],
+                ['정부 기여금','최대 6% 매칭','최대 6% 매칭'],
+                ['비과세','이자 비과세','이자 비과세'],
+                ['상태','2025년 폐지','출시 예정'],
+              ].map(([label,old,next],i)=>(
+                <div key={label} style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',background:i%2===0?'#fff':'#f9fafb'}}>
+                  <div style={{padding:'10px 12px',fontSize:12,fontWeight:600,color:'#374151',borderRight:'1px solid #f0f0f0'}}>{label}</div>
+                  <div style={{padding:'10px 12px',fontSize:12,color:'#9ca3af',textAlign:'center',borderRight:'1px solid #f0f0f0',textDecoration:'line-through'}}>{old}</div>
+                  <div style={{padding:'10px 12px',fontSize:12,fontWeight:700,color:'#2563eb',textAlign:'center'}}>{next}</div>
+                </div>
+              ))}
+            </div>
+            {/* 출시 전 준비사항 */}
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16}}>
+              <div style={{width:4,height:16,background:'#15803d',borderRadius:2}}/>
+              <h3 style={{fontSize:15,fontWeight:700,color:'#111827',margin:0}}>출시 전 미리 준비하기</h3>
+            </div>
+            <div style={{position:'relative'}}>
+              <div style={{position:'absolute',left:19,top:20,bottom:20,width:2,background:'linear-gradient(to bottom,#c7d2fe,#bfdbfe)',zIndex:0}}/>
+              {prepSteps.map((step,i)=>(
+                <div key={step.title} style={{display:'flex',gap:14,marginBottom:i<prepSteps.length-1?14:0,position:'relative',zIndex:1}}>
+                  <div style={{width:40,height:40,borderRadius:'50%',background:'#eff6ff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}>
+                    {step.icon}
+                  </div>
+                  <div style={{flex:1,paddingTop:8}}>
+                    <div style={{fontSize:14,fontWeight:700,color:'#111827',marginBottom:4}}>{step.title}</div>
+                    <p style={{fontSize:13,color:'#4b5563',lineHeight:1.6,margin:0}}>{step.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{marginTop:20,padding:'14px',background:'#fef9c3',borderRadius:14,border:'1px solid #fde68a'}}>
+              <p style={{fontSize:12,color:'#92400e',lineHeight:1.65,margin:0}}>⚠️ 위 내용은 현재까지 공개된 정보를 바탕으로 작성되었습니다. 정확한 가입 조건·혜택·일정은 출시 시 금융위원회 및 서민금융진흥원 공식 발표를 확인해 주세요.</p>
+            </div>
+            <div style={{marginTop:16,display:'flex',gap:8}}>
+              <button onClick={onClose} style={{flex:1,padding:'14px',borderRadius:14,background:'#f3f4f6',color:'#374151',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit'}}>닫기</button>
+              <button disabled style={{flex:2,padding:'14px',borderRadius:14,background:'#e5e7eb',color:'#9ca3af',fontSize:14,fontWeight:700,border:'none',cursor:'not-allowed',fontFamily:'inherit'}}>🔜 출시 예정</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return(
     <div style={{position:'fixed',inset:0,zIndex:1000,display:'flex',flexDirection:'column'}}>
       <div onClick={onClose} style={{flex:1,background:'rgba(0,0,0,0.5)'}}/>
@@ -576,7 +711,9 @@ function BenefitDetail({b,onClose,days,dl}){
 function BCard({b,savedIds,onToggleSave}){const catStyle=CAT_ICON_STYLE[b.category]||{bg:'#f9fafb',color:'#6b7280'};const isSaved=savedIds?.has(String(b.id));const dl=parseDeadline(b.deadline);const days=daysLeft(dl);const[detailOpen,setDetailOpen]=useState(false);
 // Status badge
   let statusBadge;
-  if(b.isUrgent||(days!==null&&days<=14&&days>=0)){
+  if(b.isComingSoon){
+    statusBadge={label:'🔜 출시 예정',bg:'linear-gradient(90deg,#ede9fe,#dbeafe)',color:'#4c1d95',border:'#c4b5fd'};
+  }else if(b.isUrgent||(days!==null&&days<=14&&days>=0)){
     statusBadge={label:days!==null&&days>=0?`D-${days}`:'조건확인',bg:'#fff7ed',color:'#c2410c',border:'#fed7aa'};
   }else if(b.deadline&&b.deadline!=='수시 신청'&&b.deadline!=='수시'){
     statusBadge={label:'신청가능',bg:'#eff6ff',color:'#1d4ed8',border:'#bfdbfe'};
@@ -584,10 +721,10 @@ function BCard({b,savedIds,onToggleSave}){const catStyle=CAT_ICON_STYLE[b.catego
     statusBadge={label:'수시신청',bg:'#f0fdf4',color:'#15803d',border:'#bbf7d0'};
   }
   return(<>
-    <div style={{background:'#fff',borderRadius:24,padding:'20px',marginBottom:12,boxShadow:'0 1px 4px rgba(0,0,0,0.04)',border:`1px solid ${isSaved?'#86efac':'#f3f4f6'}`,transition:'box-shadow 0.15s'}}>
+    <div style={{background:'#fff',borderRadius:24,padding:'20px',marginBottom:12,boxShadow:'0 1px 4px rgba(0,0,0,0.04)',border:`1px solid ${b.isComingSoon?'#c4b5fd':isSaved?'#86efac':'#f3f4f6'}`,transition:'box-shadow 0.15s'}}>
       <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:16}}>
         <div style={{display:'flex',gap:14,flex:1,minWidth:0}}>
-          <div style={{width:48,height:48,borderRadius:18,background:catStyle.bg,color:catStyle.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,flexShrink:0}}>
+          <div style={{width:48,height:48,borderRadius:18,background:b.isComingSoon?'#ede9fe':catStyle.bg,color:b.isComingSoon?'#7c3aed':catStyle.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,flexShrink:0}}>
             {b.categoryIcon||'📋'}
           </div>
           <div style={{flex:1,minWidth:0}}>
@@ -599,27 +736,31 @@ function BCard({b,savedIds,onToggleSave}){const catStyle=CAT_ICON_STYLE[b.catego
             <h3 style={{fontSize:15,fontWeight:700,color:'#111827',lineHeight:1.35,margin:0}}>{b.title}</h3>
           </div>
         </div>
-        {onToggleSave&&(
+        {onToggleSave&&!b.isComingSoon&&(
           <button onClick={()=>onToggleSave(b)} style={{background:'none',border:'none',cursor:'pointer',padding:'4px',flexShrink:0,fontSize:22,lineHeight:1,marginLeft:8}}>
             {isSaved?'❤️':'🤍'}
           </button>
         )}
       </div>
-      <div style={{background:'#f9fafb',borderRadius:14,padding:'12px 14px',marginBottom:12}}>
+      <div style={{background:b.isComingSoon?'#f5f3ff':'#f9fafb',borderRadius:14,padding:'12px 14px',marginBottom:12}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:b.deadline?8:0}}>
           <span style={{fontSize:13,color:'#6b7280',fontWeight:500}}>지원 내용</span>
           <span style={{fontSize:13,fontWeight:700,color:'#111827'}}>{b.amount||'-'}</span>
         </div>
         {b.deadline&&(
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-            <span style={{fontSize:13,color:'#6b7280',fontWeight:500}}>신청 기한</span>
-            <span style={{fontSize:13,fontWeight:600,color:days!==null&&days<=14&&days>=0?'#c2410c':'#374151'}}>{b.deadline}</span>
+            <span style={{fontSize:13,color:'#6b7280',fontWeight:500}}>{b.isComingSoon?'출시 일정':'신청 기한'}</span>
+            <span style={{fontSize:13,fontWeight:600,color:b.isComingSoon?'#7c3aed':days!==null&&days<=14&&days>=0?'#c2410c':'#374151'}}>{b.deadline}</span>
           </div>
         )}
       </div>
       <div style={{display:'flex',gap:8}}>
-        <button onClick={()=>setDetailOpen(true)} style={{flex:1,padding:'11px 0',borderRadius:12,background:'#f0fdf4',color:'#15803d',fontSize:14,fontWeight:700,border:'1px solid #bbf7d0',cursor:'pointer',fontFamily:'inherit'}}>상세 보기</button>
-        <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{flex:1,padding:'11px 0',borderRadius:12,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px rgba(21,128,61,0.25)'}}>바로 신청</a>
+        <button onClick={()=>setDetailOpen(true)} style={{flex:1,padding:'11px 0',borderRadius:12,background:b.isComingSoon?'#ede9fe':'#f0fdf4',color:b.isComingSoon?'#7c3aed':'#15803d',fontSize:14,fontWeight:700,border:`1px solid ${b.isComingSoon?'#c4b5fd':'#bbf7d0'}`,cursor:'pointer',fontFamily:'inherit'}}>상세 보기</button>
+        {b.isComingSoon?(
+          <button disabled style={{flex:1,padding:'11px 0',borderRadius:12,background:'#e5e7eb',color:'#9ca3af',fontSize:14,fontWeight:700,border:'none',cursor:'not-allowed',fontFamily:'inherit'}}>🔜 출시 예정</button>
+        ):(
+          <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{flex:1,padding:'11px 0',borderRadius:12,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px rgba(21,128,61,0.25)'}}>바로 신청</a>
+        )}
       </div>
     </div>
     {detailOpen&&<BenefitDetail b={b} onClose={()=>setDetailOpen(false)} days={days} dl={dl}/>}
@@ -1038,7 +1179,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
       ]);
       const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full',bokjiroData,gov24Data,ggData,seoulData}),4500);
       const parsed=repairJSON(raw);
-      // 후처리: 제목 정규화 + 폐지된 혜택 제거
+      // 후처리: 제목 정규화 + 폐지 혜택 제거 + 출시 예정 혜택 주입
       if(parsed?.benefits){
         parsed.benefits=parsed.benefits
           .filter(b=>!/(청년도약계좌)/i.test(b.title||''))
@@ -1046,6 +1187,10 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
             ...b,
             title:(b.title||'').replace(/청년\s*월세\s*지원사업/g,'청년 월세 지원'),
           }));
+        // 청년 조건 선택 시 청년미래적금 카드 맨 앞에 삽입
+        if(extras.some(e=>e.includes('청년'))){
+          parsed.benefits=[YOUTH_FUTURE_SAVINGS,...parsed.benefits];
+        }
       }
       setResults(parsed);
       setAnalyzedAt(new Date());
