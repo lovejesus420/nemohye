@@ -362,7 +362,6 @@ const KNOWN_BENEFIT_URLS = [
   {kw:['디딤돌 대출','디딤돌대출'],url:'https://nhuf.molit.go.kr/FP/FP05/FP0502/FP05020201.jsp'},
   {kw:['주거급여'],url:'https://www.myhome.go.kr/hws/portal/sch/selectRsdtRcritNtcList.do'},
   // ── 청년 특화 ──
-  {kw:['청년도약계좌'],url:'https://kinfa.or.kr/youth/youth01.do'},
   {kw:['청년희망적금'],url:'https://kinfa.or.kr/youth/youth02.do'},
   {kw:['청년저축계좌','내일저축계좌'],url:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do'},
   {kw:['청년 정책','청년 지원','온통청년'],url:'https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do'},
@@ -495,22 +494,6 @@ function getBestApplyUrl(url, title='', institution=''){
   return url||'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do';
 }
 
-// ─── 청년도약계좌 은행 목록 ────────────────────────────────────────
-const DOYAK_BANKS = [
-  {name:'KB국민은행', icon:'🟡', url:'https://obank.kbstar.com/quics?page=C021590'},
-  {name:'신한은행',   icon:'🔵', url:'https://bank.shinhan.com/index.jsp#010203040000'},
-  {name:'하나은행',   icon:'🟢', url:'https://www.kebhana.com/cont/mall/mall08/mall0808/mall080801/1474584_115099.jsp'},
-  {name:'우리은행',   icon:'🔵', url:'https://spot.wooribank.com/pot/Dream?withyou=PODEP0104'},
-  {name:'NH농협은행', icon:'🟢', url:'https://banking.nonghyup.com/nhbank.html'},
-  {name:'IBK기업은행',icon:'🔵', url:'https://www.ibk.co.kr/contents.do?menuNo=100491'},
-  {name:'BNK부산은행',icon:'🟠', url:'https://bbs.bnkfg.com/'},
-  {name:'BNK경남은행',icon:'🟠', url:'https://www.knbank.co.kr/'},
-  {name:'DGB대구은행',icon:'🟣', url:'https://www.dgb.co.kr/'},
-  {name:'광주은행',   icon:'🔴', url:'https://www.kjbank.com/'},
-  {name:'전북은행',   icon:'🔴', url:'https://www.jbbank.co.kr/'},
-];
-function isDoyak(title=''){ return title.includes('청년도약계좌'); }
-
 // ─── BCard 카테고리 아이콘 색상 ─────────────────────────────────────
 const CAT_ICON_STYLE={'주거':{bg:'#f0fdf4',color:'#16a34a'},'의료':{bg:'#fef2f2',color:'#dc2626'},'금융':{bg:'#eff6ff',color:'#2563eb'},'교육':{bg:'#f0fdf4',color:'#16a34a'},'고용':{bg:'#f5f3ff',color:'#7c3aed'},'보육':{bg:'#fdf2f8',color:'#db2777'},'노인':{bg:'#e0f2fe',color:'#0284c7'},'장애':{bg:'#ecfccb',color:'#65a30d'},'청년':{bg:'#f5f3ff',color:'#7c3aed'},'취업/직장':{bg:'#eff6ff',color:'#2563eb'},'생활/교통':{bg:'#fff7ed',color:'#ea580c'},'기타':{bg:'#f9fafb',color:'#6b7280'}};
 function calcTotalYearly(benefits){let total=0;for(const b of benefits){const s=(b.amount||'').replace(/,/g,'');const monthly=/월/.test(s)&&!/연/.test(s);const m=s.match(/(\d+)\s*만/);if(m){const v=parseInt(m[1]);total+=monthly?v*12:v;}const o=s.match(/(\d+)\s*억/);if(o)total+=parseInt(o[1])*10000;}return total;}
@@ -590,7 +573,7 @@ function BenefitDetail({b,onClose,days,dl}){
 }
 
 // ─── BCard ────────────────────────────────────────────────────────
-function BCard({b,savedIds,onToggleSave}){const catStyle=CAT_ICON_STYLE[b.category]||{bg:'#f9fafb',color:'#6b7280'};const isSaved=savedIds?.has(String(b.id));const dl=parseDeadline(b.deadline);const days=daysLeft(dl);const[detailOpen,setDetailOpen]=useState(false);const[bankOpen,setBankOpen]=useState(false);
+function BCard({b,savedIds,onToggleSave}){const catStyle=CAT_ICON_STYLE[b.category]||{bg:'#f9fafb',color:'#6b7280'};const isSaved=savedIds?.has(String(b.id));const dl=parseDeadline(b.deadline);const days=daysLeft(dl);const[detailOpen,setDetailOpen]=useState(false);
 // Status badge
   let statusBadge;
   if(b.isUrgent||(days!==null&&days<=14&&days>=0)){
@@ -636,17 +619,7 @@ function BCard({b,savedIds,onToggleSave}){const catStyle=CAT_ICON_STYLE[b.catego
       </div>
       <div style={{display:'flex',gap:8}}>
         <button onClick={()=>setDetailOpen(true)} style={{flex:1,padding:'11px 0',borderRadius:12,background:'#f0fdf4',color:'#15803d',fontSize:14,fontWeight:700,border:'1px solid #bbf7d0',cursor:'pointer',fontFamily:'inherit'}}>상세 보기</button>
-        {isDoyak(b.title)?(
-          <div style={{position:'relative',flex:1}}>
-            <button onClick={()=>setBankOpen(p=>!p)} style={{width:'100%',padding:'11px 0',borderRadius:12,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit',boxShadow:'0 2px 8px rgba(21,128,61,0.25)'}}>🏦 은행 선택</button>
-            {bankOpen&&(<div style={{position:'absolute',bottom:'calc(100% + 6px)',left:0,right:0,background:'#fff',border:'1.5px solid #d4cdc2',borderRadius:14,boxShadow:'0 10px 32px rgba(0,0,0,0.14)',zIndex:400,overflow:'hidden'}}>
-              <div style={{padding:'10px 14px',background:'#0d1117',fontSize:12,fontWeight:700,color:'rgba(255,255,255,0.8)',textTransform:'uppercase',letterSpacing:1}}>청년도약계좌 신청 은행</div>
-              {DOYAK_BANKS.map(bk=>(<a key={bk.name} href={bk.url} target="_blank" rel="noreferrer" onClick={()=>setBankOpen(false)} style={{display:'flex',alignItems:'center',gap:10,padding:'11px 14px',borderBottom:'1px solid #f0ebe0',textDecoration:'none',color:'#0d1117',fontSize:14,fontWeight:600,background:'#fff'}}><span style={{fontSize:18}}>{bk.icon}</span>{bk.name}<span style={{marginLeft:'auto',fontSize:11,color:'#94a3b8'}}>신청 →</span></a>))}
-            </div>)}
-          </div>
-        ):(
-          <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{flex:1,padding:'11px 0',borderRadius:12,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px rgba(21,128,61,0.25)'}}>바로 신청</a>
-        )}
+        <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{flex:1,padding:'11px 0',borderRadius:12,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px rgba(21,128,61,0.25)'}}>바로 신청</a>
       </div>
     </div>
     {detailOpen&&<BenefitDetail b={b} onClose={()=>setDetailOpen(false)} days={days} dl={dl}/>}
@@ -903,17 +876,8 @@ return(
   {/* 상단 브랜드 영역 */}
   <div style={{flex:'0 0 auto',padding:'48px 32px 36px',textAlign:'center'}}>
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:14,marginBottom:12}}>
-      <div style={{width:52,height:52,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 6px 20px rgba(22,163,74,0.5)',flexShrink:0}}>
-        <svg width="34" height="34" viewBox="125 75 250 225" fill="none" stroke="white" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="175" y="180" width="150" height="110" strokeWidth="14"/>
-          <rect x="160" y="150" width="180" height="30" rx="4" strokeWidth="14"/>
-          <line x1="250" y1="150" x2="250" y2="290" strokeWidth="14"/>
-          <path d="M 250 150 C 200 90, 140 130, 190 150 Z" strokeWidth="12"/>
-          <path d="M 250 150 C 300 90, 360 130, 310 150 Z" strokeWidth="12"/>
-          <path d="M 250 150 L 210 200" strokeWidth="12"/>
-          <path d="M 250 150 L 290 200" strokeWidth="12"/>
-        </svg>
-      </div>
+      <BrandLogo size={52} style={{flexShrink:0,filter:'drop-shadow(0 6px 20px rgba(0,0,0,0.25))'}}/>
+
       <span style={{fontFamily:'serif',fontSize:'2.64rem',fontWeight:900,color:'#fff',letterSpacing:-1.5}}>네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
     </div>
     <p style={{color:'rgba(255,255,255,0.45)',fontSize:14,letterSpacing:0.5}}>내게 맞는 모든 혜택을 한 번에</p>
@@ -1003,7 +967,7 @@ function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='ful
   // ── 청년 특화 섹션 ──
   const YOUTH_SECTION = isYouth ? `
 ★★ 청년 특화 — 반드시 포함:
-[전국] 청년도약계좌, 청년희망적금, 국민취업지원제도, 청년내일저축계좌, 청년내일채움공제, 국가장학금, 청년 버팀목전세자금, 청년 월세 지원(LH), K-디지털 훈련, 청년일자리도약장려금
+[전국] 청년희망적금, 국민취업지원제도, 청년내일저축계좌, 청년내일채움공제, 국가장학금, 청년 버팀목전세자금, 청년 월세 지원(LH), K-디지털 훈련, 청년일자리도약장려금
 ${isSeoul ? `[서울] 서울청년수당(월50만원), 희망두배청년통장, 청년취업사관학교새싹, 청년월세지원서울, 청년임차보증금이자지원, 서울청년문화패스` : ''}` : '';
 
   // ── 소상공인 특화 섹션 ──
@@ -1037,7 +1001,7 @@ ${YOUTH_SECTION}${SME_SECTION}
   return `대한민국 복지·혜택 전문가. 아래 사람의 맞춤 혜택을 분석하세요.
 [정보] ${age}세/${gender}/${job}/${income}/${address}/추가:${extra}/${today}
 ${BOKJIRO_SECTION}${GOV24_SECTION}${GG_SECTION}${SEOUL_SECTION}${YOUTH_SECTION}${SME_SECTION}
-출처별 필수 포함: 정부복지(복지로·정부24·고용24·건강보험·국민연금), 지자체(${address} 특화사업${isSeoul?'·서울청년몽땅·서울복지포털·서울탄생육아':''}), 금융(주택도시기금·서민금융·청년도약계좌), 에너지바우처·통신감면, 세금환급(근로장려금·자녀장려금), 주거(LH·SH·버팀목전세), 숨겨진혜택 3개이상(isHidden:true)
+출처별 필수 포함: 정부복지(복지로·정부24·고용24·건강보험·국민연금), 지자체(${address} 특화사업${isSeoul?'·서울청년몽땅·서울복지포털·서울탄생육아':''}), 금융(주택도시기금·서민금융·청년희망적금), 에너지바우처·통신감면, 세금환급(근로장려금·자녀장려금), 주거(LH·SH·버팀목전세), 숨겨진혜택 3개이상(isHidden:true)
 순수 JSON만 (코드블록 없이):
 {"summary":{"totalBenefits":숫자,"estimatedMonthlyBenefit":"금액범위","topPriority":"혜택명","hiddenCount":숫자},"benefits":[${SCHEMA}]}
 10~14개. 실제 존재하는 혜택만. ${URL_GUIDE}`;
@@ -1074,12 +1038,14 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
       ]);
       const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full',bokjiroData,gov24Data,ggData,seoulData}),4500);
       const parsed=repairJSON(raw);
-      // 제목 정규화: "청년 월세 지원사업" → "청년 월세 지원"
+      // 후처리: 제목 정규화 + 폐지된 혜택 제거
       if(parsed?.benefits){
-        parsed.benefits=parsed.benefits.map(b=>({
-          ...b,
-          title:(b.title||'').replace(/청년\s*월세\s*지원사업/g,'청년 월세 지원'),
-        }));
+        parsed.benefits=parsed.benefits
+          .filter(b=>!/(청년도약계좌)/i.test(b.title||''))
+          .map(b=>({
+            ...b,
+            title:(b.title||'').replace(/청년\s*월세\s*지원사업/g,'청년 월세 지원'),
+          }));
       }
       setResults(parsed);
       setAnalyzedAt(new Date());
