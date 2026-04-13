@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="152" height="152">
-  <!-- 배경 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="152" height="152" fill="none">
   <rect width="512" height="512" rx="96" fill="#0d1117"/>
-  <!-- 브랜드 로고: 외부 골드 테두리 -->
-  <rect x="48" y="48" width="416" height="416" rx="88" stroke="#c9a84c" stroke-width="26" fill="none"/>
-  <!-- 브랜드 로고: 내부 틸 사각형 -->
-  <rect x="136" y="136" width="240" height="240" rx="48" fill="#1a6b6b"/>
-  <!-- 브랜드 로고: 혜 폴리라인 -->
-  <polyline points="176,340 176,176 336,340 336,176" stroke="#c9a84c" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <polygon points="256,102 416,182 256,262 96,182" fill="#5fd45a"/>
+  <polygon points="416,182 416,344 256,424 256,262" fill="#2a8f2a"/>
+  <polygon points="96,182 256,262 256,424 96,344" fill="#3db83d"/>
+  <polyline points="256,102 416,182 416,344 256,424 96,344 96,182 256,102" stroke="#1e6b1e" stroke-width="11" stroke-linejoin="round" fill="none"/>
+  <line x1="256" y1="262" x2="256" y2="424" stroke="#1e6b1e" stroke-width="11"/>
+  <line x1="256" y1="262" x2="416" y2="182" stroke="#1e6b1e" stroke-width="11"/>
+  <line x1="256" y1="262" x2="96" y2="182" stroke="#1e6b1e" stroke-width="11"/>
 </svg>
