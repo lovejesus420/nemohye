@@ -499,57 +499,146 @@ const DOYAK_BANKS = [
 ];
 function isDoyak(title=''){ return title.includes('청년도약계좌'); }
 
-// ─── BCard ────────────────────────────────────────────────────────
-const SOURCE_COLOR={'정부복지':'#1e3a5f','지자체':'#166534','금융/은행':'#1e40af','공공기관':'#5b21b6','기업/협회':'#b45309','민간/NGO':'#be185d'};
-function BCard({b,savedIds,onToggleSave}){const bg=CAT_COLOR[b.category]||'#f3f4f6';const isSaved=savedIds?.has(String(b.id));const dl=parseDeadline(b.deadline);const days=daysLeft(dl);const[calOpen,setCalOpen]=useState(false);const[bankOpen,setBankOpen]=useState(false);
-const srcColor=SOURCE_COLOR[b.source]||'#374151';
-return(<div style={{background:C.surface,border:`1.5px solid ${isSaved?C.teal:b.isHidden?'#7c3aed':C.border}`,borderRadius:16,padding:'18px 20px',marginBottom:10,boxShadow:isSaved?`0 0 0 3px rgba(14,116,144,0.10)`:b.isHidden?'0 0 0 2px rgba(124,58,237,0.08)':'0 2px 12px rgba(15,23,42,0.05)',position:'relative',overflow:'hidden'}}>
-  {b.isHidden&&<div style={{position:'absolute',top:0,right:0,background:'linear-gradient(135deg,#7c3aed,#5b21b6)',color:'#fff',fontSize:9,fontWeight:700,padding:'3px 10px',borderRadius:'0 16px 0 10px',letterSpacing:1}}>숨겨진 혜택</div>}
-  <div style={{display:'flex',gap:12,marginBottom:10}}>
-    <div style={{width:42,height:42,borderRadius:12,background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:21,flexShrink:0}}>{b.categoryIcon||'📋'}</div>
-    <div style={{flex:1}}>
-      <div style={{display:'flex',flexWrap:'wrap',gap:4,marginBottom:5}}>
-        {b.source&&<span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:srcColor,color:'#fff'}}>{b.sourceIcon||''} {b.source}</span>}
-        <span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:C.bg,color:C.text2}}>{b.category}</span>
-        <span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:b.scope==='전국'?'#DBEAFE':'#FCE7F3',color:b.scope==='전국'?'#1e40af':'#9d174d'}}>{b.scope}</span>
-        {b.isUrgent&&<span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#FEE2E2',color:C.err}}>⚡ 긴급</span>}
-        {days!==null&&days<=30&&days>=0&&<span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#FEF9C3',color:'#854d0e'}}>D-{days}</span>}
+// ─── BCard 카테고리 아이콘 색상 ─────────────────────────────────────
+const CAT_ICON_STYLE={'주거':{bg:'#f0fdf4',color:'#16a34a'},'의료':{bg:'#fef2f2',color:'#dc2626'},'금융':{bg:'#eff6ff',color:'#2563eb'},'교육':{bg:'#f0fdf4',color:'#16a34a'},'고용':{bg:'#f5f3ff',color:'#7c3aed'},'보육':{bg:'#fdf2f8',color:'#db2777'},'노인':{bg:'#e0f2fe',color:'#0284c7'},'장애':{bg:'#ecfccb',color:'#65a30d'},'청년':{bg:'#f5f3ff',color:'#7c3aed'},'취업/직장':{bg:'#eff6ff',color:'#2563eb'},'생활/교통':{bg:'#fff7ed',color:'#ea580c'},'기타':{bg:'#f9fafb',color:'#6b7280'}};
+function calcTotalYearly(benefits){let total=0;for(const b of benefits){const s=(b.amount||'').replace(/,/g,'');const monthly=/월/.test(s)&&!/연/.test(s);const m=s.match(/(\d+)\s*만/);if(m){const v=parseInt(m[1]);total+=monthly?v*12:v;}const o=s.match(/(\d+)\s*억/);if(o)total+=parseInt(o[1])*10000;}return total;}
+
+// ─── BenefitDetail 모달 ───────────────────────────────────────────
+function BenefitDetail({b,onClose,days,dl}){
+  const steps=[
+    {n:1,title:'서류 준비',icon:'📂',bg:'#eff6ff',color:'#1e40af',items:b.requiredDocuments||[],text:b.requiredDocuments?.length?'':'기관에 문의하여 필요 서류를 확인하세요.'},
+    {n:2,title:'신청 방법',icon:'📝',bg:'#f0fdf4',color:'#166534',items:[],text:b.howToApply||'해당 기관 홈페이지 또는 주민센터 방문'},
+    {n:3,title:'심사 및 처리',icon:'⏳',bg:'#fef9c3',color:'#854d0e',items:[],text:'서류 접수 후 담당 기관에서 자격 심사가 진행됩니다. 처리 기간은 기관마다 상이합니다.'},
+    {n:4,title:'결과 통보',icon:'📣',bg:'#fce7f3',color:'#9d174d',items:[],text:'심사 완료 후 SMS, 우편 또는 홈페이지를 통해 결과를 안내받습니다.'},
+    {n:5,title:'혜택 수령',icon:'✅',bg:'#dcfce7',color:'#166534',items:[],text:`지원금은 ${b.amount||'해당 혜택에 따라'} 지급됩니다.`},
+  ];
+  return(
+    <div style={{position:'fixed',inset:0,zIndex:1000,display:'flex',flexDirection:'column'}}>
+      <div onClick={onClose} style={{flex:1,background:'rgba(0,0,0,0.5)'}}/>
+      <div style={{background:'#fff',borderRadius:'28px 28px 0 0',maxHeight:'88vh',overflowY:'auto',paddingBottom:'env(safe-area-inset-bottom,20px)'}}>
+        <div style={{padding:'16px 20px',position:'sticky',top:0,background:'#fff',borderBottom:'1px solid #f3f4f6',zIndex:1}}>
+          <div style={{width:36,height:4,borderRadius:2,background:'#d1d5db',margin:'0 auto 16px'}}/>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+            <div style={{flex:1,paddingRight:12}}>
+              <div style={{display:'flex',gap:6,marginBottom:8,flexWrap:'wrap'}}>
+                <span style={{fontSize:11,fontWeight:700,color:'#15803d',background:'#dcfce7',padding:'3px 10px',borderRadius:20}}>{b.category}</span>
+                {b.scope&&<span style={{fontSize:11,fontWeight:700,color:'#374151',background:'#f3f4f6',padding:'3px 10px',borderRadius:20}}>{b.scope}</span>}
+                {b.isUrgent&&<span style={{fontSize:11,fontWeight:700,color:'#c2410c',background:'#fff7ed',padding:'3px 10px',borderRadius:20}}>⚡ 긴급</span>}
+              </div>
+              <h2 style={{fontSize:17,fontWeight:800,color:'#111827',lineHeight:1.3,margin:0}}>{b.title}</h2>
+            </div>
+            <button onClick={onClose} style={{background:'#f3f4f6',border:'none',borderRadius:'50%',width:34,height:34,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0,fontFamily:'inherit'}}>✕</button>
+          </div>
+        </div>
+        <div style={{padding:'20px'}}>
+          {b.description&&<p style={{fontSize:14,color:'#4b5563',lineHeight:1.75,margin:'0 0 20px',padding:'14px',background:'#f9fafb',borderRadius:14}}>{b.description}</p>}
+          <div style={{background:'#f9fafb',borderRadius:16,padding:'4px 16px',marginBottom:20}}>
+            {[{l:'💰 지원 내용',v:b.amount||'-'},{l:'🏛️ 담당 기관',v:b.institution||'-'},{l:'📅 신청 기한',v:b.deadline||'수시 신청',urgent:days!==null&&days<=14&&days>=0},{l:'📌 신청 방법',v:b.howToApply||'-'}].map(({l,v,urgent})=>(
+              <div key={l} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',padding:'12px 0',borderBottom:'1px solid #f0f0f0'}}>
+                <span style={{fontSize:13,color:'#6b7280',flexShrink:0,marginRight:8}}>{l}</span>
+                <span style={{fontSize:13,fontWeight:600,color:urgent?'#c2410c':'#111827',textAlign:'right',flex:1}}>{v}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{marginBottom:24}}>
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16}}>
+              <div style={{width:4,height:16,background:'#15803d',borderRadius:2}}/>
+              <h3 style={{fontSize:15,fontWeight:700,color:'#111827',margin:0}}>단계별 신청 가이드</h3>
+            </div>
+            <div style={{position:'relative'}}>
+              <div style={{position:'absolute',left:19,top:20,bottom:20,width:2,background:'linear-gradient(to bottom,#bbf7d0,#86efac)',zIndex:0}}/>
+              {steps.map((step,i)=>(
+                <div key={step.n} style={{display:'flex',gap:14,marginBottom:i<steps.length-1?16:0,position:'relative',zIndex:1}}>
+                  <div style={{width:40,height:40,borderRadius:'50%',background:step.bg,color:step.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.08)'}}>
+                    {step.icon}
+                  </div>
+                  <div style={{flex:1,paddingTop:8}}>
+                    <div style={{fontSize:11,fontWeight:700,color:'#9ca3af',marginBottom:2}}>Step {step.n}</div>
+                    <div style={{fontSize:14,fontWeight:700,color:'#111827',marginBottom:step.items.length?8:4}}>{step.title}</div>
+                    {step.items.length>0?(
+                      <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                        {step.items.map(doc=><span key={doc} style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'4px 10px',fontSize:12,color:'#1e40af',fontWeight:500}}>📄 {doc}</span>)}
+                      </div>
+                    ):(
+                      <p style={{fontSize:13,color:'#4b5563',lineHeight:1.65,margin:0}}>{step.text}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{display:'flex',gap:8}}>
+            <button onClick={onClose} style={{flex:1,padding:'14px',borderRadius:14,background:'#f3f4f6',color:'#374151',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit'}}>닫기</button>
+            <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{flex:2,padding:'14px',borderRadius:14,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',gap:6,boxShadow:'0 4px 14px rgba(21,128,61,0.3)'}}>바로 신청하기 →</a>
+          </div>
+        </div>
       </div>
-      <div style={{fontFamily:'serif',fontSize:14,fontWeight:700,marginBottom:2,color:C.text1,lineHeight:1.3}}>{b.title}</div>
-      <div style={{fontSize:12,color:C.text2}}>{b.institution}</div>
     </div>
-    {onToggleSave&&(<button onClick={()=>onToggleSave(b)} style={{width:36,height:36,flexShrink:0,border:`1.5px solid ${isSaved?C.teal:C.border}`,borderRadius:10,background:isSaved?'#E0F2F7':'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}}>🔖</button>)}
-  </div>
-  <div style={{borderTop:'1px solid #f0ebe0',paddingTop:12}}>
-    <p style={{fontSize:13,color:'#3a3a3a',lineHeight:1.7,marginBottom:10}}>{b.description}</p>
-    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:7,marginBottom:10}}>
-      {[{l:'💰 지원 내용',v:b.amount,c:'#1a6b6b'},{l:'📅 신청 기한',v:b.deadline||'수시',c:days!==null&&days<=14?'#c94f1a':'#374151'},{l:'📌 신청 방법',v:b.howToApply}].map(({l,v,c})=>(<div key={l} style={{background:'#faf7f2',borderRadius:8,padding:8}}><div style={{fontSize:9,fontWeight:700,color:'#6b6560',textTransform:'uppercase',letterSpacing:0,marginBottom:3}}>{l}</div><div style={{fontSize:11,fontWeight:600,color:c||'#0d1117',lineHeight:1.3,wordBreak:'break-all'}}>{v||'-'}</div></div>))}
-    </div>
-    {b.requiredDocuments?.length>0&&(<div style={{marginBottom:10}}><div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:0.5,marginBottom:5}}>📂 필요 서류</div><div style={{display:'flex',flexWrap:'wrap',gap:4}}>{b.requiredDocuments.map(d=><span key={d} style={{background:'#f0ebe0',border:'1px solid #d4cdc2',borderRadius:5,padding:'3px 8px',fontSize:12}}>📄 {d}</span>)}</div></div>)}
-    <div style={{display:'flex',gap:7,flexWrap:'wrap',alignItems:'center'}}>
-      {isDoyak(b.title)
-        ? (<div style={{position:'relative'}}>
-            <button onClick={()=>setBankOpen(p=>!p)} style={{display:'inline-flex',alignItems:'center',gap:5,background:'#0d1117',color:'#fff',fontSize:13,fontWeight:700,padding:'8px 14px',borderRadius:7,border:'none',cursor:'pointer',fontFamily:'inherit'}}>🏦 은행 선택하기 ▾</button>
-            {bankOpen&&(<div style={{position:'absolute',bottom:'calc(100% + 6px)',left:0,background:'#fff',border:'1.5px solid #d4cdc2',borderRadius:14,boxShadow:'0 10px 32px rgba(0,0,0,0.14)',zIndex:400,minWidth:210,overflow:'hidden'}}>
+  );
+}
+
+// ─── BCard ────────────────────────────────────────────────────────
+function BCard({b,savedIds,onToggleSave}){const catStyle=CAT_ICON_STYLE[b.category]||{bg:'#f9fafb',color:'#6b7280'};const isSaved=savedIds?.has(String(b.id));const dl=parseDeadline(b.deadline);const days=daysLeft(dl);const[detailOpen,setDetailOpen]=useState(false);const[bankOpen,setBankOpen]=useState(false);
+// Status badge
+  let statusBadge;
+  if(b.isUrgent||(days!==null&&days<=14&&days>=0)){
+    statusBadge={label:days!==null&&days>=0?`D-${days}`:'조건확인',bg:'#fff7ed',color:'#c2410c',border:'#fed7aa'};
+  }else if(b.deadline&&b.deadline!=='수시 신청'&&b.deadline!=='수시'){
+    statusBadge={label:'신청가능',bg:'#eff6ff',color:'#1d4ed8',border:'#bfdbfe'};
+  }else{
+    statusBadge={label:'수시신청',bg:'#f0fdf4',color:'#15803d',border:'#bbf7d0'};
+  }
+  return(<>
+    <div style={{background:'#fff',borderRadius:24,padding:'20px',marginBottom:12,boxShadow:'0 1px 4px rgba(0,0,0,0.04)',border:`1px solid ${isSaved?'#86efac':'#f3f4f6'}`,transition:'box-shadow 0.15s'}}>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:16}}>
+        <div style={{display:'flex',gap:14,flex:1,minWidth:0}}>
+          <div style={{width:48,height:48,borderRadius:18,background:catStyle.bg,color:catStyle.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,flexShrink:0}}>
+            {b.categoryIcon||'📋'}
+          </div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{display:'flex',gap:5,marginBottom:6,flexWrap:'wrap'}}>
+              <span style={{fontSize:10,fontWeight:700,color:'#15803d',background:'#dcfce7',padding:'2px 8px',borderRadius:6}}>{b.category}</span>
+              <span style={{fontSize:10,fontWeight:700,color:statusBadge.color,background:statusBadge.bg,padding:'2px 8px',borderRadius:6,border:`1px solid ${statusBadge.border}`}}>{statusBadge.label}</span>
+              {b.isHidden&&<span style={{fontSize:10,fontWeight:700,color:'#7c3aed',background:'#f5f3ff',padding:'2px 8px',borderRadius:6}}>숨겨진</span>}
+            </div>
+            <h3 style={{fontSize:15,fontWeight:700,color:'#111827',lineHeight:1.35,margin:0}}>{b.title}</h3>
+          </div>
+        </div>
+        {onToggleSave&&(
+          <button onClick={()=>onToggleSave(b)} style={{background:'none',border:'none',cursor:'pointer',padding:'4px',flexShrink:0,fontSize:22,lineHeight:1,marginLeft:8}}>
+            {isSaved?'❤️':'🤍'}
+          </button>
+        )}
+      </div>
+      <div style={{background:'#f9fafb',borderRadius:14,padding:'12px 14px',marginBottom:12}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:b.deadline?8:0}}>
+          <span style={{fontSize:13,color:'#6b7280',fontWeight:500}}>지원 내용</span>
+          <span style={{fontSize:13,fontWeight:700,color:'#111827'}}>{b.amount||'-'}</span>
+        </div>
+        {b.deadline&&(
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <span style={{fontSize:13,color:'#6b7280',fontWeight:500}}>신청 기한</span>
+            <span style={{fontSize:13,fontWeight:600,color:days!==null&&days<=14&&days>=0?'#c2410c':'#374151'}}>{b.deadline}</span>
+          </div>
+        )}
+      </div>
+      <div style={{display:'flex',gap:8}}>
+        <button onClick={()=>setDetailOpen(true)} style={{flex:1,padding:'11px 0',borderRadius:12,background:'#f0fdf4',color:'#15803d',fontSize:14,fontWeight:700,border:'1px solid #bbf7d0',cursor:'pointer',fontFamily:'inherit'}}>상세 보기</button>
+        {isDoyak(b.title)?(
+          <div style={{position:'relative',flex:1}}>
+            <button onClick={()=>setBankOpen(p=>!p)} style={{width:'100%',padding:'11px 0',borderRadius:12,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit',boxShadow:'0 2px 8px rgba(21,128,61,0.25)'}}>🏦 은행 선택</button>
+            {bankOpen&&(<div style={{position:'absolute',bottom:'calc(100% + 6px)',left:0,right:0,background:'#fff',border:'1.5px solid #d4cdc2',borderRadius:14,boxShadow:'0 10px 32px rgba(0,0,0,0.14)',zIndex:400,overflow:'hidden'}}>
               <div style={{padding:'10px 14px',background:'#0d1117',fontSize:12,fontWeight:700,color:'rgba(255,255,255,0.8)',textTransform:'uppercase',letterSpacing:1}}>청년도약계좌 신청 은행</div>
               {DOYAK_BANKS.map(bk=>(<a key={bk.name} href={bk.url} target="_blank" rel="noreferrer" onClick={()=>setBankOpen(false)} style={{display:'flex',alignItems:'center',gap:10,padding:'11px 14px',borderBottom:'1px solid #f0ebe0',textDecoration:'none',color:'#0d1117',fontSize:14,fontWeight:600,background:'#fff'}}><span style={{fontSize:18}}>{bk.icon}</span>{bk.name}<span style={{marginLeft:'auto',fontSize:11,color:'#94a3b8'}}>신청 →</span></a>))}
             </div>)}
-          </div>)
-        : (<a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:5,background:'#0d1117',color:'#fff',fontSize:13,fontWeight:700,padding:'8px 14px',borderRadius:7,textDecoration:'none'}}>신청하러 가기 →</a>)
-      }
-      {dl&&(<div style={{position:'relative'}}>
-        <button onClick={()=>setCalOpen(p=>!p)} style={BP({padding:'7px 12px',fontSize:13,borderRadius:7,background:'#edf6f6',color:'#1a6b6b',display:'flex',alignItems:'center',gap:5})}>📅 캘린더 알림</button>
-        {calOpen&&(<div style={{position:'absolute',bottom:'calc(100% + 6px)',left:0,background:'#fff',border:'1.5px solid #d4cdc2',borderRadius:12,boxShadow:'0 8px 24px rgba(0,0,0,0.12)',zIndex:300,minWidth:220,overflow:'hidden'}}>
-          <div style={{padding:'10px 14px',borderBottom:'1px solid #f0ebe0',fontSize:12,fontWeight:700,color:'#6b6560',textTransform:'uppercase',letterSpacing:1}}>알림 추가</div>
-          <button onClick={()=>{openGoogleCalendar(b);setCalOpen(false);}} style={{width:'100%',background:'none',border:'none',padding:'12px 14px',textAlign:'left',fontSize:14,cursor:'pointer',display:'flex',alignItems:'center',gap:8,borderBottom:'1px solid #f0ebe0'}}><span style={{fontSize:18}}>📱</span><div><div style={{fontWeight:600,color:'#0d1117'}}>구글/삼성 캘린더</div><div style={{fontSize:12,color:'#6b6560'}}>캘린더 앱 바로 열기</div></div></button>
-          <button onClick={()=>{downloadICS(b);setCalOpen(false);}} style={{width:'100%',background:'none',border:'none',padding:'12px 14px',textAlign:'left',fontSize:14,cursor:'pointer',display:'flex',alignItems:'center',gap:8,borderBottom:'1px solid #f0ebe0'}}><span style={{fontSize:18}}>📥</span><div><div style={{fontWeight:600,color:'#0d1117'}}>ICS 파일 다운로드</div><div style={{fontSize:12,color:'#6b6560'}}>모든 캘린더 앱 지원</div></div></button>
-          <button onClick={()=>{sendKakaoMe(b);setCalOpen(false);}} style={{width:'100%',background:'none',border:'none',padding:'12px 14px',textAlign:'left',fontSize:14,cursor:'pointer',display:'flex',alignItems:'center',gap:8}}><span style={{width:22,height:22,background:'#FEE500',borderRadius:5,display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:14}}>💬</span><div><div style={{fontWeight:600,color:'#0d1117'}}>카카오톡으로 받기</div><div style={{fontSize:12,color:'#6b6560'}}>나에게 보내기 복사</div></div></button>
-        </div>)}
-      </div>)}
-      {onToggleSave&&(<button onClick={()=>onToggleSave(b)} style={BP({padding:'7px 12px',fontSize:13,borderRadius:7,background:isSaved?'#edf6f6':'#f5f0e8',color:isSaved?'#1a6b6b':'#6b6560',display:'flex',alignItems:'center',gap:5})}>{isSaved?'✓ 저장됨':'+ 보관함 저장'}</button>)}
+          </div>
+        ):(
+          <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{flex:1,padding:'11px 0',borderRadius:12,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px rgba(21,128,61,0.25)'}}>바로 신청</a>
+        )}
+      </div>
     </div>
-  </div>
-</div>);}
+    {detailOpen&&<BenefitDetail b={b} onClose={()=>setDetailOpen(false)} days={days} dl={dl}/>}
+  </>);}
 
 // ─── CalendarWidget ───────────────────────────────────────────────
 function CalendarWidget({events}){const today=new Date();const[viewYear,setViewYear]=useState(today.getFullYear());const[viewMonth,setViewMonth]=useState(today.getMonth());const[selected,setSelected]=useState(null);const[notifStatus,setNotifStatus]=useState(()=>typeof Notification!=='undefined'?Notification.permission:'default');
@@ -991,7 +1080,7 @@ ${BOKJIRO_SECTION}${GOV24_SECTION}${GG_SECTION}${SEOUL_SECTION}${YOUTH_SECTION}$
 최소 12개 최대 18개. 실제 존재하는 혜택만. 마감일은 YYYY년 MM월 DD일 형식. 각 description은 1~2문장으로 간결하게. ${URL_GUIDE}`;
 }
 
-function AnalyzeTab({user,onSaved}){
+function AnalyzeTab({user,onSaved,onResultsReady}){
   const[age,setAge]=useState('');const[gender,setGender]=useState('');const[job,setJob]=useState('');const[income,setIncome]=useState('');const[address,setAddress]=useState('');const[extras,setExtras]=useState([]);
   const[loading,setLoading]=useState(false);const[step,setStep]=useState(0);const[results,setResults]=useState(null);const[err,setErr]=useState('');const[savedIds,setSavedIds]=useState(new Set());const rRef=useRef();
   const[analyzedAt,setAnalyzedAt]=useState(null);
@@ -1011,7 +1100,7 @@ function AnalyzeTab({user,onSaved}){
 
   const analyze=async()=>{
     if(!age||!gender||!job||!income||!address){alert('모든 필수 항목(*)을 입력해 주세요.');return;}
-    setLoading(true);setResults(null);setErr('');setStep(0);setHiddenResults(null);setAnalyzedAt(null);
+    setLoading(true);setResults(null);setErr('');setStep(0);setHiddenResults(null);setAnalyzedAt(null);onResultsReady?.(null);
     try{
       // 복지로 + 정부24 + 경기도 + 서울시 병렬 조회
       const [bokjiroData,gov24Data,ggData,seoulData]=await Promise.all([
@@ -1021,8 +1110,10 @@ function AnalyzeTab({user,onSaved}){
         fetchSeoulData({age,address,extras}),
       ]);
       const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full',bokjiroData,gov24Data,ggData,seoulData}),8000);
-      setResults(repairJSON(raw));
+      const parsed=repairJSON(raw);
+      setResults(parsed);
       setAnalyzedAt(new Date());
+      onResultsReady?.(parsed);
     }catch(e){setErr(e.message);}
     finally{setLoading(false);}
   };
@@ -1174,67 +1265,68 @@ function AnalyzeTab({user,onSaved}){
     )}
     {err&&<div style={{background:'#FEE2E2',border:'1px solid #FECACA',borderRadius:12,padding:'14px 16px',color:C.err,fontSize:13,marginBottom:16}}><strong>오류:</strong><br/><code style={{fontSize:12,wordBreak:'break-all'}}>{err}</code></div>}
     {results&&(<div ref={rRef}>
-      {/* ── 요약 카드 ── */}
-      <div style={{background:`linear-gradient(135deg,${C.dark} 0%,#0f2744 100%)`,borderRadius:20,padding:'22px 24px',color:'#fff',marginBottom:16,position:'relative',overflow:'hidden'}}>
-        <div style={{position:'absolute',top:-20,right:-20,width:100,height:100,borderRadius:'50%',background:'rgba(212,168,67,0.08)'}}/>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
-          <div>
-            <div style={{fontSize:10,letterSpacing:0.3,color:'rgba(255,255,255,0.5)',textTransform:'uppercase',marginBottom:6,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'100%'}}>분석완료 · {age}세 {gender} · {address}</div>
-            <div style={{fontFamily:'serif',fontSize:'1.2rem',fontWeight:900,lineHeight:1.2}}>
-              총 <span style={{color:C.gold}}>{allBenefits.length}개</span> 혜택 발견
+      {/* ── 총 예상 지원 규모 카드 ── */}
+      {(()=>{const total=calcTotalYearly(allBenefits);return(
+        <div style={{background:'#fff',borderRadius:24,padding:'24px',marginBottom:12,boxShadow:'0 1px 3px rgba(0,0,0,0.04)',border:'1px solid #f3f4f6',textAlign:'center'}}>
+          <span style={{fontSize:13,fontWeight:600,color:'#6b7280',display:'block',marginBottom:8}}>총 예상 지원 규모</span>
+          {total>0?(
+            <div style={{display:'flex',alignItems:'flex-end',justifyContent:'center',gap:4,marginBottom:10}}>
+              <span style={{fontSize:32,fontWeight:900,color:'#15803d',letterSpacing:-1}}>연 {total.toLocaleString()}</span>
+              <span style={{fontSize:18,fontWeight:700,color:'#15803d',marginBottom:4}}>만원</span>
             </div>
-          </div>
-          {analyzedAt&&<div style={{textAlign:'right',flexShrink:0}}>
-            <div style={{fontSize:10,color:'rgba(255,255,255,0.4)',marginBottom:2}}>업데이트</div>
-            <div style={{fontSize:11,color:'rgba(255,255,255,0.6)'}}>{analyzedAt.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}</div>
+          ):(
+            <div style={{fontSize:24,fontWeight:800,color:'#15803d',marginBottom:10}}>총 {allBenefits.length}개 혜택</div>
+          )}
+          {results.summary?.topPriority&&<div style={{fontSize:13,color:'#374151',background:'#f0fdf4',borderRadius:10,padding:'8px 14px',marginBottom:10,display:'inline-block'}}>
+            ⚡ 먼저 신청: <strong style={{color:'#15803d'}}>{results.summary.topPriority}</strong>
           </div>}
+          <p style={{fontSize:11,color:'#9ca3af',background:'#f9fafb',padding:'6px 14px',borderRadius:20,display:'inline-block',margin:0}}>
+            최대 지원 금액 기준이며 실제와 다를 수 있습니다.
+          </p>
         </div>
-        <div style={{display:'flex',gap:0,borderRadius:12,overflow:'hidden',marginBottom:14}}>
-          {[
-            {v:allBenefits.length,l:'전체 혜택',icon:'✦'},
-            {v:results.summary?.estimatedMonthlyBenefit||'-',l:'월 예상액',icon:'💰'},
-            {v:allBenefits.filter(b=>b.isHidden).length+(hiddenResults?.length||0),l:'숨겨진 혜택',icon:'🔍'},
-            {v:urgent.length,l:'긴급 신청',icon:'⚡'},
-          ].map(({v,l,icon},i)=>(
-            <div key={l} style={{flex:1,background:'rgba(255,255,255,0.07)',padding:'10px 6px',textAlign:'center',borderRight:i<3?'1px solid rgba(255,255,255,0.08)':undefined}}>
-              <div style={{fontSize:9,color:'rgba(255,255,255,0.45)',marginBottom:3}}>{icon} {l}</div>
-              <div style={{fontSize:13,fontWeight:800,color:C.gold,lineHeight:1}}>{v}</div>
-            </div>
-          ))}
-        </div>
-        {results.summary?.topPriority&&<div style={{background:'rgba(255,255,255,0.07)',borderRadius:10,padding:'10px 14px',fontSize:13}}>
-          ⚡ 가장 먼저 신청: <strong style={{color:C.gold}}>{results.summary.topPriority}</strong>
-        </div>}
-      </div>
+      );})()}
 
       {/* ── 출처 필터 ── */}
       {sources.length>1&&(
-        <div style={{display:'flex',gap:6,overflowX:'auto',marginBottom:14,paddingBottom:4,scrollbarWidth:'none'}}>
+        <div style={{display:'flex',gap:6,overflowX:'auto',marginBottom:12,paddingBottom:4,scrollbarWidth:'none'}}>
           {sources.map(s=>(
             <button key={s} onClick={()=>setFilterSource(s)} style={{
-              flexShrink:0,padding:'6px 12px',borderRadius:20,border:`1.5px solid ${filterSource===s?C.teal:C.border}`,
-              background:filterSource===s?C.teal:'#fff',color:filterSource===s?'#fff':C.text2,
+              flexShrink:0,padding:'6px 12px',borderRadius:20,border:`1.5px solid ${filterSource===s?'#15803d':C.border}`,
+              background:filterSource===s?'#15803d':'#fff',color:filterSource===s?'#fff':C.text2,
               fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',
             }}>{s}{filterSource===s&&` (${filtered.length})`}</button>
           ))}
         </div>
       )}
 
+      {/* ── 추천 혜택 목록 헤더 ── */}
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'4px 2px 12px'}}>
+        <h2 style={{fontSize:17,fontWeight:700,color:'#111827',display:'flex',alignItems:'center',gap:8,margin:0}}>
+          <div style={{width:5,height:16,background:'#16a34a',borderRadius:3}}/>
+          추천 혜택 목록
+        </h2>
+        <span style={{fontSize:12,color:'#9ca3af',fontWeight:500}}>총 {allBenefits.length}개</span>
+      </div>
+
       {/* ── 긴급 혜택 ── */}
       {urgent.length>0&&(<>
-        <Divider label="⚡ 긴급 신청 필요"/>
+        <div style={{fontSize:12,fontWeight:700,color:'#c2410c',marginBottom:8,display:'flex',alignItems:'center',gap:5}}>
+          <span style={{background:'#fff7ed',padding:'3px 10px',borderRadius:20,border:'1px solid #fed7aa'}}>⚡ 긴급 신청 필요 ({urgent.length})</span>
+        </div>
         {urgent.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}
       </>)}
 
       {/* ── 일반 혜택 ── */}
-      {normal.length>0&&(<>
-        <Divider label={`📋 맞춤 혜택 (${normal.length}개)`}/>
-        {normal.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}
-      </>)}
+      {normal.length>0&&(
+        <>
+          {urgent.length>0&&<div style={{fontSize:12,fontWeight:700,color:'#374151',marginBottom:8,marginTop:4,display:'flex',alignItems:'center',gap:5}}><span style={{background:'#f3f4f6',padding:'3px 10px',borderRadius:20}}>📋 맞춤 혜택 ({normal.length})</span></div>}
+          {normal.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}
+        </>
+      )}
 
       {/* ── 숨겨진 혜택 ── */}
       {hidden.length>0&&(<>
-        <Divider label={`🔍 숨겨진 혜택 — 잘 알려지지 않은 것들 (${hidden.length}개)`}/>
+        <div style={{fontSize:12,fontWeight:700,color:'#7c3aed',marginBottom:8,marginTop:4,display:'flex',alignItems:'center',gap:5}}><span style={{background:'#f5f3ff',padding:'3px 10px',borderRadius:20,border:'1px solid #ddd6fe'}}>🔍 숨겨진 혜택 ({hidden.length})</span></div>
         {hidden.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}
       </>)}
 
@@ -1567,6 +1659,7 @@ export default function App() {
   const [savedCount, setSavedCount] = useState(0);
   const [ready, setReady] = useState(false);
   const [showAuth, setShowAuth] = useState(false); // 랜딩 → 인증 전환
+  const [analyzeResults, setAnalyzeResults] = useState(null);
 
   // API 키 없으면 경고 배너 표시
   const noKey = !API_KEY;
@@ -1692,14 +1785,28 @@ export default function App() {
           <div style={{padding:'16px 20px 52px',textAlign:'center'}}>
             <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.25)',borderRadius:20,padding:'6px 14px',marginBottom:14}}>
               <svg width="13" height="13" viewBox="0 0 20 20" fill="#fde047"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              <span style={{color:'#fff',fontSize:11,fontWeight:600,letterSpacing:0.5}}>사용자 맞춤 혜택 분석</span>
+              <span style={{color:'#fff',fontSize:11,fontWeight:600,letterSpacing:0.5}}>{analyzeResults?'분석 완료':'사용자 맞춤 혜택 분석'}</span>
             </div>
-            <h1 style={{color:'#fff',fontSize:22,fontWeight:700,lineHeight:1.3,margin:'0 0 8px',letterSpacing:-0.3}}>
-              안녕하세요, {user.name}님 👋
-            </h1>
-            <p style={{color:'rgba(255,255,255,0.8)',fontSize:15,fontWeight:500,margin:0,lineHeight:1.4}}>
-              숨은 혜택을 모두 찾아드려요
-            </p>
+            {analyzeResults?(
+              <>
+                <h1 style={{color:'#fff',fontSize:22,fontWeight:700,lineHeight:1.3,margin:'0 0 8px',letterSpacing:-0.3}}>
+                  {user.name}님을 위한<br/>
+                  <span style={{color:'#fde047'}}>{(analyzeResults.benefits||[]).length}개</span>의 맞춤 혜택을 찾았어요
+                </h1>
+                <p style={{color:'rgba(255,255,255,0.8)',fontSize:14,fontWeight:500,margin:0,lineHeight:1.4}}>
+                  입력하신 정보를 바탕으로 가장 적합한 혜택입니다.
+                </p>
+              </>
+            ):(
+              <>
+                <h1 style={{color:'#fff',fontSize:22,fontWeight:700,lineHeight:1.3,margin:'0 0 8px',letterSpacing:-0.3}}>
+                  안녕하세요, {user.name}님 👋
+                </h1>
+                <p style={{color:'rgba(255,255,255,0.8)',fontSize:15,fontWeight:500,margin:0,lineHeight:1.4}}>
+                  숨은 혜택을 모두 찾아드려요
+                </p>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -1745,7 +1852,7 @@ export default function App() {
 
       {/* ── 탭 콘텐츠 ─────────────────────────────────────── */}
       <div style={{maxWidth:760,margin:'0 auto',padding:'16px 16px 100px',position:'relative',zIndex:10,marginTop:tab==='analyze'?-28:0}}>
-        {tab==='analyze'    && <AnalyzeTab user={user} onSaved={refreshCount}/>}
+        {tab==='analyze'    && <AnalyzeTab user={user} onSaved={refreshCount} onResultsReady={setAnalyzeResults}/>}
         {tab==='life'       && <LifeTab user={user}/>}
         {tab==='wedding'    && <WeddingTab user={user}/>}
         {tab==='realestate' && <RealEstateTab user={user}/>}
