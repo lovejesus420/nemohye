@@ -352,6 +352,8 @@ const KNOWN_BENEFIT_URLS = [
   // ── 국민연금 ──
   {kw:['국민연금 반환일시금','반환일시금'],url:'https://www.nps.or.kr/jsppage/service/apply/apply.jsp'},
   {kw:['국민연금 크레딧','출산 크레딧','군복무 크레딧'],url:'https://www.nps.or.kr/jsppage/info/easy/easy_04_01.jsp'},
+  // ── 주거 (서울 월세 — LH보다 먼저 매칭해야 함) ──
+  {kw:['서울 청년 월세','서울청년 월세','청년 월세 지원','청년 월세 지원사업','신혼부부 월세','신혼 월세 지원'],url:'https://housing.seoul.go.kr/site/main/content/sh01_060513'},
   // ── 주거 (LH / HF / 주택도시기금) ──
   {kw:['청년월세','청년 월세'],url:'https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWtWrtanc.do'},
   {kw:['행복주택'],url:'https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWtWrtanc.do'},
@@ -401,8 +403,6 @@ const KNOWN_BENEFIT_URLS = [
   {kw:['서울 청년 마음건강','청년 마음건강 지원','청년마음건강'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=20250519005400210855'},
   {kw:['은둔청년','고립청년','청년 고립'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=R2023050912524'},
   // ── 서울청년몽땅정보통 — 주거 ──
-  {kw:['서울 청년 월세','서울청년 월세 지원','청년 월세 지원'],url:'https://housing.seoul.go.kr/site/main/content/sh01_060513'},
-  {kw:['신혼부부 월세','신혼 월세 지원','서울 신혼부부 월세'],url:'https://housing.seoul.go.kr/site/main/content/sh01_060513'},
   {kw:['청년 임차보증금 이자','청년 전세자금 이자'],url:'https://youth.seoul.go.kr/content.do?key=2310100047'},
   {kw:['청년 중개보수','청년 이사비','부동산 중개보수 이사비'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=R2024040321345'},
   // ── 서울청년몽땅정보통 — 일자리/취업 ──
@@ -996,90 +996,51 @@ function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='ful
   const isSME   = extra.includes('자영업자/소상공인') || extra.includes('소상공인') || job.includes('자영업');
   const isSeoul = address.includes('서울');
 
-  const URL_GUIDE=`applyUrl규칙(필수): 홈페이지 메인 URL 금지. 신청 직접 페이지만. 복지로=https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do, 정부24=https://www.gov.kr/portal/serviceList, 고용24=https://www.work.go.kr/jobcenter/main.do, 주택도시기금=https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp, 청년정책=https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do, 건강보험=https://www.nhis.or.kr/nhis/policy/wbhada02800m01.do, 국민연금=https://www.nps.or.kr/jsppage/service/apply/apply.jsp, 서울복지포털=https://wis.seoul.go.kr/main.do, 서울탄생육아=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtList.do, 임산부교통비=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=34B5EA8BEB354E2DB26136CFE52AEFF2, 서울형산후조리=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=58D83411277E40D1BFF6255A10CBCDD5, 서울엄마아빠택시=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=3EF7489ACF614F939FEF8514308797D2, 서울청년수당=https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=V202600005, 희망두배청년통장=https://youth.seoul.go.kr/content.do?key=2310100069, 서울청년마음건강=https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=20250519005400210855, 청년월세서울=https://youth.seoul.go.kr/content.do?key=2310100046, 청년임차보증금이자=https://youth.seoul.go.kr/content.do?key=2310100047, 청년취업사관학교새싹=https://sesac.seoul.kr/, 미래청년일자리=https://youth.seoul.go.kr/youthConts.do?key=2310100011, 청년창업지원서울=https://youth.seoul.go.kr/content.do?key=2310100026, 서울청년문화패스=https://www.youthcultureseoul.kr/, 소상공인정책자금=https://ols.semas.or.kr/ols/man/SMAN010M/page.do, 소상공인교육=https://edu.sbiz.or.kr/edu/main/main.do, 소상공인바우처=https://voucher.sbiz24.kr/, 소상공인창업지원=https://www.sbiz24.kr/#/pbanc?rcrtTypeCd=FN, 소상공인대출=https://ols.semas.or.kr/ols/man/SMAN010M/page.do`;
-  const SCHEMA=`{"id":숫자,"source":"정부복지|지자체|금융/은행|공공기관|기업/협회|민간/NGO 중 택1","sourceIcon":"이모지","category":"주거|의료|금융|교육|고용|보육|노인|장애|청년|소상공인|세금|통신|문화|식품|기타 중 택1","categoryIcon":"이모지","scope":"전국 또는 지역명","isUrgent":false,"isHidden":false,"title":"혜택명","institution":"기관명","description":"설명2~3문장. 왜 이게 유리한지 포함","amount":"금액 또는 혜택 규모","deadline":"YYYY년 MM월 DD일 또는 수시 신청","requiredDocuments":["서류1"],"howToApply":"방법","applyUrl":"https://..."}`;
+  // 핵심 URL만 포함 (나머지는 클라이언트 getBestApplyUrl 처리)
+  const URL_GUIDE=`applyUrl: 신청 직접 페이지만. 복지로=https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do, 정부24=https://www.gov.kr/portal/serviceList, 고용24=https://www.work.go.kr/jobcenter/main.do, 건강보험=https://www.nhis.or.kr/nhis/policy/wbhada02800m01.do, 주택도시기금=https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp, 소상공인정책자금=https://ols.semas.or.kr/ols/man/SMAN010M/page.do${isSeoul?', 서울청년수당=https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=V202600005, 서울탄생육아=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtList.do':''}`;
+  const SCHEMA=`{"id":숫자,"source":"정부복지|지자체|금융/은행|공공기관|기업/협회|민간/NGO 중 택1","sourceIcon":"이모지","category":"주거|의료|금융|교육|고용|보육|노인|장애|청년|소상공인|세금|통신|문화|식품|기타 중 택1","categoryIcon":"이모지","scope":"전국 또는 지역명","isUrgent":false,"isHidden":false,"title":"혜택명","institution":"기관명","description":"1문장 설명","amount":"금액","deadline":"YYYY년 MM월 DD일 또는 수시 신청","requiredDocuments":["서류1","서류2"],"howToApply":"방법","applyUrl":"https://..."}`;
 
   // ── 청년 특화 섹션 ──
   const YOUTH_SECTION = isYouth ? `
-★★ 청년(만 19~34세) 특화 혜택 — 반드시 포함:
-[전국] 청년도약계좌(월 최대 70만원·5년), 청년희망적금, 국민취업지원제도, 청년내일저축계좌, 청년내일채움공제, 국가장학금, 학자금대출 이자지원, 청년 버팀목전세자금, 청년 월세 지원(LH), 청년 마음건강 바우처(복지부), K-디지털 훈련, 취업성공패키지, 청년일자리도약장려금
-${isSeoul ? `[서울] 서울청년수당(월50만원·최대6개월→youth.seoul.go.kr), 희망두배청년통장(youth.seoul.go.kr/content.do?key=2310100069), 서울청년마음건강지원(plcyBizId=20250519005400210855), 미래청년일자리점프업(key=2310100011), 청년취업사관학교새싹(sesac.seoul.kr), 서울형청년인턴직무캠프(key=2310100012), 청년월세지원서울(key=2310100046), 청년임차보증금이자지원(key=2310100047), 청년부동산중개보수·이사비(R2024040321345), 청년창업지원(key=2310100026), 서울청년문화패스(youthcultureseoul.kr), 미취업청년자격증응시료(R2024041821928), 은둔청년지원(R2023050912524)` : ''}` : '';
+★★ 청년 특화 — 반드시 포함:
+[전국] 청년도약계좌, 청년희망적금, 국민취업지원제도, 청년내일저축계좌, 청년내일채움공제, 국가장학금, 청년 버팀목전세자금, 청년 월세 지원(LH), K-디지털 훈련, 청년일자리도약장려금
+${isSeoul ? `[서울] 서울청년수당(월50만원), 희망두배청년통장, 청년취업사관학교새싹, 청년월세지원서울, 청년임차보증금이자지원, 서울청년문화패스` : ''}` : '';
 
   // ── 소상공인 특화 섹션 ──
   const SME_SECTION = isSME ? `
-★★ 자영업자/소상공인 특화 혜택 — 반드시 포함:
-[정책자금/대출] 소상공인 정책자금 직접대출(ols.semas.or.kr), 대리대출 2분기 정책자금, 소상공인 대환대출, 소공인특화자금, 상생성장지원자금, 혁신성장촉진자금 — 신청URL: https://ols.semas.or.kr/ols/man/SMAN010M/page.do
-[교육] 소상공인 온라인 무료 교육(AI비즈니스·마케팅·노무·법정의무교육 등) — https://edu.sbiz.or.kr/edu/main/main.do
-[바우처] 소상공인 경영안정 바우처(컨설팅·법률·노무·세무 등 전문 서비스 바우처) — https://voucher.sbiz24.kr/
-[창업지원] 소상공인 창업 지원 사업(자금·컨설팅·공간 등) — https://www.sbiz24.kr/#/pbanc?rcrtTypeCd=FN
-[기타] 노란우산공제(소기업소상공인공제부금), 소상공인 고용보험료 지원, 카드수수료 환급, 노란우산 희망장려금` : '';
+★★ 소상공인 특화 — 반드시 포함:
+소상공인 정책자금 직접대출, 소상공인 대환대출, 소공인특화자금, 소상공인 온라인 무료교육, 소상공인 경영안정 바우처, 노란우산공제, 소상공인 고용보험료 지원` : '';
 
   if(mode==='hidden'){
-    return `당신은 대한민국 복지·혜택 전문가입니다. 아래 사람이 놓치기 쉬운 숨겨진 혜택을 발굴해주세요.
-[정보] 나이:${age}세/성별:${gender}/직업:${job}/소득:${income}/거주:${address}/추가:${extra}/기준일:${today}
+    return `대한민국 복지 전문가. 아래 사람의 숨겨진 혜택을 발굴하세요.
+[정보] ${age}세/${gender}/${job}/${income}/${address}/추가:${extra}/${today}
 ${YOUTH_SECTION}${SME_SECTION}
-
-★ 반드시 다음 분야에서 발굴하세요 (정부 복지 제외, 사람들이 잘 모르는 것 위주):
-- 시중 은행·인터넷은행 특별 금리·캐시백·적금 혜택 (카카오뱅크, 토스뱅크, 케이뱅크, 우리·국민·신한·하나은행 등)
-- 통신사 복지 혜택 (SKT·KT·LG U+ 요금 감면, 장애인/노인/저소득 할인)
-- 카드사 포인트·마일리지 활용 혜택
-- 근로복지공단 선택적 복지 포인트, 직장인 대출
-- 건강보험 환급금 (미청구 환급, 본인부담상한제 환급)
-- 국세청 연말정산 놓친 공제 항목
-- 각종 협회·노동조합 조합원 혜택
-- 지역 신협·새마을금고 특별 상품
-- 공공임대 주택 청약 (LH, SH, 지자체 매입임대)
-- 에너지바우처·알뜰폰 혜택·인터넷 요금 지원
-- 현재 진행 중인 국가 지원 사업 (취업 지원, 창업 자금, 교육비 지원)
-- 민간 장학재단·재단법인 지원
-- 상조 서비스·보험 환급
-
-순수 JSON만 반환: {"benefits":[${SCHEMA}]}
-8~12개. isHidden은 모두 true. 각 description은 1문장으로 간결하게. ${URL_GUIDE}`;
+분야: 시중은행 특별금리·적금, 통신사 요금감면, 건강보험 환급금, 연말정산 공제, 근로복지공단 복지포인트, 에너지바우처, 알뜰폰, 공공임대 청약, 민간장학재단
+순수 JSON만: {"benefits":[${SCHEMA}]}
+6~8개. isHidden:true. ${URL_GUIDE}`;
   }
 
-  const BOKJIRO_SECTION = bokjiroData && bokjiroData.length > 0
-    ? `\n★ 복지로 공식 API 조회 결과 (해당자에게 맞는 것을 반드시 포함):\n${
-        bokjiroData.slice(0,25).map((b,i)=>`${i+1}. [${b.ministry}] ${b.title}${b.summary?' — '+b.summary.slice(0,55):''}${b.detailUrl?' (URL: '+b.detailUrl+')':''}`).join('\n')
-      }\n`
+  // API 데이터: 핵심 항목만 압축 전달
+  const BOKJIRO_SECTION = bokjiroData?.length > 0
+    ? `\n[복지로API] ${bokjiroData.slice(0,12).map(b=>`${b.title}${b.summary?' ('+b.summary.slice(0,40)+')':''}`).join(' / ')}\n`
+    : '';
+  const GOV24_SECTION = gov24Data?.length > 0
+    ? `\n[정부24API] ${gov24Data.slice(0,12).map(b=>`${b.title}${b.support?' ('+b.support.slice(0,35)+')':''}`).join(' / ')}\n`
+    : '';
+  const GG_SECTION = ggData?.length > 0
+    ? `\n[경기도API] ${ggData.slice(0,10).map(b=>b.title).join(' / ')}\n`
+    : '';
+  const SEOUL_SECTION = seoulData?.length > 0
+    ? `\n[서울API] ${seoulData.slice(0,10).map(b=>`${b.title}(${b.status})`).join(' / ')}\n`
     : '';
 
-  const GOV24_SECTION = gov24Data && gov24Data.length > 0
-    ? `\n★ 정부24 공공서비스 API 조회 결과 (해당자에게 맞는 것을 반드시 포함):\n${
-        gov24Data.slice(0,25).map((b,i)=>`${i+1}. [${b.ministry}] ${b.title} (분야:${b.field})${b.summary?' — '+b.summary.slice(0,60):''}${b.support?' / 지원:'+b.support.slice(0,50):''}${b.applyUrl?' (URL: '+b.applyUrl+')':''}`).join('\n')
-      }\n`
-    : '';
-
-  const GG_SECTION = ggData && ggData.length > 0
-    ? `\n★ 경기도 공공서비스 API 조회 결과 — 경기도 거주자 지역 특화 혜택 (반드시 포함):\n${
-        ggData.slice(0,20).map((b,i)=>`${i+1}. [${b.ministry}] ${b.title}${b.summary?' — '+b.summary.slice(0,60):''}${b.support?' / 지원형태:'+b.support:''}${b.applyUrl?' (URL: '+b.applyUrl+')':''}`).join('\n')
-      }\n`
-    : '';
-
-  const SEOUL_SECTION = seoulData && seoulData.length > 0
-    ? `\n★ 서울시 공공서비스 API 조회 결과 — 현재 접수 중인 서울 지역 프로그램 (반드시 포함):\n${
-        seoulData.slice(0,20).map((b,i)=>`${i+1}. [${b.area}/${b.category}] ${b.title} (상태:${b.status}|대상:${b.target})${b.summary?' — '+b.summary.slice(0,55):''}${b.applyUrl?' (신청: '+b.applyUrl+')':''}`).join('\n')
-      }\n`
-    : '';
-
-  return `당신은 대한민국 최고 수준의 복지·혜택 전문가입니다. 아래 사람이 받을 수 있는 모든 혜택을 빠짐없이 분석해주세요.
-[정보] 나이:${age}세/성별:${gender}/직업:${job}/소득:${income}/거주:${address}/추가:${extra}/기준일:${today}
+  return `대한민국 복지·혜택 전문가. 아래 사람의 맞춤 혜택을 분석하세요.
+[정보] ${age}세/${gender}/${job}/${income}/${address}/추가:${extra}/${today}
 ${BOKJIRO_SECTION}${GOV24_SECTION}${GG_SECTION}${SEOUL_SECTION}${YOUTH_SECTION}${SME_SECTION}
-
-★ 반드시 다음 모든 출처에서 혜택을 찾아주세요:
-1. 정부 복지: 복지로, 정부24, 고용24, 국민건강보험, 국민연금, 건강보험 환급
-2. 지자체: ${address} 시·군·구청 특화 지원사업, 읍·면·동 주민센터 사업${isSeoul ? '. 서울청년몽땅정보통(youth.seoul.go.kr) + 서울복지포털(wis.seoul.go.kr) + 서울탄생육아(umppa.seoul.go.kr) 혜택 포함' : ''}
-3. 금융기관: 주택도시기금, 서민금융진흥원, 햇살론, 사잇돌대출, 청년도약계좌, 청년희망적금
-4. 공공기관: 근로복지공단(선택복지·EAP), 한국장학재단, 한국고용정보원
-5. 에너지·통신: 에너지바우처, 통신요금 감면(장애인·저소득·노인), 인터넷 요금 지원
-6. 세금·환급: 근로장려금(EITC), 자녀장려금, 연말정산 추가공제, 건강보험 환급금
-7. 주거: LH·SH 공공임대, 전세자금 대출, 버팀목 전세자금, 청년 월세 지원
-8. 현재 모집 중인 시즌 프로그램: 국가기술자격 응시료 지원, 취업성공패키지, K-디지털 훈련
-9. 숨겨진 혜택: 사람들이 잘 모르는 것 최소 5개 포함 (isHidden:true 표시)
-
-순수 JSON만 반환 (마크다운 코드블록 없이):
+출처별 필수 포함: 정부복지(복지로·정부24·고용24·건강보험·국민연금), 지자체(${address} 특화사업${isSeoul?'·서울청년몽땅·서울복지포털·서울탄생육아':''}), 금융(주택도시기금·서민금융·청년도약계좌), 에너지바우처·통신감면, 세금환급(근로장려금·자녀장려금), 주거(LH·SH·버팀목전세), 숨겨진혜택 3개이상(isHidden:true)
+순수 JSON만 (코드블록 없이):
 {"summary":{"totalBenefits":숫자,"estimatedMonthlyBenefit":"금액범위","topPriority":"혜택명","hiddenCount":숫자},"benefits":[${SCHEMA}]}
-최소 12개 최대 18개. 실제 존재하는 혜택만. 마감일은 YYYY년 MM월 DD일 형식. 각 description은 1~2문장으로 간결하게. ${URL_GUIDE}`;
+10~14개. 실제 존재하는 혜택만. ${URL_GUIDE}`;
 }
 
 function AnalyzeTab({user,onSaved,onResultsReady}){
@@ -1111,8 +1072,15 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
         fetchGGData({address,extras}),
         fetchSeoulData({age,address,extras}),
       ]);
-      const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full',bokjiroData,gov24Data,ggData,seoulData}),8000);
+      const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full',bokjiroData,gov24Data,ggData,seoulData}),4500);
       const parsed=repairJSON(raw);
+      // 제목 정규화: "청년 월세 지원사업" → "청년 월세 지원"
+      if(parsed?.benefits){
+        parsed.benefits=parsed.benefits.map(b=>({
+          ...b,
+          title:(b.title||'').replace(/청년\s*월세\s*지원사업/g,'청년 월세 지원'),
+        }));
+      }
       setResults(parsed);
       setAnalyzedAt(new Date());
       onResultsReady?.(parsed);
@@ -1124,7 +1092,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
     if(!results)return;
     setHiddenLoading(true);
     try{
-      const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'hidden'}),5000);
+      const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'hidden'}),3000);
       const parsed=repairJSON(raw);
       setHiddenResults(parsed.benefits||[]);
     }catch(e){showToast('추가 혜택 발굴 중 오류: '+e.message);}
