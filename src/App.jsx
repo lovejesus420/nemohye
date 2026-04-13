@@ -62,26 +62,26 @@ const EXTRA_OPTIONS=[
 ];
 const EXTRA_GROUPS=[
   {label:'청년 (Youth)',items:[
-    {value:'청년(만 19~34세)',emoji:'🎓',label:'청년 (만 19~34세)'},
-    {value:'청년 창업 준비 중',emoji:'🚀',label:'청년 창업 준비 중'},
-    {value:'청년 1인 가구',emoji:'🏠',label:'청년 1인 가구'},
+    {value:'청년(만 19~34세)',emoji:'🎓',label:'청년 (만 19~34세)',bc:'#bbf7d0'},
+    {value:'청년 창업 준비 중',emoji:'🚀',label:'청년 창업 준비 중',bc:'#e9d5ff'},
+    {value:'청년 1인 가구',emoji:'🏠',label:'청년 1인 가구',bc:'#bfdbfe'},
   ]},
   {label:'경제 / 직업',items:[
-    {value:'자영업자/소상공인',emoji:'🏪',label:'자영업자 / 소상공인'},
-    {value:'기초생활수급자 또는 차상위계층',emoji:'🪙',label:'기초 / 차상위계층'},
+    {value:'자영업자/소상공인',emoji:'🏪',label:'자영업자 / 소상공인',bc:'#fde68a'},
+    {value:'기초생활수급자 또는 차상위계층',emoji:'🪙',label:'기초 / 차상위계층',bc:'#fed7aa'},
   ]},
   {label:'가족 / 출산',items:[
-    {value:'임산부',emoji:'🤰',label:'임산부'},
-    {value:'출산 후 1년 이내',emoji:'👶',label:'출산 후 1년 이내'},
-    {value:'신혼부부(혼인 7년 이내)',emoji:'💍',label:'신혼부부 (혼인 7년 이내)'},
-    {value:'결혼 준비 중(예비 신혼부부)',emoji:'💌',label:'결혼 준비 중 (예비 신혼부부)'},
-    {value:'다자녀 가구(2명 이상)',emoji:'👨‍👩‍👧‍👦',label:'다자녀 가구 (2명 이상)'},
-    {value:'한부모 가정',emoji:'👤',label:'한부모 가정'},
+    {value:'임산부',emoji:'🤰',label:'임산부',bc:'#fecdd3'},
+    {value:'출산 후 1년 이내',emoji:'👶',label:'출산 후 1년 이내',bc:'#fbcfe8'},
+    {value:'신혼부부(혼인 7년 이내)',emoji:'💍',label:'신혼부부 (혼인 7년 이내)',bc:'#fecaca'},
+    {value:'결혼 준비 중(예비 신혼부부)',emoji:'💌',label:'결혼 준비 중 (예비 신혼부부)',bc:'#c7d2fe'},
+    {value:'다자녀 가구(2명 이상)',emoji:'👨‍👩‍👧‍👦',label:'다자녀 가구 (2명 이상)',bc:'#a5f3fc'},
+    {value:'한부모 가정',emoji:'👤',label:'한부모 가정',bc:'#99f6e4'},
   ]},
   {label:'기타 상황',items:[
-    {value:'장애인 가구',emoji:'♿',label:'장애인 가구'},
-    {value:'국가유공자/보훈 대상',emoji:'🎖️',label:'국가유공자 / 보훈'},
-    {value:'노인 단독 가구(65세 이상)',emoji:'👴',label:'노인 단독 가구'},
+    {value:'장애인 가구',emoji:'♿',label:'장애인 가구',bc:'#ddd6fe'},
+    {value:'국가유공자/보훈 대상',emoji:'🎖️',label:'국가유공자 / 보훈',bc:'#fef08a'},
+    {value:'노인 단독 가구(65세 이상)',emoji:'👴',label:'노인 단독 가구',bc:'#d1d5db'},
   ]},
 ];
 const LOADING_STEPS=[
@@ -262,7 +262,7 @@ function showToast(msg){let el=document.getElementById('nemo-toast');if(!el){el=
 
 // ─── 주소 자동완성 ────────────────────────────────────────────────
 function buildSugg(q){if(!q)return[];const out=[];for(const[sido,guguns]of Object.entries(REGIONS)){guguns.forEach(gu=>{const full=`${sido} ${gu}`;if(sido.startsWith(q)||full.startsWith(q)||full.includes(q)||gu.startsWith(q))out.push({full,sido});});}out.sort((a,b)=>(a.full.startsWith(q)?0:1)-(b.full.startsWith(q)?0:1)||a.full.localeCompare(b.full,'ko'));return out.slice(0,8);}
-function AddrInput({value,onChange}){const[sugg,setSugg]=useState([]);const[ai,setAi]=useState(-1);const[open,setOpen]=useState(false);const ref=useRef();useEffect(()=>{const h=e=>{if(ref.current&&!ref.current.contains(e.target))setOpen(false);};document.addEventListener('mousedown',h);return()=>document.removeEventListener('mousedown',h);},[]);const onInput=v=>{onChange(v);const s=buildSugg(v.trim());setSugg(s);setOpen(s.length>0);setAi(-1);};const pick=s=>{onChange(s.full);setOpen(false);setSugg([]);};const hi=(t,q)=>{const i=t.indexOf(q);if(i<0)return t;return<>{t.slice(0,i)}<strong style={{color:'#1a6b6b'}}>{t.slice(i,i+q.length)}</strong>{t.slice(i+q.length)}</>;};return(<div ref={ref} style={{position:'relative'}}><input value={value} onChange={e=>onInput(e.target.value)} placeholder="예: 서울특별시 마포구" autoComplete="off" style={IS} onFocus={()=>{if(sugg.length)setOpen(true);}} onKeyDown={e=>{if(!open)return;if(e.key==='ArrowDown'){e.preventDefault();setAi(i=>Math.min(i+1,sugg.length-1));}else if(e.key==='ArrowUp'){e.preventDefault();setAi(i=>Math.max(i-1,0));}else if(e.key==='Enter'&&ai>=0){e.preventDefault();pick(sugg[ai]);}else if(e.key==='Escape')setOpen(false);}}/>{open&&sugg.length>0&&(<div style={{position:'absolute',top:'calc(100% + 4px)',left:0,right:0,background:'#fff',border:'1.5px solid #1a6b6b',borderRadius:10,boxShadow:'0 8px 24px rgba(0,0,0,0.12)',zIndex:500,overflow:'hidden',maxHeight:220,overflowY:'auto'}}>{sugg.map((s,i)=>(<div key={s.full} onMouseDown={()=>pick(s)} style={{padding:'10px 14px',cursor:'pointer',borderBottom:'1px solid #f0ebe0',background:i===ai?'#edf6f6':'#fff',fontSize:14}}><div style={{fontWeight:600}}>{hi(s.full,value.trim())}</div><div style={{fontSize:12,color:'#6b6560'}}>{s.sido}</div></div>))}</div>)}<p style={{fontSize:12,color:'#9ca3af',marginTop:3}}>시/도와 시/군/구까지 입력하면 자동완성됩니다</p></div>);}
+function AddrInput({value,onChange,paddingLeft}){const[sugg,setSugg]=useState([]);const[ai,setAi]=useState(-1);const[open,setOpen]=useState(false);const ref=useRef();useEffect(()=>{const h=e=>{if(ref.current&&!ref.current.contains(e.target))setOpen(false);};document.addEventListener('mousedown',h);return()=>document.removeEventListener('mousedown',h);},[]);const onInput=v=>{onChange(v);const s=buildSugg(v.trim());setSugg(s);setOpen(s.length>0);setAi(-1);};const pick=s=>{onChange(s.full);setOpen(false);setSugg([]);};const hi=(t,q)=>{const i=t.indexOf(q);if(i<0)return t;return<>{t.slice(0,i)}<strong style={{color:'#1a6b6b'}}>{t.slice(i,i+q.length)}</strong>{t.slice(i+q.length)}</>;};const inputStyle=paddingLeft?{...IS,paddingLeft}:IS;return(<div ref={ref} style={{position:'relative'}}><input value={value} onChange={e=>onInput(e.target.value)} placeholder="예: 서울특별시 마포구" autoComplete="off" style={inputStyle} onFocus={()=>{if(sugg.length)setOpen(true);}} onKeyDown={e=>{if(!open)return;if(e.key==='ArrowDown'){e.preventDefault();setAi(i=>Math.min(i+1,sugg.length-1));}else if(e.key==='ArrowUp'){e.preventDefault();setAi(i=>Math.max(i-1,0));}else if(e.key==='Enter'&&ai>=0){e.preventDefault();pick(sugg[ai]);}else if(e.key==='Escape')setOpen(false);}}/>{open&&sugg.length>0&&(<div style={{position:'absolute',top:'calc(100% + 4px)',left:0,right:0,background:'#fff',border:'1.5px solid #1a6b6b',borderRadius:10,boxShadow:'0 8px 24px rgba(0,0,0,0.12)',zIndex:500,overflow:'hidden',maxHeight:220,overflowY:'auto'}}>{sugg.map((s,i)=>(<div key={s.full} onMouseDown={()=>pick(s)} style={{padding:'10px 14px',cursor:'pointer',borderBottom:'1px solid #f0ebe0',background:i===ai?'#edf6f6':'#fff',fontSize:14}}><div style={{fontWeight:600}}>{hi(s.full,value.trim())}</div><div style={{fontSize:12,color:'#6b6560'}}>{s.sido}</div></div>))}</div>)}{!paddingLeft&&<p style={{fontSize:12,color:'#9ca3af',marginTop:3}}>시/도와 시/군/구까지 입력하면 자동완성됩니다</p>}</div>);}
 
 // ─── 디자인 토큰 ──────────────────────────────────────────────────
 const C={
@@ -1046,103 +1046,115 @@ function AnalyzeTab({user,onSaved}){
   const urgent=filtered.filter(b=>b.isUrgent);
   const hidden=filtered.filter(b=>b.isHidden&&!b.isUrgent);
   const normal=filtered.filter(b=>!b.isUrgent&&!b.isHidden);
-  const NIS={width:'100%',background:'#f9fafb',border:'1px solid #e5e7eb',borderRadius:12,padding:'14px 16px',fontSize:14,color:'#111827',outline:'none',boxSizing:'border-box',fontFamily:'inherit'};
-  const NSS={...NIS,padding:'14px 40px 14px 16px',appearance:'none',cursor:'pointer'};
+  const NIS={width:'100%',background:'#f9fafb',border:'1px solid #e5e7eb',borderRadius:12,padding:'14px 16px',fontSize:14,color:'#111827',outline:'none',boxSizing:'border-box',fontFamily:'inherit',transition:'border-color 0.15s,box-shadow 0.15s'};
+  const NSS={...NIS,paddingLeft:16,paddingRight:40,appearance:'none',WebkitAppearance:'none',cursor:'pointer'};
+  const CARD={background:'#fff',borderRadius:24,padding:'24px',marginBottom:16,boxShadow:'0 1px 2px rgba(0,0,0,0.05)',border:'1px solid #f3f4f6'};
+  const LABEL={display:'block',fontSize:13,fontWeight:600,color:'#374151',marginBottom:6};
+  const ACCENT={width:6,height:16,background:'#16a34a',borderRadius:3,flexShrink:0};
   return(<div>
     {/* ── 기본 정보 카드 ── */}
-    <div style={{background:'#fff',borderRadius:24,padding:'24px',marginBottom:16,boxShadow:'0 1px 4px rgba(0,0,0,0.07)',border:'1px solid #f3f4f6'}}>
+    <div style={CARD}>
       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:20}}>
-        <div style={{width:6,height:16,background:'#16a34a',borderRadius:3,flexShrink:0}}/>
+        <div style={ACCENT}/>
         <h2 style={{fontWeight:700,color:'#111827',fontSize:17,margin:0}}>기본 정보</h2>
       </div>
-      <div style={{display:'flex',flexDirection:'column',gap:18}}>
+      <div style={{display:'flex',flexDirection:'column',gap:20}}>
 
         {/* 나이 */}
         <div>
-          <label style={{display:'block',fontSize:13,fontWeight:600,color:'#374151',marginBottom:6}}>나이 <span style={{color:'#ef4444'}}>*</span></label>
+          <label style={LABEL}>나이 <span style={{color:'#ef4444'}}>*</span></label>
           <div style={{position:'relative'}}>
-            <input type="number" value={age} onChange={e=>setAge(e.target.value)} placeholder="예: 35" style={{...NIS,paddingRight:48}}/>
+            <input type="number" value={age} onChange={e=>setAge(e.target.value)} placeholder="예: 35" style={{...NIS,paddingRight:44}}/>
             <span style={{position:'absolute',right:16,top:'50%',transform:'translateY(-50%)',color:'#6b7280',fontSize:13,pointerEvents:'none'}}>세</span>
           </div>
         </div>
 
         {/* 성별 — 세그먼트 버튼 */}
         <div>
-          <label style={{display:'block',fontSize:13,fontWeight:600,color:'#374151',marginBottom:6}}>성별 <span style={{color:'#ef4444'}}>*</span></label>
+          <label style={LABEL}>성별 <span style={{color:'#ef4444'}}>*</span></label>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
             {['남성','여성'].map(g=>(
-              <div key={g} onClick={()=>setGender(g)} style={{border:`1.5px solid ${gender===g?'#15803d':'#e5e7eb'}`,background:gender===g?'#15803d':'#f9fafb',color:gender===g?'#fff':'#4b5563',borderRadius:12,padding:'12px 0',textAlign:'center',fontSize:14,fontWeight:600,cursor:'pointer',transition:'all 0.15s',userSelect:'none'}}>{g}</div>
+              <div key={g} onClick={()=>setGender(g)} style={{border:`1.5px solid ${gender===g?'#15803d':'#e5e7eb'}`,background:gender===g?'#15803d':'#f9fafb',color:gender===g?'#fff':'#4b5563',borderRadius:12,padding:'13px 0',textAlign:'center',fontSize:14,fontWeight:600,cursor:'pointer',transition:'all 0.15s',userSelect:'none'}}>{g}</div>
             ))}
           </div>
         </div>
 
         {/* 직업 */}
         <div>
-          <label style={{display:'block',fontSize:13,fontWeight:600,color:'#374151',marginBottom:6}}>직업 / 고용 상태 <span style={{color:'#ef4444'}}>*</span></label>
+          <label style={LABEL}>직업 / 고용 상태 <span style={{color:'#ef4444'}}>*</span></label>
           <div style={{position:'relative'}}>
             <select value={job} onChange={e=>setJob(e.target.value)} style={{...NSS,color:job?'#111827':'#9ca3af'}}>
               <option value="">선택해주세요</option>
               {['직장인(정규직)','직장인(계약직/비정규직)','자영업자/사업자','프리랜서','구직자/실업자','학생','전업주부','농업/어업/임업','장애인','은퇴/무직'].map(v=><option key={v}>{v}</option>)}
             </select>
-            <span style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'#9ca3af',pointerEvents:'none',fontSize:11}}>▼</span>
+            <svg style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}} width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1l5 5 5-5" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round"/></svg>
           </div>
         </div>
 
         {/* 소득 */}
         <div>
-          <label style={{display:'block',fontSize:13,fontWeight:600,color:'#374151',marginBottom:6}}>월 소득 수준 <span style={{color:'#ef4444'}}>*</span></label>
+          <label style={LABEL}>월 소득 수준 <span style={{color:'#ef4444'}}>*</span></label>
           <div style={{position:'relative'}}>
             <select value={income} onChange={e=>setIncome(e.target.value)} style={{...NSS,color:income?'#111827':'#9ca3af'}}>
               <option value="">선택해주세요</option>
               {['기초생활수급자','월 50만원 미만','월 50~100만원','월 100~200만원','월 200~300만원','월 300~500만원','월 500~700만원','월 700만원 이상'].map(v=><option key={v}>{v}</option>)}
             </select>
-            <span style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'#9ca3af',pointerEvents:'none',fontSize:11}}>▼</span>
+            <svg style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}} width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1l5 5 5-5" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round"/></svg>
           </div>
         </div>
 
         {/* 거주지 */}
         <div>
-          <label style={{display:'block',fontSize:13,fontWeight:600,color:'#374151',marginBottom:6}}>거주지 <span style={{color:'#ef4444'}}>*</span></label>
-          <AddrInput value={address} onChange={setAddress}/>
+          <label style={LABEL}>거주지 <span style={{color:'#ef4444'}}>*</span></label>
+          <div style={{position:'relative'}}>
+            <svg style={{position:'absolute',left:14,top:'50%',transform:'translateY(-50%)',pointerEvents:'none',zIndex:1,flexShrink:0}} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <AddrInput value={address} onChange={setAddress} paddingLeft={40}/>
+          </div>
+          <p style={{fontSize:12,color:'#9ca3af',marginTop:6,marginLeft:2,display:'flex',alignItems:'center',gap:4}}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#9ca3af"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            시/도와 시/군/구까지 입력하면 자동완성됩니다
+          </p>
         </div>
       </div>
     </div>
 
     {/* ── 추가 상황 카드 ── */}
-    <div style={{background:'#fff',borderRadius:24,padding:'24px',marginBottom:16,boxShadow:'0 1px 4px rgba(0,0,0,0.07)',border:'1px solid #f3f4f6'}}>
+    <div style={CARD}>
       <div style={{marginBottom:20}}>
         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-          <div style={{width:6,height:16,background:'#16a34a',borderRadius:3,flexShrink:0}}/>
+          <div style={ACCENT}/>
           <h2 style={{fontWeight:700,color:'#111827',fontSize:17,margin:0}}>추가 상황</h2>
         </div>
         <p style={{fontSize:13,color:'#6b7280',margin:'4px 0 0 14px'}}>해당하는 항목을 모두 선택해주세요.</p>
       </div>
 
-      {EXTRA_GROUPS.map((group,gi)=>(
-        <div key={group.label}>
-          {gi>0&&<div style={{borderTop:'1px solid #f3f4f6',margin:'18px 0'}}/>}
-          <h3 style={{fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:1.2,marginBottom:10,padding:'0 2px'}}>{group.label}</h3>
-          <div style={{display:'flex',flexDirection:'column',gap:8}}>
-            {group.items.map(item=>{
-              const on=extras.includes(item.value);
-              return(
-                <div key={item.value} onClick={()=>toggleExtra(item.value)} style={{display:'flex',alignItems:'center',padding:'12px 14px',border:`1.5px solid ${on?'#22c55e':'#f3f4f6'}`,background:on?'#f0fdf4':'#f9fafb',borderRadius:14,cursor:'pointer',transition:'all 0.15s',userSelect:'none'}}>
-                  <div style={{width:19,height:19,minWidth:19,border:`1.5px solid ${on?'#15803d':'#d1d5db'}`,borderRadius:4,background:on?'#15803d':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
-                    {on&&<svg width="10" height="8" viewBox="0 0 9 7"><polyline points="1,3.5 3.5,6 8,1" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+      <div style={{display:'flex',flexDirection:'column',gap:24}}>
+        {EXTRA_GROUPS.map((group,gi)=>(
+          <div key={group.label}>
+            {gi>0&&<div style={{borderTop:'1px solid #f3f4f6',marginBottom:20,marginTop:-4}}/>}
+            <h3 style={{fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:1.4,marginBottom:10,padding:'0 2px'}}>{group.label}</h3>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {group.items.map(item=>{
+                const on=extras.includes(item.value);
+                return(
+                  <div key={item.value} onClick={()=>toggleExtra(item.value)} style={{display:'flex',alignItems:'center',padding:'12px 14px',border:`1.5px solid ${on?'#22c55e':'#f3f4f6'}`,background:on?'#f0fdf4':'#f9fafb',borderRadius:16,cursor:'pointer',transition:'all 0.15s',userSelect:'none'}}>
+                    <div style={{width:20,height:20,minWidth:20,border:`1.5px solid ${on?'#15803d':'#d1d5db'}`,borderRadius:5,background:on?'#15803d':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
+                      {on&&<svg width="11" height="8" viewBox="0 0 9 7"><polyline points="1,3.5 3.5,6 8,1" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                    </div>
+                    <div style={{width:34,height:34,borderRadius:'50%',background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 12px',boxShadow:'0 1px 3px rgba(0,0,0,0.08)',border:`1.5px solid ${on?item.bc+'cc':item.bc}`,flexShrink:0,fontSize:16}}>{item.emoji}</div>
+                    <span style={{fontSize:14,fontWeight:on?600:500,color:on?'#166534':'#1f2937',flex:1,wordBreak:'keep-all'}}>{item.label}</span>
                   </div>
-                  <div style={{width:32,height:32,borderRadius:'50%',background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 12px',boxShadow:'0 1px 3px rgba(0,0,0,0.1)',border:'1px solid #e5e7eb',flexShrink:0,fontSize:15}}>{item.emoji}</div>
-                  <span style={{fontSize:14,fontWeight:on?600:500,color:on?'#166534':'#1f2937',flex:1,wordBreak:'keep-all'}}>{item.label}</span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
 
     {/* ── 분석 버튼 ── */}
-    <div style={{paddingBottom:8}}>
-      <button onClick={analyze} disabled={loading} style={{width:'100%',background:loading?'#4ade80':'#15803d',color:'#fff',borderRadius:16,padding:'16px',fontWeight:700,fontSize:15,border:'none',cursor:loading?'default':'pointer',boxShadow:'0 4px 14px rgba(21,128,61,0.28)',transition:'all 0.2s',display:'flex',alignItems:'center',justifyContent:'center',gap:8,opacity:loading?0.75:1,fontFamily:'inherit'}}>
+    <div style={{marginTop:4,paddingBottom:8}}>
+      <button onClick={analyze} disabled={loading} style={{width:'100%',background:loading?'#4ade80':'#15803d',color:'#fff',borderRadius:16,padding:'16px',fontWeight:700,fontSize:15,border:'none',cursor:loading?'default':'pointer',boxShadow:'0 6px 16px rgba(21,128,61,0.3)',transition:'all 0.2s',display:'flex',alignItems:'center',justifyContent:'center',gap:8,opacity:loading?0.75:1,fontFamily:'inherit'}}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
         {loading?'분석 중...':'내게 맞는 혜택 분석하기'}
       </button>
