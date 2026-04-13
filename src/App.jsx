@@ -352,6 +352,8 @@ const KNOWN_BENEFIT_URLS = [
   // ── 국민연금 ──
   {kw:['국민연금 반환일시금','반환일시금'],url:'https://www.nps.or.kr/jsppage/service/apply/apply.jsp'},
   {kw:['국민연금 크레딧','출산 크레딧','군복무 크레딧'],url:'https://www.nps.or.kr/jsppage/info/easy/easy_04_01.jsp'},
+  // ── 대중교통 K-패스 ──
+  {kw:['k-패스','k패스','케이패스','대중교통 k','kpass'],url:'https://korea-pass.kr/info/card_guide.do'},
   // ── 주거 (서울 월세 — LH보다 먼저 매칭해야 함) ──
   {kw:['서울 청년 월세','서울청년 월세','청년 월세 지원','청년 월세 지원사업','신혼부부 월세','신혼 월세 지원'],url:'https://housing.seoul.go.kr/site/main/content/sh01_060513'},
   // ── 주거 (LH / HF / 주택도시기금) ──
@@ -508,6 +510,25 @@ const YOUTH_FUTURE_SAVINGS = {
   requiredDocuments:['신분증 (주민등록증 또는 운전면허증)','소득 확인 서류 (건강보험료 납부 확인서 등)','청년 연령 확인 서류 (만 19~34세)','은행 계좌 개설 서류'],
   howToApply:'출시 후 서민금융진흥원 및 참여 은행 앱·영업점에서 신청 예정',
   applyUrl:'https://kinfa.or.kr',
+};
+
+// ─── K-패스 (대중교통, 성인 이상 고정 혜택) ──────────────────────────
+const KPASS_BENEFIT = {
+  id:'kpass-static',
+  source:'정부복지', sourceIcon:'🚌',
+  category:'생활/교통', categoryIcon:'🚇',
+  scope:'전국', isUrgent:false, isHidden:false, isComingSoon:false,
+  title:'대중교통 K-패스',
+  institution:'국토교통부 · 한국교통안전공단',
+  description:'월 15회 이상 대중교통(지하철·버스·GTX 등) 이용 시 교통비를 환급해 주는 국가 대중교통 정기 할인 카드입니다. 일반 성인 20%, 청년(만 19~34세) 30%, 저소득층 53%를 다음 달에 환급합니다.',
+  amount:'월 교통비 최대 53% 환급 (일반 20% / 청년 30% / 저소득 53%)',
+  deadline:'수시 신청',
+  requiredDocuments:[
+    '신분증 (주민등록증 또는 운전면허증)',
+    'K-패스 제휴 카드 1종 선택 (KB국민·신한·하나·우리·NH농협·BC·삼성·현대 등)',
+  ],
+  howToApply:'korea-pass.kr에서 제휴 카드 선택 → 카드사 앱 또는 영업점에서 카드 신청 → K-패스 앱 설치 후 카드 등록 → 월 15회 이상 이용 시 다음 달 자동 환급',
+  applyUrl:'https://korea-pass.kr/info/card_guide.do',
 };
 
 // ─── BCard 카테고리 아이콘 색상 ─────────────────────────────────────
@@ -1190,6 +1211,10 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
         // 청년 조건 선택 시 청년미래적금 카드 맨 앞에 삽입
         if(extras.some(e=>e.includes('청년'))){
           parsed.benefits=[YOUTH_FUTURE_SAVINGS,...parsed.benefits];
+        }
+        // 성인(19세 이상) 조건 시 K-패스 카드 삽입
+        if(parseInt(age)>=19){
+          parsed.benefits=[...parsed.benefits,KPASS_BENEFIT];
         }
       }
       setResults(parsed);
