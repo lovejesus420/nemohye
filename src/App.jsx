@@ -573,11 +573,11 @@ function BenefitDetail({b,onClose,days,dl}){
       {icon:'🔔',title:'출시 알림 신청',desc:'서민금융진흥원(kinfa.or.kr) 또는 주거래 은행 앱에서 출시 알림을 사전에 등록하세요.'},
     ];
     return(
-      <div style={{position:'fixed',inset:0,zIndex:1000,display:'flex',flexDirection:'column'}}>
-        <div onClick={onClose} style={{flex:1,background:'rgba(0,0,0,0.5)'}}/>
-        <div style={{background:'#fff',borderRadius:'28px 28px 0 0',maxHeight:'92vh',overflowY:'auto',paddingBottom:'env(safe-area-inset-bottom,20px)'}}>
-          {/* 헤더 */}
-          <div style={{padding:'16px 20px',position:'sticky',top:0,background:'#fff',borderBottom:'1px solid #f3f4f6',zIndex:1}}>
+      <div style={{position:'fixed',inset:0,zIndex:1000}}>
+        <div onClick={onClose} style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)'}}/>
+        <div style={{position:'absolute',bottom:0,left:0,right:0,maxHeight:'92vh',background:'#fff',borderRadius:'28px 28px 0 0',display:'flex',flexDirection:'column'}}>
+          {/* 헤더 - 스크롤 밖 고정 */}
+          <div style={{flexShrink:0,padding:'16px 20px',borderBottom:'1px solid #f3f4f6'}}>
             <div style={{width:36,height:4,borderRadius:2,background:'#d1d5db',margin:'0 auto 14px'}}/>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
               <div style={{flex:1,paddingRight:12}}>
@@ -592,7 +592,8 @@ function BenefitDetail({b,onClose,days,dl}){
               <button onClick={onClose} style={{background:'#f3f4f6',border:'none',borderRadius:'50%',width:34,height:34,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0,fontFamily:'inherit'}}>✕</button>
             </div>
           </div>
-          <div style={{padding:'20px'}}>
+          {/* 스크롤 영역 */}
+          <div style={{flex:1,overflowY:'auto',padding:'20px'}}>
             {/* 출시 예정 배너 */}
             <div style={{background:'linear-gradient(135deg,#ede9fe 0%,#dbeafe 100%)',borderRadius:16,padding:'16px',marginBottom:20,display:'flex',gap:12,alignItems:'flex-start'}}>
               <span style={{fontSize:28,flexShrink:0}}>🚀</span>
@@ -661,10 +662,11 @@ function BenefitDetail({b,onClose,days,dl}){
             <div style={{marginTop:20,padding:'14px',background:'#fef9c3',borderRadius:14,border:'1px solid #fde68a'}}>
               <p style={{fontSize:12,color:'#92400e',lineHeight:1.65,margin:0}}>⚠️ 위 내용은 현재까지 공개된 정보를 바탕으로 작성되었습니다. 정확한 가입 조건·혜택·일정은 출시 시 금융위원회 및 서민금융진흥원 공식 발표를 확인해 주세요.</p>
             </div>
-            <div style={{marginTop:16,display:'flex',gap:8}}>
-              <button onClick={onClose} style={{flex:1,padding:'14px',borderRadius:14,background:'#f3f4f6',color:'#374151',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit'}}>닫기</button>
-              <button disabled style={{flex:2,padding:'14px',borderRadius:14,background:'#e5e7eb',color:'#9ca3af',fontSize:14,fontWeight:700,border:'none',cursor:'not-allowed',fontFamily:'inherit'}}>🔜 출시 예정</button>
-            </div>
+          </div>
+          {/* 버튼 - 스크롤 밖 하단 고정 */}
+          <div style={{flexShrink:0,display:'flex',gap:8,padding:'12px 20px',paddingBottom:'calc(12px + env(safe-area-inset-bottom,0px))'}}>
+            <button onClick={onClose} style={{flex:1,padding:'14px',borderRadius:14,background:'#f3f4f6',color:'#374151',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit'}}>닫기</button>
+            <button disabled style={{flex:2,padding:'14px',borderRadius:14,background:'#e5e7eb',color:'#9ca3af',fontSize:14,fontWeight:700,border:'none',cursor:'not-allowed',fontFamily:'inherit'}}>🔜 출시 예정</button>
           </div>
         </div>
       </div>
@@ -672,10 +674,11 @@ function BenefitDetail({b,onClose,days,dl}){
   }
 
   return(
-    <div style={{position:'fixed',inset:0,zIndex:1000,display:'flex',flexDirection:'column'}}>
-      <div onClick={onClose} style={{flex:1,background:'rgba(0,0,0,0.5)'}}/>
-      <div style={{background:'#fff',borderRadius:'28px 28px 0 0',maxHeight:'88vh',overflowY:'auto',paddingBottom:'env(safe-area-inset-bottom,20px)'}}>
-        <div style={{padding:'16px 20px',position:'sticky',top:0,background:'#fff',borderBottom:'1px solid #f3f4f6',zIndex:1}}>
+    <div style={{position:'fixed',inset:0,zIndex:1000}}>
+      <div onClick={onClose} style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)'}}/>
+      <div style={{position:'absolute',bottom:0,left:0,right:0,maxHeight:'90vh',background:'#fff',borderRadius:'28px 28px 0 0',display:'flex',flexDirection:'column'}}>
+        {/* 헤더 - 스크롤 밖 고정 */}
+        <div style={{flexShrink:0,padding:'16px 20px',borderBottom:'1px solid #f3f4f6'}}>
           <div style={{width:36,height:4,borderRadius:2,background:'#d1d5db',margin:'0 auto 16px'}}/>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
             <div style={{flex:1,paddingRight:12}}>
@@ -689,7 +692,8 @@ function BenefitDetail({b,onClose,days,dl}){
             <button onClick={onClose} style={{background:'#f3f4f6',border:'none',borderRadius:'50%',width:34,height:34,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0,fontFamily:'inherit'}}>✕</button>
           </div>
         </div>
-        <div style={{padding:'20px'}}>
+        {/* 스크롤 영역 */}
+        <div style={{flex:1,overflowY:'auto',padding:'20px'}}>
           {b.description&&<p style={{fontSize:14,color:'#4b5563',lineHeight:1.75,margin:'0 0 20px',padding:'14px',background:'#f9fafb',borderRadius:14}}>{b.description}</p>}
           <div style={{background:'#f9fafb',borderRadius:16,padding:'4px 16px',marginBottom:20}}>
             {[{l:'💰 지원 내용',v:b.amount||'-'},{l:'🏛️ 담당 기관',v:b.institution||'-'},{l:'📅 신청 기한',v:b.deadline||'수시 신청',urgent:days!==null&&days<=14&&days>=0},{l:'📌 신청 방법',v:b.howToApply||'-'}].map(({l,v,urgent})=>(
@@ -699,37 +703,33 @@ function BenefitDetail({b,onClose,days,dl}){
               </div>
             ))}
           </div>
-          <div style={{marginBottom:24}}>
-            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16}}>
-              <div style={{width:4,height:16,background:'#15803d',borderRadius:2}}/>
-              <h3 style={{fontSize:15,fontWeight:700,color:'#111827',margin:0}}>단계별 신청 가이드</h3>
-            </div>
-            <div style={{position:'relative'}}>
-              <div style={{position:'absolute',left:19,top:20,bottom:20,width:2,background:'linear-gradient(to bottom,#bbf7d0,#86efac)',zIndex:0}}/>
-              {steps.map((step,i)=>(
-                <div key={step.n} style={{display:'flex',gap:14,marginBottom:i<steps.length-1?16:0,position:'relative',zIndex:1}}>
-                  <div style={{width:40,height:40,borderRadius:'50%',background:step.bg,color:step.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.08)'}}>
-                    {step.icon}
-                  </div>
-                  <div style={{flex:1,paddingTop:8}}>
-                    <div style={{fontSize:11,fontWeight:700,color:'#9ca3af',marginBottom:2}}>Step {step.n}</div>
-                    <div style={{fontSize:14,fontWeight:700,color:'#111827',marginBottom:step.items.length?8:4}}>{step.title}</div>
-                    {step.items.length>0?(
-                      <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
-                        {step.items.map(doc=><span key={doc} style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'4px 10px',fontSize:12,color:'#1e40af',fontWeight:500}}>📄 {doc}</span>)}
-                      </div>
-                    ):(
-                      <p style={{fontSize:13,color:'#4b5563',lineHeight:1.65,margin:0}}>{step.text}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16}}>
+            <div style={{width:4,height:16,background:'#15803d',borderRadius:2}}/>
+            <h3 style={{fontSize:15,fontWeight:700,color:'#111827',margin:0}}>단계별 신청 가이드</h3>
           </div>
-          <div style={{display:'flex',gap:8}}>
-            <button onClick={onClose} style={{flex:1,padding:'14px',borderRadius:14,background:'#f3f4f6',color:'#374151',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit'}}>닫기</button>
-            <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{flex:2,padding:'14px',borderRadius:14,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',gap:6,boxShadow:'0 4px 14px rgba(21,128,61,0.3)'}}>바로 신청하기 →</a>
-          </div>
+          {steps.map((step,i)=>(
+            <div key={step.n} style={{display:'flex',gap:14,marginBottom:i<steps.length-1?16:24}}>
+              <div style={{width:40,height:40,borderRadius:'50%',background:step.bg,color:step.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.08)'}}>
+                {step.icon}
+              </div>
+              <div style={{flex:1,paddingTop:8}}>
+                <div style={{fontSize:11,fontWeight:700,color:'#9ca3af',marginBottom:2}}>Step {step.n}</div>
+                <div style={{fontSize:14,fontWeight:700,color:'#111827',marginBottom:step.items.length?8:4}}>{step.title}</div>
+                {step.items.length>0?(
+                  <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                    {step.items.map(doc=><span key={doc} style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'4px 10px',fontSize:12,color:'#1e40af',fontWeight:500}}>📄 {doc}</span>)}
+                  </div>
+                ):(
+                  <p style={{fontSize:13,color:'#4b5563',lineHeight:1.65,margin:0}}>{step.text}</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* 버튼 - 스크롤 밖 하단 고정 */}
+        <div style={{flexShrink:0,display:'flex',gap:8,padding:'12px 20px',paddingBottom:'calc(12px + env(safe-area-inset-bottom,0px))'}}>
+          <button onClick={onClose} style={{flex:1,padding:'14px',borderRadius:14,background:'#f3f4f6',color:'#374151',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit'}}>닫기</button>
+          <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{flex:2,padding:'14px',borderRadius:14,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',gap:6,boxShadow:'0 4px 14px rgba(21,128,61,0.3)'}}>바로 신청하기 →</a>
         </div>
       </div>
     </div>
@@ -1359,7 +1359,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
 
     {/* ── 분석 버튼 ── */}
     <div style={{marginTop:4,paddingBottom:8}}>
-      <button onClick={analyze} disabled={loading} style={{width:'100%',background:loading?'#4ade80':'#15803d',color:'#fff',borderRadius:16,padding:'16px',fontWeight:700,fontSize:15,border:'none',cursor:loading?'default':'pointer',boxShadow:'0 6px 16px rgba(21,128,61,0.3)',transition:'all 0.2s',display:'flex',alignItems:'center',justifyContent:'center',gap:8,opacity:loading?0.75:1,fontFamily:'inherit'}}>
+      <button onClick={analyze} disabled={loading} style={{width:'100%',background:loading?'#166534':'#15803d',color:'#fff',borderRadius:16,padding:'16px',fontWeight:700,fontSize:15,border:'none',cursor:loading?'default':'pointer',boxShadow:'0 6px 16px rgba(21,128,61,0.3)',transition:'all 0.2s',display:'flex',alignItems:'center',justifyContent:'center',gap:8,opacity:loading?0.75:1,fontFamily:'inherit'}}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
         {loading?'분석 중...':'내게 맞는 혜택 분석하기'}
       </button>
@@ -1380,12 +1380,12 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
     {err&&<div style={{background:'#FEE2E2',border:'1px solid #FECACA',borderRadius:12,padding:'14px 16px',color:C.err,fontSize:13,marginBottom:16}}><strong>오류:</strong><br/><code style={{fontSize:12,wordBreak:'break-all'}}>{err}</code></div>}
     {results&&(<div ref={rRef}>
       {/* ── 총 예상 지원 규모 카드 ── */}
-      {(()=>{const total=calcTotalYearly(allBenefits);return(
+      {(()=>{const total=calcTotalYearly(allBenefits);const monthly=Math.round(total/12);return(
         <div style={{background:'#fff',borderRadius:24,padding:'24px',marginBottom:12,boxShadow:'0 1px 3px rgba(0,0,0,0.04)',border:'1px solid #f3f4f6',textAlign:'center'}}>
-          <span style={{fontSize:13,fontWeight:600,color:'#6b7280',display:'block',marginBottom:8}}>총 예상 지원 규모</span>
-          {total>0?(
+          <span style={{fontSize:13,fontWeight:600,color:'#6b7280',display:'block',marginBottom:8}}>내가 받을 수 있는 월 혜택 금액</span>
+          {monthly>0?(
             <div style={{display:'flex',alignItems:'flex-end',justifyContent:'center',gap:4,marginBottom:10}}>
-              <span style={{fontSize:32,fontWeight:900,color:'#15803d',letterSpacing:-1}}>연 {total.toLocaleString()}</span>
+              <span style={{fontSize:32,fontWeight:900,color:'#15803d',letterSpacing:-1}}>월 {monthly.toLocaleString()}</span>
               <span style={{fontSize:18,fontWeight:700,color:'#15803d',marginBottom:4}}>만원</span>
             </div>
           ):(
