@@ -98,6 +98,17 @@ const CAT_COLOR={'주거':'#dbeafe','의료':'#fee2e2','금융':'#fef9c3','교�
 const MONTH_KR=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 const DAY_KR=['일','월','화','수','목','금','토'];
 
+// ─── 브랜드 로고 SVG 컴포넌트 ──────────────────────────────────────
+function BrandLogo({size=44, style={}}){
+  return(
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 42 42" fill="none" style={style}>
+      <rect x="2" y="2" width="38" height="38" rx="9" stroke="#c9a84c" strokeWidth="2.2"/>
+      <rect x="10" y="10" width="22" height="22" rx="5" fill="#1a6b6b"/>
+      <polyline points="15,27 15,15 27,27 27,15" stroke="#c9a84c" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    </svg>
+  );
+}
+
 // ─── localStorage 스토리지 헬퍼 (배포용) ─────────────────────────
 function sGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch{return null;}}
 function sSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch{return false;}}
@@ -708,17 +719,7 @@ function LandingScreen({onStartAuth}){
         {/* ── 헤더 ── */}
         <header style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'0 24px',paddingTop:'calc(28px + env(safe-area-inset-top,0px))',paddingBottom:8,position:'relative',zIndex:20}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,marginBottom:6}}>
-            <div style={{width:44,height:44,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:11,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 4px 14px rgba(22,163,74,0.45)',flexShrink:0}}>
-              <svg width="26" height="26" viewBox="125 75 250 225" fill="none" stroke="white" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="175" y="180" width="150" height="110" strokeWidth="14"/>
-                <rect x="160" y="150" width="180" height="30" rx="4" strokeWidth="14"/>
-                <line x1="250" y1="150" x2="250" y2="290" strokeWidth="14"/>
-                <path d="M 250 150 C 200 90, 140 130, 190 150 Z" strokeWidth="12"/>
-                <path d="M 250 150 C 300 90, 360 130, 310 150 Z" strokeWidth="12"/>
-                <path d="M 250 150 L 210 200" strokeWidth="12"/>
-                <path d="M 250 150 L 290 200" strokeWidth="12"/>
-              </svg>
-            </div>
+            <BrandLogo size={44} style={{flexShrink:0,filter:'drop-shadow(0 3px 8px rgba(0,0,0,0.12))'}}/>
             <span style={{fontFamily:'serif',fontSize:'1.7rem',fontWeight:900,color:'#111827',letterSpacing:-1}}>네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
           </div>
           <p style={{color:'#9ca3af',fontSize:12,letterSpacing:0.3,textAlign:'center',margin:0}}>내게 맞는 모든 혜택을 한 번에</p>
@@ -1694,17 +1695,7 @@ export default function App() {
 
   if (!ready) return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',background:C.grad}}>
-      <div style={{width:72,height:72,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:18,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 8px 24px rgba(0,0,0,0.2)',marginBottom:16}}>
-        <svg width="46" height="46" viewBox="125 75 250 225" fill="none" stroke="white" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="175" y="180" width="150" height="110" strokeWidth="14"/>
-          <rect x="160" y="150" width="180" height="30" rx="4" strokeWidth="14"/>
-          <line x1="250" y1="150" x2="250" y2="290" strokeWidth="14"/>
-          <path d="M 250 150 C 200 90, 140 130, 190 150 Z" strokeWidth="12"/>
-          <path d="M 250 150 C 300 90, 360 130, 310 150 Z" strokeWidth="12"/>
-          <path d="M 250 150 L 210 200" strokeWidth="12"/>
-          <path d="M 250 150 L 290 200" strokeWidth="12"/>
-        </svg>
-      </div>
+      <BrandLogo size={80} style={{marginBottom:16,filter:'drop-shadow(0 8px 20px rgba(0,0,0,0.25))'}}/>
       <span style={{fontFamily:'serif',fontWeight:900,fontSize:'1.9rem',color:'#fff',letterSpacing:-1}}>네모<span style={{background:'linear-gradient(135deg,#A7F3D0 0%,#6EE7B7 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
       <div style={{width:32,height:3,background:'rgba(255,255,255,0.6)',borderRadius:4,marginTop:20,animation:'wid 1s ease-in-out infinite alternate'}}/>
       <style>{`@keyframes wid{from{width:20px}to{width:44px}}`}</style>
@@ -1760,11 +1751,7 @@ export default function App() {
           {/* 헤더 행 */}
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 20px',height:56}}>
             <div onClick={()=>setTab('analyze')} style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}>
-              <div style={{width:32,height:32,background:'rgba(255,255,255,0.18)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                </svg>
-              </div>
+              <BrandLogo size={32} style={{flexShrink:0}}/>
               <span style={{fontWeight:700,fontSize:'1.2rem',color:'#fff',letterSpacing:-0.3}}>네모혜</span>
             </div>
             <div style={{display:'flex',alignItems:'center',gap:10}}>
@@ -1816,11 +1803,7 @@ export default function App() {
         <header style={{background:C.dark,position:'sticky',top:0,zIndex:200,paddingTop:'env(safe-area-inset-top,0px)'}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 20px',height:56}}>
             <div onClick={()=>setTab('analyze')} style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}>
-              <div style={{width:32,height:32,background:'rgba(255,255,255,0.18)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                </svg>
-              </div>
+              <BrandLogo size={32} style={{flexShrink:0}}/>
               <span style={{fontWeight:700,fontSize:'1.2rem',color:'#fff',letterSpacing:-0.3}}>네모혜</span>
             </div>
             <div style={{display:'flex',alignItems:'center',gap:10}}>
