@@ -60,6 +60,30 @@ const EXTRA_OPTIONS=[
   {value:'장애인 가구',label:'♿ 장애인 가구'},{value:'국가유공자/보훈 대상',label:'🎖️ 국가유공자 / 보훈'},
   {value:'기초생활수급자 또는 차상위계층',label:'📋 기초/차상위계층'},{value:'노인 단독 가구(65세 이상)',label:'👴 노인 단독 가구'},
 ];
+const EXTRA_GROUPS=[
+  {label:'청년 (Youth)',items:[
+    {value:'청년(만 19~34세)',emoji:'🎓',label:'청년 (만 19~34세)'},
+    {value:'청년 창업 준비 중',emoji:'🚀',label:'청년 창업 준비 중'},
+    {value:'청년 1인 가구',emoji:'🏠',label:'청년 1인 가구'},
+  ]},
+  {label:'경제 / 직업',items:[
+    {value:'자영업자/소상공인',emoji:'🏪',label:'자영업자 / 소상공인'},
+    {value:'기초생활수급자 또는 차상위계층',emoji:'🪙',label:'기초 / 차상위계층'},
+  ]},
+  {label:'가족 / 출산',items:[
+    {value:'임산부',emoji:'🤰',label:'임산부'},
+    {value:'출산 후 1년 이내',emoji:'👶',label:'출산 후 1년 이내'},
+    {value:'신혼부부(혼인 7년 이내)',emoji:'💍',label:'신혼부부 (혼인 7년 이내)'},
+    {value:'결혼 준비 중(예비 신혼부부)',emoji:'💌',label:'결혼 준비 중 (예비 신혼부부)'},
+    {value:'다자녀 가구(2명 이상)',emoji:'👨‍👩‍👧‍👦',label:'다자녀 가구 (2명 이상)'},
+    {value:'한부모 가정',emoji:'👤',label:'한부모 가정'},
+  ]},
+  {label:'기타 상황',items:[
+    {value:'장애인 가구',emoji:'♿',label:'장애인 가구'},
+    {value:'국가유공자/보훈 대상',emoji:'🎖️',label:'국가유공자 / 보훈'},
+    {value:'노인 단독 가구(65세 이상)',emoji:'👴',label:'노인 단독 가구'},
+  ]},
+];
 const LOADING_STEPS=[
   "복지로·정부24 전국 복지 데이터 검토 중",
   "고용노동부·국민건강보험 혜택 매칭 중",
@@ -1022,22 +1046,106 @@ function AnalyzeTab({user,onSaved}){
   const urgent=filtered.filter(b=>b.isUrgent);
   const hidden=filtered.filter(b=>b.isHidden&&!b.isUrgent);
   const normal=filtered.filter(b=>!b.isUrgent&&!b.isHidden);
+  const NIS={width:'100%',background:'#f9fafb',border:'1px solid #e5e7eb',borderRadius:12,padding:'14px 16px',fontSize:14,color:'#111827',outline:'none',boxSizing:'border-box',fontFamily:'inherit'};
+  const NSS={...NIS,padding:'14px 40px 14px 16px',appearance:'none',cursor:'pointer'};
   return(<div>
-    <div style={{...CS,marginBottom:20}}>
-      <h2 style={{fontFamily:'serif',fontSize:'1.21rem',fontWeight:700,marginBottom:5}}>기본 정보 입력</h2>
-      <p style={{fontSize:13,color:'#9ca3af',marginBottom:22}}>입력하신 정보는 혜택 분석에만 사용됩니다.</p>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
-        <div><label style={LS}>나이 <R/></label><input type="number" value={age} onChange={e=>setAge(e.target.value)} placeholder="예: 35" style={IS}/></div>
-        <div><label style={LS}>성별 <R/></label><select value={gender} onChange={e=>setGender(e.target.value)} style={SS}><option value="">선택</option><option>남성</option><option>여성</option></select></div>
-        <div><label style={LS}>직업 / 고용 상태 <R/></label><select value={job} onChange={e=>setJob(e.target.value)} style={SS}><option value="">선택하세요</option>{['직장인(정규직)','직장인(계약직/비정규직)','자영업자/사업자','프리랜서','구직자/실업자','학생','전업주부','농업/어업/임업','장애인','은퇴/무직'].map(v=><option key={v}>{v}</option>)}</select></div>
-        <div><label style={LS}>월 소득 수준 <R/></label><select value={income} onChange={e=>setIncome(e.target.value)} style={SS}><option value="">선택하세요</option>{['기초생활수급자','월 50만원 미만','월 50~100만원','월 100~200만원','월 200~300만원','월 300~500만원','월 500~700만원','월 700만원 이상'].map(v=><option key={v}>{v}</option>)}</select></div>
-        <div style={{gridColumn:'1/-1'}}><label style={LS}>거주지 <R/></label><AddrInput value={address} onChange={setAddress}/></div>
-        <div style={{gridColumn:'1/-1'}}>
-          <label style={{...LS,marginBottom:9}}>추가 상황 <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'#9ca3af',fontSize:12}}>(해당 항목 모두 선택)</span></label>
-          <div style={{border:'1.5px solid #d4cdc2',borderRadius:12,overflow:'hidden'}}>{EXTRA_OPTIONS.map((o,i)=>(<div key={o.value} onClick={()=>toggleExtra(o.value)} style={{display:'flex',alignItems:'center',gap:11,padding:'11px 15px',cursor:'pointer',background:extras.includes(o.value)?'#edf6f6':'#fff',borderBottom:i<EXTRA_OPTIONS.length-1?'1px solid #ede8dc':'none'}}><div style={{width:17,height:17,minWidth:17,border:`1.8px solid ${extras.includes(o.value)?'#1a6b6b':'#d4cdc2'}`,borderRadius:4,background:extras.includes(o.value)?'#1a6b6b':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{extras.includes(o.value)&&<svg width="9" height="7" viewBox="0 0 9 7"><polyline points="1,3.5 3.5,6 8,1" stroke="#fff" strokeWidth="1.7" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>}</div><span style={{fontSize:14,color:extras.includes(o.value)?'#1a6b6b':'#0d1117',fontWeight:extras.includes(o.value)?600:400}}>{o.label}</span></div>))}</div>
+    {/* ── 기본 정보 카드 ── */}
+    <div style={{background:'#fff',borderRadius:24,padding:'24px',marginBottom:16,boxShadow:'0 1px 4px rgba(0,0,0,0.07)',border:'1px solid #f3f4f6'}}>
+      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:20}}>
+        <div style={{width:6,height:16,background:'#16a34a',borderRadius:3,flexShrink:0}}/>
+        <h2 style={{fontWeight:700,color:'#111827',fontSize:17,margin:0}}>기본 정보</h2>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:18}}>
+
+        {/* 나이 */}
+        <div>
+          <label style={{display:'block',fontSize:13,fontWeight:600,color:'#374151',marginBottom:6}}>나이 <span style={{color:'#ef4444'}}>*</span></label>
+          <div style={{position:'relative'}}>
+            <input type="number" value={age} onChange={e=>setAge(e.target.value)} placeholder="예: 35" style={{...NIS,paddingRight:48}}/>
+            <span style={{position:'absolute',right:16,top:'50%',transform:'translateY(-50%)',color:'#6b7280',fontSize:13,pointerEvents:'none'}}>세</span>
+          </div>
+        </div>
+
+        {/* 성별 — 세그먼트 버튼 */}
+        <div>
+          <label style={{display:'block',fontSize:13,fontWeight:600,color:'#374151',marginBottom:6}}>성별 <span style={{color:'#ef4444'}}>*</span></label>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+            {['남성','여성'].map(g=>(
+              <div key={g} onClick={()=>setGender(g)} style={{border:`1.5px solid ${gender===g?'#15803d':'#e5e7eb'}`,background:gender===g?'#15803d':'#f9fafb',color:gender===g?'#fff':'#4b5563',borderRadius:12,padding:'12px 0',textAlign:'center',fontSize:14,fontWeight:600,cursor:'pointer',transition:'all 0.15s',userSelect:'none'}}>{g}</div>
+            ))}
+          </div>
+        </div>
+
+        {/* 직업 */}
+        <div>
+          <label style={{display:'block',fontSize:13,fontWeight:600,color:'#374151',marginBottom:6}}>직업 / 고용 상태 <span style={{color:'#ef4444'}}>*</span></label>
+          <div style={{position:'relative'}}>
+            <select value={job} onChange={e=>setJob(e.target.value)} style={{...NSS,color:job?'#111827':'#9ca3af'}}>
+              <option value="">선택해주세요</option>
+              {['직장인(정규직)','직장인(계약직/비정규직)','자영업자/사업자','프리랜서','구직자/실업자','학생','전업주부','농업/어업/임업','장애인','은퇴/무직'].map(v=><option key={v}>{v}</option>)}
+            </select>
+            <span style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'#9ca3af',pointerEvents:'none',fontSize:11}}>▼</span>
+          </div>
+        </div>
+
+        {/* 소득 */}
+        <div>
+          <label style={{display:'block',fontSize:13,fontWeight:600,color:'#374151',marginBottom:6}}>월 소득 수준 <span style={{color:'#ef4444'}}>*</span></label>
+          <div style={{position:'relative'}}>
+            <select value={income} onChange={e=>setIncome(e.target.value)} style={{...NSS,color:income?'#111827':'#9ca3af'}}>
+              <option value="">선택해주세요</option>
+              {['기초생활수급자','월 50만원 미만','월 50~100만원','월 100~200만원','월 200~300만원','월 300~500만원','월 500~700만원','월 700만원 이상'].map(v=><option key={v}>{v}</option>)}
+            </select>
+            <span style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'#9ca3af',pointerEvents:'none',fontSize:11}}>▼</span>
+          </div>
+        </div>
+
+        {/* 거주지 */}
+        <div>
+          <label style={{display:'block',fontSize:13,fontWeight:600,color:'#374151',marginBottom:6}}>거주지 <span style={{color:'#ef4444'}}>*</span></label>
+          <AddrInput value={address} onChange={setAddress}/>
         </div>
       </div>
-      <button onClick={analyze} disabled={loading} style={BP({width:'100%',marginTop:22,padding:'14px',fontSize:15,borderRadius:10,opacity:loading?0.7:1,display:'flex',alignItems:'center',justifyContent:'center',gap:8})}><span style={{width:19,height:19,background:'#c9a84c',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11}}>✦</span>{loading?'분석 중...':'내게 맞는 혜택 분석하기'}</button>
+    </div>
+
+    {/* ── 추가 상황 카드 ── */}
+    <div style={{background:'#fff',borderRadius:24,padding:'24px',marginBottom:16,boxShadow:'0 1px 4px rgba(0,0,0,0.07)',border:'1px solid #f3f4f6'}}>
+      <div style={{marginBottom:20}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+          <div style={{width:6,height:16,background:'#16a34a',borderRadius:3,flexShrink:0}}/>
+          <h2 style={{fontWeight:700,color:'#111827',fontSize:17,margin:0}}>추가 상황</h2>
+        </div>
+        <p style={{fontSize:13,color:'#6b7280',margin:'4px 0 0 14px'}}>해당하는 항목을 모두 선택해주세요.</p>
+      </div>
+
+      {EXTRA_GROUPS.map((group,gi)=>(
+        <div key={group.label}>
+          {gi>0&&<div style={{borderTop:'1px solid #f3f4f6',margin:'18px 0'}}/>}
+          <h3 style={{fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:1.2,marginBottom:10,padding:'0 2px'}}>{group.label}</h3>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {group.items.map(item=>{
+              const on=extras.includes(item.value);
+              return(
+                <div key={item.value} onClick={()=>toggleExtra(item.value)} style={{display:'flex',alignItems:'center',padding:'12px 14px',border:`1.5px solid ${on?'#22c55e':'#f3f4f6'}`,background:on?'#f0fdf4':'#f9fafb',borderRadius:14,cursor:'pointer',transition:'all 0.15s',userSelect:'none'}}>
+                  <div style={{width:19,height:19,minWidth:19,border:`1.5px solid ${on?'#15803d':'#d1d5db'}`,borderRadius:4,background:on?'#15803d':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
+                    {on&&<svg width="10" height="8" viewBox="0 0 9 7"><polyline points="1,3.5 3.5,6 8,1" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                  </div>
+                  <div style={{width:32,height:32,borderRadius:'50%',background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 12px',boxShadow:'0 1px 3px rgba(0,0,0,0.1)',border:'1px solid #e5e7eb',flexShrink:0,fontSize:15}}>{item.emoji}</div>
+                  <span style={{fontSize:14,fontWeight:on?600:500,color:on?'#166534':'#1f2937',flex:1,wordBreak:'keep-all'}}>{item.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* ── 분석 버튼 ── */}
+    <div style={{paddingBottom:8}}>
+      <button onClick={analyze} disabled={loading} style={{width:'100%',background:loading?'#4ade80':'#15803d',color:'#fff',borderRadius:16,padding:'16px',fontWeight:700,fontSize:15,border:'none',cursor:loading?'default':'pointer',boxShadow:'0 4px 14px rgba(21,128,61,0.28)',transition:'all 0.2s',display:'flex',alignItems:'center',justifyContent:'center',gap:8,opacity:loading?0.75:1,fontFamily:'inherit'}}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        {loading?'분석 중...':'내게 맞는 혜택 분석하기'}
+      </button>
     </div>
     {loading&&(
       <div style={{...CS,textAlign:'center',padding:'40px 24px'}}>
