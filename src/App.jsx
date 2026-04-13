@@ -338,7 +338,7 @@ const KNOWN_BENEFIT_URLS = [
   {kw:['종합소득세 환급','환급금 조회'],url:'https://www.hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&menuCd=WME1400'},
   // ── 고용노동부 / 실업급여 / 취업 ──
   {kw:['실업급여','구직급여'],url:'https://www.work.go.kr/benefitService/doReceivingBenefit.do'},
-  {kw:['국민취업지원제도','취업지원제도'],url:'https://www.work.go.kr/empSpt/doEmpSptInfo.do'},
+  {kw:['국민취업지원제도','취업지원제도','국민취업'],url:'https://www.work24.go.kr/ua/z/z/1300/selectEmssRqutIntro.do'},
   {kw:['청년일자리도약장려금','일자리도약'],url:'https://www.work.go.kr/youngWork/doYoungWork.do'},
   {kw:['청년내일채움공제','내일채움공제'],url:'https://www.work.go.kr/youngtomorrow/main/main.do'},
   {kw:['육아휴직','출산전후휴가','배우자 출산휴가'],url:'https://www.moel.go.kr/policy/policyinfo/child/list7.do'},
@@ -537,6 +537,30 @@ const KPASS_BENEFIT = {
   ],
   howToApply:'korea-pass.kr에서 제휴 카드 선택 → 카드사 앱 또는 영업점에서 카드 신청 → K-패스 앱 설치 후 카드 등록 → 월 15회 이상 이용 시 다음 달 자동 환급',
   applyUrl:'https://korea-pass.kr/info/card_guide.do',
+};
+
+// ─── 국민취업지원제도 (고정 혜택 — AI 생성본 교체용) ───────────────────
+const KUKMIN_EMPLOYMENT = {
+  id:'kukmin-employment-static',
+  source:'고용/취업', sourceIcon:'💼',
+  category:'고용', categoryIcon:'💼',
+  scope:'전국', isUrgent:false, isHidden:false, isComingSoon:false,
+  title:'국민취업지원제도',
+  institution:'고용노동부 · 고용센터',
+  description:'취업을 원하는 국민에게 1:1 맞춤 상담·직업훈련·일경험 등 통합 취업지원서비스를 제공하는 제도입니다. Ⅰ유형(저소득·청년특례)은 구직촉진수당 월 60만원을 최대 6개월 지급하며, 고용보험 미가입자도 참여할 수 있습니다.\n\n▸ Ⅰ유형 대상: 만 15~69세, 중위소득 60% 이하(청년특례 120% 이하), 재산 4억원 이하\n▸ Ⅱ유형 대상: 청년(만 15~34세), 중장년(중위소득 100% 이하), 특정취약계층 27개 범주\n▸ 취업 성공 시 취업성공수당 최대 150만원(6개월 근속 50만원 + 12개월 근속 100만원) 별도 지급',
+  amount:'Ⅰ유형 구직촉진수당 월 60만원 × 최대 6개월 (최대 360만원) · 취업성공수당 최대 150만원',
+  deadline:'연중 상시 신청',
+  requiredDocuments:[
+    '신분증 (주민등록증 또는 운전면허증)',
+    '취업지원 신청서 (별지 제1호 서식)',
+    '개인정보·고유식별정보 수집·이용·제공 동의서',
+    '소득·재산 증빙 서류 (건강보험료 납부확인서, 국세청 소득증빙 등)',
+    '가족관계증명서 (해당 시)',
+    '고용보험 자격이력 내역서 (해당 시)',
+    '취업취약계층 증명 서류 (해당 시)',
+  ],
+  howToApply:'① work24.go.kr 접속 후 구직등록 → ② 안내 동영상 수강(1·2회차 필수) → ③ 온라인 신청서 작성·제출. 또는 거주지 관할 고용센터 방문 신청. 접수 후 1개월 이내 수급자격 인정 여부 통지. 문의: 고용노동부 ☎1350 / 고용24 ☎1577-7114',
+  applyUrl:'https://www.work24.go.kr/ua/z/z/1300/selectEmssRqutIntro.do',
 };
 
 // ─── BCard 카테고리 아이콘 색상 ─────────────────────────────────────
@@ -1212,10 +1236,14 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
       if(parsed?.benefits){
         parsed.benefits=parsed.benefits
           .filter(b=>!/(청년도약계좌)/i.test(b.title||''))
-          .map(b=>({
-            ...b,
-            title:(b.title||'').replace(/청년\s*월세\s*지원사업/g,'청년 월세 지원'),
-          }));
+          .map(b=>{
+            // 국민취업지원제도 → 정확한 정적 데이터로 교체
+            if(/(국민\s*취업\s*지원)/i.test(b.title||'')) return KUKMIN_EMPLOYMENT;
+            return {...b, title:(b.title||'').replace(/청년\s*월세\s*지원사업/g,'청년 월세 지원')};
+          });
+        // 중복 제거 (국민취업지원제도가 여러 번 포함될 경우 대비)
+        const seen=new Set();
+        parsed.benefits=parsed.benefits.filter(b=>{if(seen.has(b.id))return false;seen.add(b.id);return true;});
         // 청년 조건 선택 시 청년미래적금 카드 맨 앞에 삽입
         if(extras.some(e=>e.includes('청년'))){
           parsed.benefits=[YOUTH_FUTURE_SAVINGS,...parsed.benefits];
