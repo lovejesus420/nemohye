@@ -1660,39 +1660,35 @@ export default function App() {
         background:C.dark,
         position:'sticky',top:0,zIndex:200,
         paddingTop:'env(safe-area-inset-top,0px)',
-        boxShadow:'0 1px 0 rgba(255,255,255,0.08)',
       }}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 20px',height:56}}>
-          <div onClick={()=>setTab('analyze')} style={{display:'flex',alignItems:'center',gap:10,cursor:'pointer'}}>
-            <div style={{width:34,height:34,background:'linear-gradient(135deg,#22C55E 0%,#16A34A 50%,#14532D 100%)',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 3px 10px rgba(22,163,74,0.4)',flexShrink:0}}>
-              <svg width="21" height="21" viewBox="125 75 250 225" fill="none" stroke="white" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="175" y="180" width="150" height="110" strokeWidth="14"/>
-                <rect x="160" y="150" width="180" height="30" rx="4" strokeWidth="14"/>
-                <line x1="250" y1="150" x2="250" y2="290" strokeWidth="14"/>
-                <path d="M 250 150 C 200 90, 140 130, 190 150 Z" strokeWidth="12"/>
-                <path d="M 250 150 C 300 90, 360 130, 310 150 Z" strokeWidth="12"/>
-                <path d="M 250 150 L 210 200" strokeWidth="12"/>
-                <path d="M 250 150 L 290 200" strokeWidth="12"/>
+          <div onClick={()=>setTab('analyze')} style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}>
+            <div style={{width:32,height:32,background:'rgba(255,255,255,0.2)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
               </svg>
             </div>
-            <span style={{fontFamily:'serif',fontWeight:900,fontSize:'1.22rem',color:'#fff',letterSpacing:-0.5}}>
-              네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span>
-            </span>
+            <span style={{fontWeight:700,fontSize:'1.2rem',color:'#fff',letterSpacing:-0.3}}>네모혜</span>
           </div>
-          <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
             {user?.isAdmin&&(
-              <button onClick={()=>setTab('admin')} style={{background:'rgba(255,255,255,0.08)',border:'none',color:'#fff',width:34,height:34,borderRadius:10,cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>⚙️</button>
+              <button onClick={()=>setTab('admin')} style={{background:'rgba(255,255,255,0.12)',border:'none',color:'#fff',width:36,height:36,borderRadius:'50%',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </button>
             )}
             {/* 아바타 */}
             <div onClick={()=>setTab('profile')} style={{
-              width:34,height:34,borderRadius:'50%',cursor:'pointer',flexShrink:0,
-              background:`linear-gradient(135deg,${C.teal},#0a5268)`,
+              width:36,height:36,borderRadius:'50%',cursor:'pointer',flexShrink:0,
+              background:'#fff',
               display:'flex',alignItems:'center',justifyContent:'center',
-              color:'#fff',fontSize:13,fontWeight:800,
-              boxShadow:`0 0 0 2px ${tab==='profile'?C.gold:'transparent'}`,
+              color:'#177a4a',fontSize:14,fontWeight:800,
+              boxShadow:'0 2px 6px rgba(0,0,0,0.15)',
               transition:'box-shadow 0.15s',
             }}>
-              {user.name?.charAt(0)||'👤'}
+              {user.name?.charAt(0)||'?'}
             </div>
           </div>
         </div>
@@ -1700,16 +1696,16 @@ export default function App() {
 
       {/* ── 페이지 히어로 (혜택설계 탭) ───────────────────── */}
       {tab==='analyze'&&(
-        <div style={{background:C.grad,padding:'28px 20px 52px',textAlign:'center',position:'relative',overflow:'hidden'}}>
-          <div style={{position:'absolute',top:-30,right:-30,width:140,height:140,borderRadius:'50%',background:'rgba(255,255,255,0.06)',pointerEvents:'none'}}/>
-          <div style={{position:'absolute',bottom:-20,left:-20,width:100,height:100,borderRadius:'50%',background:'rgba(255,255,255,0.04)',pointerEvents:'none'}}/>
-          <div style={{position:'absolute',bottom:-1,left:0,right:0,height:32,background:C.bg,clipPath:'ellipse(55% 100% at 50% 100%)'}}/>
-
-          <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.3)',borderRadius:20,padding:'5px 14px',marginBottom:16}}>
-            <span style={{color:'#fff',fontSize:10,letterSpacing:2,fontWeight:700,textTransform:'uppercase'}}>✦ 사용자 맞춤 혜택 분석</span>
+        <div style={{background:C.grad,padding:'22px 20px 36px',textAlign:'center',position:'relative',overflow:'hidden',borderRadius:'0 0 32px 32px'}}>
+          <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.25)',borderRadius:20,padding:'6px 14px',marginBottom:14}}>
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="#fde047"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            <span style={{color:'#fff',fontSize:11,fontWeight:600,letterSpacing:0.5}}>사용자 맞춤 혜택 분석</span>
           </div>
-          <p style={{color:'rgba(255,255,255,0.85)',fontSize:13,lineHeight:1.5,margin:'0 auto',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'100%'}}>
-            안녕하세요, <strong style={{color:'#A7F3D0'}}>{user.name}</strong>님 👋 혜택을 모두 찾아드려요
+          <h1 style={{color:'#fff',fontSize:22,fontWeight:700,lineHeight:1.3,margin:'0 0 6px',letterSpacing:-0.3}}>
+            안녕하세요, <span style={{color:'#fff'}}>{user.name}</span>님 👋
+          </h1>
+          <p style={{color:'rgba(255,255,255,0.8)',fontSize:15,fontWeight:500,margin:0,lineHeight:1.4}}>
+            숨은 혜택을 모두 찾아드려요
           </p>
         </div>
       )}
@@ -1725,7 +1721,7 @@ export default function App() {
       )}
 
       {/* ── 탭 콘텐츠 ─────────────────────────────────────── */}
-      <div style={{maxWidth:760,margin:'0 auto',padding:tab==='analyze'?'0 16px 100px':'16px 16px 100px',position:'relative',zIndex:10,marginTop:tab==='analyze'?-16:0}}>
+      <div style={{maxWidth:760,margin:'0 auto',padding:tab==='analyze'?'16px 16px 100px':'16px 16px 100px',position:'relative',zIndex:10}}>
         {tab==='analyze'    && <AnalyzeTab user={user} onSaved={refreshCount}/>}
         {tab==='life'       && <LifeTab user={user}/>}
         {tab==='wedding'    && <WeddingTab user={user}/>}
