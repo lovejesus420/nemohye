@@ -67,11 +67,18 @@ function buildQuery(regionName, kwSet) {
 
 export default async function handler(req, res) {
   // ── 보안: Vercel Cron 토큰 검증
-  const authHeader = req.headers['authorization'] ?? '';
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return res.status(401).json({ error: '인증 실패' });
-  }
+ // 헤더(Vercel 시스템용) 또는 쿼리(브라우저 테스트용) 둘 다 허용
+const authHeader = req.headers['authorization'];
+const querySecret = req.query.secret; // 주소창의 ?secret= 부분을 읽음
+const cronSecret = process.env.CRON_SECRET;
+
+const isAuthorized = 
+  (authHeader === `Bearer ${cronSecret}`) || 
+  (querySecret === cronSecret);
+
+if (cronSecret && !isAuthorized) {
+  return res.status(401).json({ error: '인증 실패' });
+}
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
