@@ -563,6 +563,288 @@ const KUKMIN_EMPLOYMENT = {
   applyUrl:'https://www.work24.go.kr/ua/z/z/1300/selectEmssRqutIntro.do',
 };
 
+// ─── 이달의 행사·할인 정적 데이터 ────────────────────────────────────
+const MONTHLY_EVENTS=[
+  {
+    id:'event-culture-wednesday',
+    eventType:'culture-day',
+    categoryIcon:'🎨', category:'문화/할인',
+    badge:'매주 수요일', badgeColor:'#2563eb', badgeBg:'#eff6ff',
+    title:'문화가 있는 날',
+    institution:'문화체육관광부',
+    amount:'영화 7,000원 · 국공립 박물관·미술관 무료/할인',
+    scope:'전국',
+    museums:[
+      {name:'국립중앙박물관',loc:'서울 용산',benefit:'상설전시 무료'},
+      {name:'국립현대미술관 서울관',loc:'서울 종로',benefit:'무료'},
+      {name:'국립현대미술관 덕수궁관',loc:'서울 중구',benefit:'무료'},
+      {name:'국립현대미술관 과천관',loc:'경기 과천',benefit:'무료'},
+      {name:'국립민속박물관',loc:'서울 종로',benefit:'무료'},
+      {name:'국립고궁박물관',loc:'서울 종로',benefit:'무료'},
+      {name:'대한민국역사박물관',loc:'서울 종로',benefit:'무료'},
+      {name:'서울역사박물관',loc:'서울 종로',benefit:'무료'},
+      {name:'전쟁기념관',loc:'서울 용산',benefit:'상설전시 무료'},
+      {name:'서울시립미술관',loc:'서울 중구',benefit:'무료 (야간 포함)'},
+      {name:'국립과천과학관',loc:'경기 과천',benefit:'상설전시 50% 할인'},
+      {name:'국립해양박물관',loc:'부산 영도',benefit:'무료'},
+      {name:'국립대구박물관',loc:'대구 수성',benefit:'무료'},
+      {name:'국립광주박물관',loc:'광주 북구',benefit:'무료'},
+      {name:'국립경주박물관',loc:'경북 경주',benefit:'무료'},
+      {name:'국립제주박물관',loc:'제주 용담',benefit:'무료'},
+    ],
+    cinemas:[
+      {name:'CGV',price:'7,000원',note:'2D 일반관 (IMAX·4DX·ScreenX 등 특별관 제외)'},
+      {name:'롯데시네마',price:'7,000원',note:'2D 일반관 (특별관 제외)'},
+      {name:'메가박스',price:'7,000원',note:'2D 일반관 (특별관 제외)'},
+    ],
+    applyUrl:'https://www.culture.go.kr/wday/',
+  },
+  {
+    id:'event-local-performance',
+    eventType:'local-performance',
+    categoryIcon:'🎭', category:'문화/공연',
+    badge:'4월 행사', badgeColor:'#059669', badgeBg:'#ecfdf5',
+    title:'지자체 무료 문화 공연',
+    institution:'각 지방자치단체',
+    amount:'무료 입장',
+    scope:'전국',
+    performances:[
+      {city:'서울',name:'광화문 광장 열린 공연',desc:'서울시 주최 야외 무료 공연, 주말 및 행사 기간 상시 운영'},
+      {city:'서울',name:'서울돈화문국악당 기획공연',desc:'국악 특별 공연, 월 1회 무료 공개 공연 (사전 예약)'},
+      {city:'서울',name:'세종문화회관 시민 공연',desc:'클래식·국악 저가 시민 공연, 1만원 이하 다수'},
+      {city:'부산',name:'부산시민회관 무료 공연',desc:'매월 시민 대상 무료 음악·공연 프로그램 운영'},
+      {city:'대구',name:'대구오페라하우스 공개 리허설',desc:'공개 리허설 무료 관람 (사전 신청)'},
+      {city:'광주',name:'국립아시아문화전당(ACC)',desc:'무료 공연·전시 상시 운영, 어린이문화원 무료'},
+      {city:'인천',name:'인천문화예술회관',desc:'인천시 기획 무료 공연, 시민 초청 행사'},
+      {city:'경기',name:'경기아트센터',desc:'온라인 무료 스트리밍 공연, 현장 저가 공연'},
+      {city:'대전',name:'대전문화재단 무료 공연',desc:'으능정이 거리 야외 공연, 대전시민 무료'},
+    ],
+    applyUrl:'https://www.culture.go.kr/',
+  },
+  {
+    id:'event-festival-jinhae',
+    eventType:'festival',
+    categoryIcon:'🌸', category:'축제',
+    badge:'4월 축제', badgeColor:'#db2777', badgeBg:'#fdf2f8',
+    title:'진해 군항제 (벚꽃)',
+    institution:'창원시',
+    amount:'무료 입장',
+    scope:'경상남도 창원',
+    period:'4월 초 (통상 4/1~4/10)',
+    highlight:'국내 최대 벚꽃 축제 · 경화역·여좌천·안민도로 일대 360만 그루',
+    admission:'무료',
+    tips:'주말 극혼잡 예상, 평일 방문 권장. 진해역·창원역에서 셔틀버스 운행.',
+    applyUrl:'https://www.changwon.go.kr',
+  },
+  {
+    id:'event-festival-yeouido',
+    eventType:'festival',
+    categoryIcon:'🌸', category:'축제',
+    badge:'4월 축제', badgeColor:'#db2777', badgeBg:'#fdf2f8',
+    title:'여의도 봄꽃축제',
+    institution:'서울시 영등포구',
+    amount:'무료 입장',
+    scope:'서울 영등포',
+    period:'4월 초~중순 (통상 4/5~4/14)',
+    highlight:'한강 윤중로 벚꽃길 6km · 야간 조명 이벤트 · 푸드트럭 마켓',
+    admission:'무료',
+    tips:'지하철 5호선 여의나루역 하차. 주차 불가, 대중교통 이용 권장.',
+    applyUrl:'https://www.ydp.go.kr',
+  },
+  {
+    id:'event-festival-icheon',
+    eventType:'festival',
+    categoryIcon:'🏺', category:'축제',
+    badge:'4월 축제', badgeColor:'#db2777', badgeBg:'#fdf2f8',
+    title:'이천 도자기 축제',
+    institution:'이천시',
+    amount:'입장료 성인 5,000원 / 청소년 3,000원',
+    scope:'경기 이천',
+    period:'4/19~5/11 (예정)',
+    highlight:'도자기 체험·구매, 전통 도예 시연, 가마 불 지피기 체험',
+    admission:'성인 5,000원 / 청소년 3,000원 / 어린이 무료',
+    tips:'도자기 만들기 체험 사전 예약 권장. 주차장 무료.',
+    applyUrl:'https://www.ceramic.or.kr',
+  },
+  {
+    id:'event-festival-goyang',
+    eventType:'festival',
+    categoryIcon:'🌼', category:'축제',
+    badge:'4월 축제', badgeColor:'#db2777', badgeBg:'#fdf2f8',
+    title:'고양 국제꽃박람회',
+    institution:'고양시',
+    amount:'성인 12,000원 / 청소년 8,000원 (사전 예매 할인 있음)',
+    scope:'경기 고양',
+    period:'4월 말~5월 초 (예정)',
+    highlight:'100만 송이 꽃 전시 · 대형 플라워 쇼 · 야간 경관',
+    admission:'성인 12,000원 / 청소년 8,000원 / 어린이 6,000원',
+    tips:'일산호수공원 일대. 사전 온라인 예매 시 최대 30% 할인.',
+    applyUrl:'https://www.kintex.com',
+  },
+];
+
+// ─── EventDetailModal ──────────────────────────────────────────────
+function EventDetailModal({ev,onClose}){
+  const sheetStyle={position:'absolute',bottom:0,left:0,right:0,maxHeight:'90vh',background:'#fff',borderRadius:'28px 28px 0 0',display:'flex',flexDirection:'column'};
+  const headerStyle={flexShrink:0,padding:'16px 20px',borderBottom:'1px solid #f3f4f6'};
+  const scrollStyle={flex:1,overflowY:'auto',padding:'20px'};
+  const btnAreaStyle={flexShrink:0,display:'flex',gap:8,padding:'12px 20px',paddingBottom:'calc(12px + env(safe-area-inset-bottom,0px))'};
+  const secTitle=(icon,text,color='#111827')=>(
+    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+      <div style={{width:4,height:16,background:color,borderRadius:2}}/>
+      <h3 style={{fontSize:15,fontWeight:700,color:'#111827',margin:0}}>{icon} {text}</h3>
+    </div>
+  );
+
+  return(
+    <div style={{position:'fixed',inset:0,zIndex:1000}}>
+      <div onClick={onClose} style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)'}}/>
+      <div style={sheetStyle}>
+        {/* 헤더 */}
+        <div style={headerStyle}>
+          <div style={{width:36,height:4,borderRadius:2,background:'#d1d5db',margin:'0 auto 14px'}}/>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+            <div style={{flex:1,paddingRight:12}}>
+              <div style={{display:'flex',gap:6,marginBottom:8,flexWrap:'wrap'}}>
+                <span style={{fontSize:11,fontWeight:700,color:ev.badgeColor,background:ev.badgeBg,padding:'3px 10px',borderRadius:20}}>{ev.badge}</span>
+                <span style={{fontSize:11,fontWeight:700,color:'#374151',background:'#f3f4f6',padding:'3px 10px',borderRadius:20}}>{ev.scope}</span>
+              </div>
+              <h2 style={{fontSize:18,fontWeight:800,color:'#111827',lineHeight:1.3,margin:0}}>{ev.title}</h2>
+              <p style={{fontSize:13,color:'#6b7280',margin:'4px 0 0'}}>{ev.institution}</p>
+            </div>
+            <button onClick={onClose} style={{background:'#f3f4f6',border:'none',borderRadius:'50%',width:34,height:34,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0,fontFamily:'inherit'}}>✕</button>
+          </div>
+        </div>
+
+        {/* 스크롤 영역 */}
+        <div style={scrollStyle}>
+          {ev.eventType==='culture-day'&&(<>
+            {/* 영화관 */}
+            {secTitle('🎬','영화관 할인 (7,000원)','#2563eb')}
+            <div style={{background:'#eff6ff',borderRadius:14,padding:'14px',marginBottom:20}}>
+              <p style={{fontSize:13,color:'#1e40af',lineHeight:1.65,margin:'0 0 12px',fontWeight:600}}>매주 수요일, 2D 일반관 7,000원 관람 가능 (특별관 제외)</p>
+              {ev.cinemas.map(c=>(
+                <div key={c.name} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',padding:'10px 0',borderBottom:'1px solid #bfdbfe'}}>
+                  <div>
+                    <div style={{fontSize:14,fontWeight:700,color:'#1e3a8a'}}>{c.name}</div>
+                    <div style={{fontSize:12,color:'#3b82f6',marginTop:2}}>{c.note}</div>
+                  </div>
+                  <span style={{fontSize:15,fontWeight:800,color:'#1e40af',flexShrink:0,marginLeft:8}}>{c.price}</span>
+                </div>
+              ))}
+            </div>
+            {/* 박물관·미술관 */}
+            {secTitle('🏛️','국공립 박물관·미술관 무료/할인','#059669')}
+            <div style={{background:'#f9fafb',borderRadius:14,padding:'4px 16px',marginBottom:20}}>
+              {ev.museums.map((m,i)=>(
+                <div key={m.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'11px 0',borderBottom:i<ev.museums.length-1?'1px solid #f0f0f0':'none'}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:700,color:'#111827'}}>{m.name}</div>
+                    <div style={{fontSize:12,color:'#9ca3af'}}>{m.loc}</div>
+                  </div>
+                  <span style={{fontSize:12,fontWeight:700,color:'#059669',background:'#dcfce7',padding:'3px 10px',borderRadius:20,flexShrink:0,marginLeft:8}}>{m.benefit}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{background:'#fef9c3',borderRadius:12,padding:'12px 14px',border:'1px solid #fde68a'}}>
+              <p style={{fontSize:12,color:'#92400e',lineHeight:1.65,margin:0}}>⚠️ 일부 특별전·기획전은 별도 입장료가 있을 수 있습니다. 방문 전 해당 기관 홈페이지에서 확인하세요.</p>
+            </div>
+          </>)}
+
+          {ev.eventType==='local-performance'&&(<>
+            <p style={{fontSize:14,color:'#4b5563',lineHeight:1.75,margin:'0 0 20px',padding:'14px',background:'#f0fdf4',borderRadius:12}}>전국 각 지자체에서 운영하는 무료·저가 문화 공연 목록입니다. 사전 예약이 필요한 경우가 많으니 각 기관 홈페이지를 꼭 확인하세요.</p>
+            {secTitle('🎭','지역별 무료 공연','#7c3aed')}
+            <div style={{background:'#f9fafb',borderRadius:14,padding:'4px 16px',marginBottom:16}}>
+              {ev.performances.map((p,i)=>(
+                <div key={p.name} style={{padding:'12px 0',borderBottom:i<ev.performances.length-1?'1px solid #f0f0f0':'none'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
+                    <span style={{fontSize:11,fontWeight:700,color:'#7c3aed',background:'#f5f3ff',padding:'2px 8px',borderRadius:20}}>{p.city}</span>
+                    <span style={{fontSize:13,fontWeight:700,color:'#111827'}}>{p.name}</span>
+                  </div>
+                  <p style={{fontSize:13,color:'#4b5563',margin:0,lineHeight:1.55}}>{p.desc}</p>
+                </div>
+              ))}
+            </div>
+            <div style={{background:'#fef9c3',borderRadius:12,padding:'12px 14px',border:'1px solid #fde68a'}}>
+              <p style={{fontSize:12,color:'#92400e',lineHeight:1.65,margin:0}}>💡 각 지자체 문화재단 또는 기관 홈페이지에서 월별 공연 일정을 확인하세요. 사전 예약 필수인 경우가 많습니다.</p>
+            </div>
+          </>)}
+
+          {ev.eventType==='festival'&&(<>
+            <div style={{background:'linear-gradient(135deg,#fdf2f8,#fce7f3)',borderRadius:14,padding:'16px',marginBottom:20,display:'flex',gap:12,alignItems:'flex-start'}}>
+              <span style={{fontSize:28,flexShrink:0}}>{ev.categoryIcon}</span>
+              <div>
+                <div style={{fontSize:13,fontWeight:800,color:'#be185d',marginBottom:4}}>{ev.period}</div>
+                <p style={{fontSize:13,color:'#9d174d',lineHeight:1.65,margin:0}}>{ev.highlight}</p>
+              </div>
+            </div>
+            {secTitle('🎟️','입장 정보','#db2777')}
+            <div style={{background:'#f9fafb',borderRadius:14,padding:'4px 16px',marginBottom:20}}>
+              {[
+                {l:'📅 기간',v:ev.period},
+                {l:'📍 장소',v:ev.scope},
+                {l:'🏛️ 주관',v:ev.institution},
+                {l:'💰 입장료',v:ev.admission},
+              ].map(({l,v})=>(
+                <div key={l} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',padding:'12px 0',borderBottom:'1px solid #f0f0f0'}}>
+                  <span style={{fontSize:13,color:'#6b7280',flexShrink:0,marginRight:8}}>{l}</span>
+                  <span style={{fontSize:13,fontWeight:600,color:'#111827',textAlign:'right',flex:1}}>{v}</span>
+                </div>
+              ))}
+            </div>
+            {ev.tips&&(<>
+              {secTitle('💡','방문 꿀팁','#f59e0b')}
+              <div style={{background:'#fffbeb',borderRadius:12,padding:'14px',border:'1px solid #fde68a',marginBottom:16}}>
+                <p style={{fontSize:13,color:'#92400e',lineHeight:1.7,margin:0}}>{ev.tips}</p>
+              </div>
+            </>)}
+          </>)}
+        </div>
+
+        {/* 버튼 */}
+        <div style={btnAreaStyle}>
+          <button onClick={onClose} style={{flex:1,padding:'14px',borderRadius:14,background:'#f3f4f6',color:'#374151',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit'}}>닫기</button>
+          <a href={ev.applyUrl} target="_blank" rel="noreferrer" style={{flex:2,padding:'14px',borderRadius:14,background:'#2563eb',color:'#fff',fontSize:14,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',gap:6,boxShadow:'0 4px 14px rgba(37,99,235,0.3)'}}>자세히 보기 →</a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── EventCard ────────────────────────────────────────────────────
+function EventCard({ev}){
+  const[open,setOpen]=useState(false);
+  return(<>
+    <div style={{background:'#fff',borderRadius:24,padding:'20px',marginBottom:12,boxShadow:'0 1px 4px rgba(0,0,0,0.04)',border:'1px solid #f3f4f6'}}>
+      <div style={{display:'flex',alignItems:'flex-start',gap:14,marginBottom:14}}>
+        <div style={{width:48,height:48,borderRadius:18,background:ev.badgeBg||'#f3f4f6',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,flexShrink:0}}>
+          {ev.categoryIcon}
+        </div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:'flex',gap:5,marginBottom:6,flexWrap:'wrap'}}>
+            <span style={{fontSize:10,fontWeight:700,color:ev.badgeColor,background:ev.badgeBg,padding:'2px 8px',borderRadius:6,border:`1px solid ${ev.badgeColor}33`}}>{ev.badge}</span>
+            <span style={{fontSize:10,fontWeight:700,color:'#374151',background:'#f3f4f6',padding:'2px 8px',borderRadius:6}}>{ev.scope}</span>
+          </div>
+          <h3 style={{fontSize:15,fontWeight:700,color:'#111827',lineHeight:1.35,margin:0}}>{ev.title}</h3>
+          <p style={{fontSize:12,color:'#6b7280',margin:'3px 0 0'}}>{ev.institution}</p>
+        </div>
+      </div>
+      <div style={{background:'#f9fafb',borderRadius:14,padding:'12px 14px',marginBottom:12}}>
+        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:8}}>
+          <span style={{fontSize:13,color:'#6b7280',fontWeight:500,flexShrink:0,whiteSpace:'nowrap'}}>혜택 내용</span>
+          <span style={{fontSize:13,fontWeight:700,color:'#111827',textAlign:'right',wordBreak:'keep-all',overflowWrap:'break-word'}}>{ev.amount}</span>
+        </div>
+        {ev.period&&(<div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:8}}>
+          <span style={{fontSize:13,color:'#6b7280',fontWeight:500}}>기간</span>
+          <span style={{fontSize:13,fontWeight:600,color:'#374151'}}>{ev.period}</span>
+        </div>)}
+      </div>
+      <button onClick={()=>setOpen(true)} style={{width:'100%',padding:'11px 0',borderRadius:12,background:'#f0f9ff',color:'#2563eb',fontSize:14,fontWeight:700,border:'1px solid #bfdbfe',cursor:'pointer',fontFamily:'inherit'}}>상세 보기</button>
+    </div>
+    {open&&<EventDetailModal ev={ev} onClose={()=>setOpen(false)}/>}
+  </>);
+}
+
 // ─── BCard 카테고리 아이콘 색상 ─────────────────────────────────────
 const CAT_ICON_STYLE={'주거':{bg:'#f0fdf4',color:'#16a34a'},'의료':{bg:'#fef2f2',color:'#dc2626'},'금융':{bg:'#eff6ff',color:'#2563eb'},'교육':{bg:'#f0fdf4',color:'#16a34a'},'고용':{bg:'#f5f3ff',color:'#7c3aed'},'보육':{bg:'#fdf2f8',color:'#db2777'},'노인':{bg:'#e0f2fe',color:'#0284c7'},'장애':{bg:'#ecfccb',color:'#65a30d'},'청년':{bg:'#f5f3ff',color:'#7c3aed'},'취업/직장':{bg:'#eff6ff',color:'#2563eb'},'생활/교통':{bg:'#fff7ed',color:'#ea580c'},'기타':{bg:'#f9fafb',color:'#6b7280'}};
 function calcTotalYearly(benefits){
@@ -1507,6 +1789,16 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
           <div style={{fontSize:13,color:'#7c3aed',fontWeight:600}}>숨겨진 혜택을 발굴하고 있습니다...</div>
         </div>
       )}
+
+      {/* ── 이달의 행사·할인 ── */}
+      <div style={{marginTop:24}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}>
+          <div style={{width:4,height:18,background:'linear-gradient(to bottom,#f59e0b,#db2777)',borderRadius:2}}/>
+          <span style={{fontSize:15,fontWeight:800,color:'#111827'}}>🎉 이달의 행사 및 할인</span>
+          <span style={{fontSize:11,fontWeight:700,color:'#db2777',background:'#fdf2f8',padding:'2px 8px',borderRadius:20,border:'1px solid #fbcfe8'}}>4월</span>
+        </div>
+        {MONTHLY_EVENTS.map(ev=><EventCard key={ev.id} ev={ev}/>)}
+      </div>
 
       {/* ── 유의사항 ── */}
       <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:12,padding:'14px 16px',marginTop:16,fontSize:12.5,color:C.text2,lineHeight:1.8}}>
