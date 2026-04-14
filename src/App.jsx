@@ -130,8 +130,10 @@ const IS_DEV = import.meta.env.DEV;
 const API_URL = IS_DEV ? '/api/claude' : 'https://api.anthropic.com/v1/messages';
 const WELFARE_BASE = IS_DEV ? '/api/welfare' : `${import.meta.env.VITE_API_BASE || ''}/api/welfare`;
 const GOV24_BASE   = IS_DEV ? '/api/gov24'   : `${import.meta.env.VITE_API_BASE || ''}/api/gov24`;
-const GG_BASE      = IS_DEV ? '/api/gg'      : `${import.meta.env.VITE_API_BASE || ''}/api/gg`;
-const SEOUL_BASE   = IS_DEV ? '/api/seoul'   : `${import.meta.env.VITE_API_BASE || ''}/api/seoul`;
+const GG_BASE      = IS_DEV ? '/api/gg'           : `${import.meta.env.VITE_API_BASE || ''}/api/gg`;
+const SEOUL_BASE   = IS_DEV ? '/api/seoul'        : `${import.meta.env.VITE_API_BASE || ''}/api/seoul`;
+const YOUTH_BASE         = IS_DEV ? '/api/youth-policy'  : `${import.meta.env.VITE_API_BASE || ''}/api/youth-policy`;
+const YOUTH_CONTENT_BASE = IS_DEV ? '/api/youth-content' : `${import.meta.env.VITE_API_BASE || ''}/api/youth-content`;
 
 async function fetchBokjiroData({age, extras}) {
   try {
@@ -182,6 +184,32 @@ async function fetchGGData({address, extras}) {
     if (!resp.ok) return [];
     const data = await resp.json();
     return data.benefits || [];
+  } catch {
+    return [];
+  }
+}
+
+async function fetchYouthPolicyData({age, extras, address}) {
+  try {
+    const params = new URLSearchParams({ age: String(age), address });
+    if (extras && extras.length) params.set('extras', extras.join(','));
+    const resp = await fetch(`${YOUTH_BASE}?${params.toString()}`);
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    return data.benefits || [];
+  } catch {
+    return [];
+  }
+}
+
+async function fetchYouthContentData({age, extras, address}) {
+  try {
+    const params = new URLSearchParams({ age: String(age), address });
+    if (extras && extras.length) params.set('extras', extras.join(','));
+    const resp = await fetch(`${YOUTH_CONTENT_BASE}?${params.toString()}`);
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    return data.contents || [];
   } catch {
     return [];
   }
@@ -1449,7 +1477,7 @@ return(
 
 // ─── AnalyzeTab ───────────────────────────────────────────────────
 // ─── 혜택 분석 프롬프트 빌더 ─────────────────────────────────────
-function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='full',bokjiroData=null,gov24Data=null,ggData=null,seoulData=null}){
+function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='full',bokjiroData=null,gov24Data=null,ggData=null,seoulData=null,youthData=null,youthContentData=null}){
   const isYouth = extra.includes('청년');
   const isSME   = extra.includes('자영업자/소상공인') || extra.includes('소상공인') || job.includes('자영업');
   const isSeoul = address.includes('서울');
@@ -1491,10 +1519,16 @@ ${YOUTH_SECTION}${SME_SECTION}
   const SEOUL_SECTION = seoulData?.length > 0
     ? `\n[서울API] ${seoulData.slice(0,10).map(b=>`${b.title}(${b.status})`).join(' / ')}\n`
     : '';
+  const YOUTH_SECTION_API = youthData?.length > 0
+    ? `\n[온통청년정책API] ${youthData.slice(0,15).map(b=>`${b.title}${b.support?' ('+b.support.slice(0,40)+')':''}`).join(' / ')}\n`
+    : '';
+  const YOUTH_CONTENT_SECTION = youthContentData?.length > 0
+    ? `\n[온통청년콘텐츠API] ${youthContentData.slice(0,10).map(c=>`${c.title}${c.type?' ['+c.type+']':''}`).join(' / ')}\n`
+    : '';
 
   return `대한민국 복지·혜택 전문가. 아래 사람의 맞춤 혜택을 분석하세요.
 [정보] ${age}세/${gender}/${job}/${income}/${address}/추가:${extra}/${today}
-${BOKJIRO_SECTION}${GOV24_SECTION}${GG_SECTION}${SEOUL_SECTION}${YOUTH_SECTION}${SME_SECTION}
+${BOKJIRO_SECTION}${GOV24_SECTION}${GG_SECTION}${SEOUL_SECTION}${YOUTH_SECTION_API}${YOUTH_CONTENT_SECTION}${YOUTH_SECTION}${SME_SECTION}
 출처별 필수 포함: 정부복지(복지로·정부24·고용24·건강보험·국민연금), 지자체(${address} 특화사업${isSeoul?'·서울청년몽땅·서울복지포털·서울탄생육아':''}), 금융(주택도시기금·서민금융·청년희망적금), 에너지바우처·통신감면, 세금환급(근로장려금·자녀장려금), 주거(LH·SH·버팀목전세), 숨겨진혜택 3개이상(isHidden:true)
 순수 JSON만 (코드블록 없이):
 {"summary":{"totalBenefits":숫자,"estimatedMonthlyBenefit":"금액범위","topPriority":"혜택명","hiddenCount":숫자},"benefits":[${SCHEMA}]}
@@ -1559,14 +1593,16 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
         return; // Claude 호출 생략
       }
 
-      // ── 2단계: DB 비어있음 → 실시간 정부 API + Claude 분석 (폴백)
-      const [bokjiroData,gov24Data,ggData,seoulData]=await Promise.all([
+      // ── 2단계: DB 비어있음 → 실시간 정부 API + 온통청년 + Claude 분석 (폴백)
+      const [bokjiroData,gov24Data,ggData,seoulData,youthData,youthContentData]=await Promise.all([
         fetchBokjiroData({age,extras}),
         fetchGov24Data({age,extras,job,income}),
         fetchGGData({address,extras}),
         fetchSeoulData({age,address,extras}),
+        fetchYouthPolicyData({age,extras,address}),
+        fetchYouthContentData({age,extras,address}),
       ]);
-      const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full',bokjiroData,gov24Data,ggData,seoulData}),4500);
+      const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full',bokjiroData,gov24Data,ggData,seoulData,youthData,youthContentData}),4500);
       const parsed=repairJSON(raw);
       if(parsed?.benefits){
         parsed.benefits=parsed.benefits
