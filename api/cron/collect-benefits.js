@@ -117,9 +117,10 @@ if (cronSecret && !isAuthorized) {
   let deleted = 0;
   try {
     deleted = await deleteExpiredBenefits();
-    console.log(`[cron] 만료 혜택 ${deleted}건 삭제`);
+    console.log(`[cron] ✅ 만료 혜택 ${deleted}건 삭제`);
   } catch (e) {
-    console.error('[cron] 만료 데이터 삭제 실패:', e.message);
+    // deleteExpiredBenefits는 내부에서도 catch하므로 여기까지 오는 경우는 거의 없음
+    console.error(`[cron] ⚠️  만료 데이터 삭제 중 예외 (수집은 계속 진행): ${e?.message ?? e}`);
   }
 
   // ── 2. 지역 × 키워드 조합으로 순차 수집
@@ -143,8 +144,9 @@ if (cronSecret && !isAuthorized) {
           report.push({ region: region.name, query, saved, status: 'ok' });
         }
       } catch (e) {
-        console.error(`[cron] 수집 실패 ("${query}"):`, e.message);
-        report.push({ region: region.name, query, saved: 0, status: 'error', error: e.message });
+        const errMsg = e?.message ?? String(e);
+        console.error(`[cron] ❌ 수집 실패 ("${query}"): ${errMsg}`);
+        report.push({ region: region.name, query, saved: 0, status: 'error', error: errMsg });
       }
 
       // 다음 API 호출 전 딜레이

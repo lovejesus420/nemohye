@@ -34,7 +34,11 @@ export default async function handler(req, res) {
       benefits,
     });
   } catch (e) {
-    console.error('[api/benefits] Postgres 조회 실패:', e.message);
-    return res.status(500).json({ error: 'DB 조회 중 오류가 발생했습니다.', detail: e.message });
+    console.error(
+      `[api/benefits] ❌ DB 조회 실패\n` +
+      `  region=${region} group=${group} limit=${limitNum}\n` +
+      `  에러: ${e?.message ?? e}`
+    );
+    return res.status(500).json({ error: 'DB 조회 중 오류가 발생했습니다.', detail: e?.message });
   }
 }
