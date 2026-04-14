@@ -35,11 +35,26 @@ const PRIORITY_REGIONS = [
   // { name: '광주',  dbRegion: '광주광역시',  group: '전체' },
 ];
 
-// 지역명과 조합할 검색 키워드 세트
-const KEYWORD_SETS = [
-  { keyword: '지원금 혜택',     site: 'site:blog.naver.com' },
-  { keyword: '생활 혜택 할인',  site: 'site:cafe.naver.com' },
-  { keyword: '복지 지원 신청',  site: '' }, // 일반 검색 (공식 사이트 포함)
+// ─────────────────────────────────────────────────────────────────────────────
+// 쿼리 패턴 세트 — pattern 값에 따라 접두어가 달라집니다.
+//   'year'     → "2026년 [지역] [키워드]"    (연도 고정, 월 없음 → 범위 확대)
+//   'latest'   → "최신 [지역] [키워드]"       (날짜 무관, 최신 후기 수집)
+//   'official' → "[지역] [키워드]"            (시청·구청 공고 등 공식 출처)
+// ─────────────────────────────────────────────────────────────────────────────
+const QUERY_PATTERNS = [
+  // ── 연도 기반 (blog / cafe)
+  { pattern: 'year',     keyword: '지원금 혜택',          site: 'site:blog.naver.com' },
+  { pattern: 'year',     keyword: '복지 혜택 신청 방법',   site: 'site:blog.naver.com' },
+  { pattern: 'year',     keyword: '생활 혜택 할인',        site: 'site:cafe.naver.com' },
+  { pattern: 'year',     keyword: '지원금 후기',           site: 'site:tistory.com'    },
+
+  // ── 최신 기반 (날짜 제약 없이 더 많은 결과 수집)
+  { pattern: 'latest',   keyword: '복지 혜택',             site: 'site:blog.naver.com' },
+  { pattern: 'latest',   keyword: '지원금 신청 후기',       site: ''                    },
+
+  // ── 공식 공고 (시청·구청·정부 사이트)
+  { pattern: 'official', keyword: '시청 공고 지원금',       site: ''                    },
+  { pattern: 'official', keyword: '구청 복지 혜택 신청',    site: ''                    },
 ];
 
 // API 호출 사이 딜레이 (ms) — Serper / Gemini 레이트 리밋 방지
@@ -51,16 +66,28 @@ const INTER_REQUEST_DELAY_MS = 1500;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * 지역명 + 키워드 세트로 검색 쿼리를 조립합니다.
- * @param {string} regionName  - 예: "파주"
- * @param {{ keyword: string, site: string }} kwSet
+ * 지역명 + 쿼리 패턴으로 검색 쿼리를 조립합니다.
+ *
+ * @param {string} regionName
+ * @param {{ pattern: string, keyword: string, site: string }} pat
  * @returns {string}
  */
-function buildQuery(regionName, kwSet) {
-  const year  = new Date().getFullYear();
-  const month = new Date().getMonth() + 1;
-  const base  = `${year}년 ${month}월 ${regionName} ${kwSet.keyword}`;
-  return kwSet.site ? `${base} ${kwSet.site}` : base;
+function buildQuery(regionName, pat) {
+  const year = new Date().getFullYear();
+
+  let base;
+  if (pat.pattern === 'latest') {
+    // "최신 서울 복지 혜택" — 날짜 무관, 최근 후기 위주
+    base = `최신 ${regionName} ${pat.keyword}`;
+  } else if (pat.pattern === 'official') {
+    // "서울 시청 공고 지원금" — 공식 출처 위주
+    base = `${regionName} ${pat.keyword}`;
+  } else {
+    // 'year' — "2026년 서울 지원금 혜택" (월 제거로 검색 범위 확대)
+    base = `${year}년 ${regionName} ${pat.keyword}`;
+  }
+
+  return pat.site ? `${base} ${pat.site}` : base;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -98,8 +125,8 @@ if (cronSecret && !isAuthorized) {
   // ── 2. 지역 × 키워드 조합으로 순차 수집
   //    순차(for-of) 실행: 병렬로 돌리면 Serper/Gemini 레이트 리밋에 걸릴 수 있음
   for (const region of PRIORITY_REGIONS) {
-    for (const kwSet of KEYWORD_SETS) {
-      const query = buildQuery(region.name, kwSet);
+    for (const pat of QUERY_PATTERNS) {
+      const query = buildQuery(region.name, pat);
 
       try {
         const benefits = await exploreBenefits(query);
@@ -132,7 +159,7 @@ if (cronSecret && !isAuthorized) {
     ok:          true,
     message:     `${totalSaved}건 수집 완료 (${elapsed}s)`,
     deleted,
-    totalTargets: PRIORITY_REGIONS.length * KEYWORD_SETS.length,
+    totalTargets: PRIORITY_REGIONS.length * QUERY_PATTERNS.length,
     report,
     collectedAt: new Date().toISOString(),
   });
