@@ -1505,6 +1505,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
   const[age,setAge]=useState('');const[gender,setGender]=useState('');const[job,setJob]=useState('');const[income,setIncome]=useState('');const[address,setAddress]=useState('');const[extras,setExtras]=useState([]);
   const[loading,setLoading]=useState(false);const[step,setStep]=useState(0);const[results,setResults]=useState(null);const[err,setErr]=useState('');const[savedIds,setSavedIds]=useState(new Set());const rRef=useRef();
   const[analyzedAt,setAnalyzedAt]=useState(null);
+  const[dbCollectedAt,setDbCollectedAt]=useState(null);
   const[hiddenLoading,setHiddenLoading]=useState(false);const[hiddenResults,setHiddenResults]=useState(null);
   const[filterSources,setFilterSources]=useState(new Set());
   const toggleFilter=s=>setFilterSources(prev=>{const n=new Set(prev);n.has(s)?n.delete(s):n.add(s);return n;});
@@ -1522,9 +1523,43 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
 
   const analyze=async()=>{
     if(!age||!gender||!job||!income||!address){alert('모든 필수 항목(*)을 입력해 주세요.');return;}
-    setLoading(true);setResults(null);setErr('');setStep(0);setHiddenResults(null);setAnalyzedAt(null);onResultsReady?.(null);
+    setLoading(true);setResults(null);setErr('');setStep(0);setHiddenResults(null);setAnalyzedAt(null);setDbCollectedAt(null);onResultsReady?.(null);
     try{
-      // 복지로 + 정부24 + 경기도 + 서울시 병렬 조회
+      const region=Object.keys(REGIONS).find(r=>address.startsWith(r))||'전국';
+      const group=extras.find(e=>e.includes('청년'))?'청년':extras.find(e=>e.includes('임산부'))?'임산부':'전체';
+      const apiBase=import.meta.env.VITE_API_BASE||'';
+
+      // ── 1단계: DB 우선 조회 (24시간 캐시)
+      // Cron이 미리 수집해 둔 데이터가 있으면 Claude/정부 API 호출을 완전히 생략합니다.
+      const dbResp=await fetch(
+        `${apiBase}/api/benefits?region=${encodeURIComponent(region)}&group=${encodeURIComponent(group)}`
+      ).then(r=>r.ok?r.json():null).catch(()=>null);
+
+      if(dbResp?.benefits?.length>0){
+        // DB에 신선한 데이터 있음 → 즉시 결과 구성
+        const dbBenefits=dbResp.benefits.map((b,i)=>({
+          id:`db-scraped-${Date.now()}-${i}`,
+          source:b.카테고리==='지자체'?'지자체/공공':b.카테고리==='기업/제휴'?'기업/제휴':'생활/꿀팁',
+          sourceIcon:b.카테고리==='지자체'?'🏛️':b.카테고리==='기업/제휴'?'🏢':'💡',
+          category:b.카테고리||'생활',categoryIcon:'🔍',
+          scope:'전국',isUrgent:false,isHidden:false,isComingSoon:false,
+          title:b.혜택명||b.title||'',institution:'',
+          amount:b.지원내용||b.amount||'',deadline:b.마감일||'연중',
+          requiredDocuments:[],howToApply:b.신청방법||'',applyUrl:b.출처||'',
+        }));
+        // 항상 포함할 정적 카드 주입
+        let benefits=[...dbBenefits,KUKMIN_EMPLOYMENT];
+        if(extras.some(e=>e.includes('청년'))) benefits=[YOUTH_FUTURE_SAVINGS,...benefits];
+        if(parseInt(age)>=19) benefits=[...benefits,KPASS_BENEFIT];
+        const parsed={benefits,summary:{}};
+        setResults(parsed);
+        setAnalyzedAt(new Date());
+        if(dbResp.collectedAt) setDbCollectedAt(new Date(dbResp.collectedAt));
+        onResultsReady?.(parsed);
+        return; // Claude 호출 생략
+      }
+
+      // ── 2단계: DB 비어있음 → 실시간 정부 API + Claude 분석 (폴백)
       const [bokjiroData,gov24Data,ggData,seoulData]=await Promise.all([
         fetchBokjiroData({age,extras}),
         fetchGov24Data({age,extras,job,income}),
@@ -1533,26 +1568,17 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
       ]);
       const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full',bokjiroData,gov24Data,ggData,seoulData}),4500);
       const parsed=repairJSON(raw);
-      // 후처리: 제목 정규화 + 폐지 혜택 제거 + 출시 예정 혜택 주입
       if(parsed?.benefits){
         parsed.benefits=parsed.benefits
           .filter(b=>!/(청년도약계좌)/i.test(b.title||''))
           .map(b=>{
-            // 국민취업지원제도 → 정확한 정적 데이터로 교체
             if(/(국민\s*취업\s*지원)/i.test(b.title||'')) return KUKMIN_EMPLOYMENT;
             return {...b, title:(b.title||'').replace(/청년\s*월세\s*지원사업/g,'청년 월세 지원')};
           });
-        // 중복 제거 (국민취업지원제도가 여러 번 포함될 경우 대비)
         const seen=new Set();
         parsed.benefits=parsed.benefits.filter(b=>{if(seen.has(b.id))return false;seen.add(b.id);return true;});
-        // 청년 조건 선택 시 청년미래적금 카드 맨 앞에 삽입
-        if(extras.some(e=>e.includes('청년'))){
-          parsed.benefits=[YOUTH_FUTURE_SAVINGS,...parsed.benefits];
-        }
-        // 성인(19세 이상) 조건 시 K-패스 카드 삽입
-        if(parseInt(age)>=19){
-          parsed.benefits=[...parsed.benefits,KPASS_BENEFIT];
-        }
+        if(extras.some(e=>e.includes('청년'))) parsed.benefits=[YOUTH_FUTURE_SAVINGS,...parsed.benefits];
+        if(parseInt(age)>=19) parsed.benefits=[...parsed.benefits,KPASS_BENEFIT];
       }
       setResults(parsed);
       setAnalyzedAt(new Date());
@@ -1708,6 +1734,21 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
     )}
     {err&&<div style={{background:'#FEE2E2',border:'1px solid #FECACA',borderRadius:12,padding:'14px 16px',color:C.err,fontSize:13,marginBottom:16}}><strong>오류:</strong><br/><code style={{fontSize:12,wordBreak:'break-all'}}>{err}</code></div>}
     {results&&(<div ref={rRef}>
+      {/* ── DB 최신 업데이트 안내 배너 ── */}
+      {dbCollectedAt&&(()=>{
+        const d=dbCollectedAt;
+        const label=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+        const hour=d.getHours();
+        const timeLabel=hour<6?'새벽':hour<12?'오전':hour<18?'오후':'저녁';
+        return(
+          <div style={{display:'flex',alignItems:'center',gap:8,background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:12,padding:'10px 14px',marginBottom:12}}>
+            <span style={{fontSize:15}}>✅</span>
+            <span style={{fontSize:12,color:'#166534',fontWeight:600,lineHeight:1.4}}>
+              이 정보는 <strong>{label} {timeLabel}</strong>에 업데이트된 최신 정보입니다
+            </span>
+          </div>
+        );
+      })()}
       {/* ── 총 예상 지원 규모 카드 ── */}
       {(()=>{const total=calcTotalYearly(allBenefits);const monthly=Math.round(total/12);return(
         <div style={{background:'#fff',borderRadius:24,padding:'24px',marginBottom:12,boxShadow:'0 1px 3px rgba(0,0,0,0.04)',border:'1px solid #f3f4f6',textAlign:'center'}}>
