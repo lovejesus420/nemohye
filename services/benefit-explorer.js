@@ -6,11 +6,11 @@ const SERPER_SEARCH_URL = 'https://google.serper.dev/search';
 const SERPER_NEWS_URL   = 'https://google.serper.dev/news';
 const SERPER_API_KEY    = process.env.SERPER_API_KEY;
 
-// Gemini 무료 티어 레이트 리밋 대응
-// - 배치 크기: 한 번에 Gemini에 보낼 검색 결과 수
-// - 배치 간 딜레이: 429 Quota Exceeded 방지
-const GEMINI_BATCH_SIZE      = 7;   // 건 (5~10 권장)
-const GEMINI_BATCH_DELAY_MS  = 10_000; // 10초
+// Gemini 무료 티어 레이트 리밋 + Vercel 300s 타임아웃 대응
+// 패턴 1개 기준 최대 소요: 5건 × 2배치 + 딜레이 8s ≈ 20~30s
+const GEMINI_BATCH_SIZE     = 5;     // 한 번에 Gemini에 보낼 검색 결과 수
+const GEMINI_MAX_BATCHES    = 2;     // 최대 배치 횟수 — 파이프라인 안정 후 3으로 올리세요
+const GEMINI_BATCH_DELAY_MS = 8_000; // 배치 간 딜레이 8초
 
 const DEFAULT_QUERIES = [
   '지자체 생활 혜택 할인 후기',
@@ -143,7 +143,7 @@ export async function exploreBenefits(queries = DEFAULT_QUERIES) {
 
   // 배치 순차 실행 (병렬 금지 — 429 유발)
   const allBenefits = [];
-  for (let i = 0; i < chunks.length; i++) {
+  for (let i = 0; i < chunks.length && i < GEMINI_MAX_BATCHES; i++) {
     const chunk = chunks[i];
     console.log(`[benefit-explorer] 배치 ${i + 1}/${chunks.length} (${chunk.length}건) Gemini 전송`);
 
