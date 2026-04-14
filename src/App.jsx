@@ -1506,7 +1506,8 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
   const[loading,setLoading]=useState(false);const[step,setStep]=useState(0);const[results,setResults]=useState(null);const[err,setErr]=useState('');const[savedIds,setSavedIds]=useState(new Set());const rRef=useRef();
   const[analyzedAt,setAnalyzedAt]=useState(null);
   const[hiddenLoading,setHiddenLoading]=useState(false);const[hiddenResults,setHiddenResults]=useState(null);
-  const[filterSource,setFilterSource]=useState('전체');
+  const[filterSources,setFilterSources]=useState(new Set());
+  const toggleFilter=s=>setFilterSources(prev=>{const n=new Set(prev);n.has(s)?n.delete(s):n.add(s);return n;});
   const loadSavedIds=useCallback(()=>{const ids=new Set(sList(`benefit_item:${user.phone}:`).map(k=>k.split(':').pop()));setSavedIds(ids);},[user.phone]);
   useEffect(()=>{loadSavedIds();},[loadSavedIds]);
   useEffect(()=>{if(!loading)return;let i=0;const t=setInterval(()=>{i=(i+1)%LOADING_STEPS.length;setStep(i);},1800);return()=>clearInterval(t);},[loading]);
@@ -1574,8 +1575,8 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
   const toggleSave=(b)=>{const key=`benefit_item:${user.phone}:${b.id}`;if(savedIds.has(String(b.id))){sDel(key);setSavedIds(p=>{const n=new Set(p);n.delete(String(b.id));return n;});}else{sSet(key,{...b,savedAt:new Date().toISOString(),userPhone:user.phone});setSavedIds(p=>new Set([...p,String(b.id)]));}onSaved();};
 
   const allBenefits=[...(results?.benefits||[]),...(hiddenResults||[])];
-  const sources=['전체',...new Set(allBenefits.map(b=>b.source).filter(Boolean))];
-  const filtered=filterSource==='전체'?allBenefits:allBenefits.filter(b=>b.source===filterSource);
+  const sources=[...new Set(allBenefits.map(b=>b.source).filter(Boolean))];
+  const filtered=filterSources.size===0?allBenefits:allBenefits.filter(b=>filterSources.has(b.source));
   const urgent=filtered.filter(b=>b.isUrgent);
   const hidden=filtered.filter(b=>b.isHidden&&!b.isUrgent);
   const normal=filtered.filter(b=>!b.isUrgent&&!b.isHidden);
@@ -1728,16 +1729,27 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
         </div>
       );})()}
 
-      {/* ── 출처 필터 ── */}
-      {sources.length>1&&(
+      {/* ── 출처 필터 (다중 선택) ── */}
+      {sources.length>0&&(
         <div style={{display:'flex',gap:6,overflowX:'auto',marginBottom:12,paddingBottom:4,scrollbarWidth:'none'}}>
-          {sources.map(s=>(
-            <button key={s} onClick={()=>setFilterSource(s)} style={{
-              flexShrink:0,padding:'6px 12px',borderRadius:20,border:`1.5px solid ${filterSource===s?'#15803d':C.border}`,
-              background:filterSource===s?'#15803d':'#fff',color:filterSource===s?'#fff':C.text2,
+          {/* 전체 버튼 */}
+          <button onClick={()=>setFilterSources(new Set())} style={{
+            flexShrink:0,padding:'6px 12px',borderRadius:20,border:`1.5px solid ${filterSources.size===0?'#15803d':C.border}`,
+            background:filterSources.size===0?'#15803d':'#fff',color:filterSources.size===0?'#fff':C.text2,
+            fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',
+          }}>전체 {filterSources.size===0&&`(${allBenefits.length})`}</button>
+          {sources.map(s=>{const on=filterSources.has(s);return(
+            <button key={s} onClick={()=>toggleFilter(s)} style={{
+              flexShrink:0,padding:'6px 12px',borderRadius:20,border:`1.5px solid ${on?'#15803d':C.border}`,
+              background:on?'#15803d':'#fff',color:on?'#fff':C.text2,
               fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',
-            }}>{s}{filterSource===s&&` (${filtered.length})`}</button>
-          ))}
+            }}>{s}{on&&` ✓`}</button>
+          );})}
+          {filterSources.size>0&&(
+            <span style={{flexShrink:0,padding:'6px 10px',fontSize:12,color:'#9ca3af',alignSelf:'center'}}>
+              {filtered.length}개 표시 중
+            </span>
+          )}
         </div>
       )}
 
