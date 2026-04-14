@@ -512,9 +512,9 @@ const YOUTH_FUTURE_SAVINGS = {
   scope:'전국', isUrgent:false, isHidden:false, isComingSoon:true,
   title:'청년미래적금',
   institution:'금융위원회 · 서민금융진흥원',
-  description:'청년도약계좌의 뒤를 잇는 정부 정책 적금으로 2025년 하반기 출시 예정입니다. 청년이 매월 일정 금액을 납입하면 정부가 기여금을 매칭하고, 이자소득 비과세 혜택을 제공합니다.',
+  description:'청년도약계좌의 뒤를 잇는 정부 정책 적금으로 2026년 하반기 출시 예정입니다. 청년이 매월 일정 금액을 납입하면 정부가 기여금을 매칭하고, 이자소득 비과세 혜택을 제공합니다.',
   amount:'월 최대 50만원 납입 · 정부 기여금 매칭 (예정)',
-  deadline:'2025년 하반기 출시 예정',
+  deadline:'2026년 하반기 출시 예정',
   requiredDocuments:['신분증 (주민등록증 또는 운전면허증)','소득 확인 서류 (건강보험료 납부 확인서 등)','청년 연령 확인 서류 (만 19~34세)','은행 계좌 개설 서류'],
   howToApply:'출시 후 서민금융진흥원 및 참여 은행 앱·영업점에서 신청 예정',
   applyUrl:'https://kinfa.or.kr',
@@ -565,7 +565,25 @@ const KUKMIN_EMPLOYMENT = {
 
 // ─── BCard 카테고리 아이콘 색상 ─────────────────────────────────────
 const CAT_ICON_STYLE={'주거':{bg:'#f0fdf4',color:'#16a34a'},'의료':{bg:'#fef2f2',color:'#dc2626'},'금융':{bg:'#eff6ff',color:'#2563eb'},'교육':{bg:'#f0fdf4',color:'#16a34a'},'고용':{bg:'#f5f3ff',color:'#7c3aed'},'보육':{bg:'#fdf2f8',color:'#db2777'},'노인':{bg:'#e0f2fe',color:'#0284c7'},'장애':{bg:'#ecfccb',color:'#65a30d'},'청년':{bg:'#f5f3ff',color:'#7c3aed'},'취업/직장':{bg:'#eff6ff',color:'#2563eb'},'생활/교통':{bg:'#fff7ed',color:'#ea580c'},'기타':{bg:'#f9fafb',color:'#6b7280'}};
-function calcTotalYearly(benefits){let total=0;for(const b of benefits){const s=(b.amount||'').replace(/,/g,'');const monthly=/월/.test(s)&&!/연/.test(s);const m=s.match(/(\d+)\s*만/);if(m){const v=parseInt(m[1]);total+=monthly?v*12:v;}const o=s.match(/(\d+)\s*억/);if(o)total+=parseInt(o[1])*10000;}return total;}
+function calcTotalYearly(benefits){
+  // 대출·보증 성격 키워드가 포함된 혜택은 실수령 금액 아님 → 제외
+  const LOAN_KW=/대출|전세자금|버팀목전세|임차보증금대출|구입자금|보증금대출|저금리대출|주택담보|구입·임차|매입임대|전세임대/;
+  // 이자율(%)만 명시된 경우 → 원금 아닌 이율이므로 0 처리 (별도 만원 수치 없으면 자동으로 0)
+  let total=0;
+  for(const b of benefits){
+    const combined=((b.title||'')+' '+(b.amount||'')).replace(/,/g,'');
+    // 대출 성격 → 건너뜀
+    if(LOAN_KW.test(combined)) continue;
+    // 억 단위는 거의 항상 대출 원금 → 건너뜀
+    if(/억/.test(combined)) continue;
+    const s=(b.amount||'').replace(/,/g,'');
+    const monthly=/월/.test(s)&&!/연/.test(s);
+    // 퍼센트(%)만 있는 항목(이자율 감면 등)은 만원 수치 없으므로 자동으로 0
+    const m=s.match(/(\d+)\s*만/);
+    if(m){const v=parseInt(m[1]);total+=monthly?v*12:v;}
+  }
+  return total;
+}
 
 // ─── BenefitDetail 모달 ───────────────────────────────────────────
 function BenefitDetail({b,onClose,days,dl}){
@@ -587,7 +605,7 @@ function BenefitDetail({b,onClose,days,dl}){
       {icon:'🚫',label:'세금 혜택',value:'이자소득 비과세 적용 (예정)'},
       {icon:'📈',label:'적용 금리',value:'시중 우대금리 + 정부 혜택 가산 (예정)'},
       {icon:'🏦',label:'취급 기관',value:'서민금융진흥원 · 참여 은행 (출시 시 공개)'},
-      {icon:'🗓️',label:'출시 일정',value:'2025년 하반기 예정'},
+      {icon:'🗓️',label:'출시 일정',value:'2026년 하반기 예정'},
     ];
     const prepSteps=[
       {icon:'📋',title:'가입 자격 미리 확인',desc:'만 19~34세이며, 직전 연도 총급여 7,500만원 이하(예정) 여부를 확인하세요.'},
@@ -622,7 +640,7 @@ function BenefitDetail({b,onClose,days,dl}){
             <div style={{background:'linear-gradient(135deg,#ede9fe 0%,#dbeafe 100%)',borderRadius:16,padding:'16px',marginBottom:20,display:'flex',gap:12,alignItems:'flex-start'}}>
               <span style={{fontSize:28,flexShrink:0}}>🚀</span>
               <div>
-                <div style={{fontSize:13,fontWeight:800,color:'#4c1d95',marginBottom:4}}>2025년 하반기 출시 예정</div>
+                <div style={{fontSize:13,fontWeight:800,color:'#4c1d95',marginBottom:4}}>2026년 하반기 출시 예정</div>
                 <p style={{fontSize:13,color:'#3730a3',lineHeight:1.65,margin:0}}>청년도약계좌의 후속 상품으로, 매월 납입 시 정부 기여금 매칭과 이자 비과세 혜택을 제공합니다. 정확한 조건은 출시 시 확정됩니다.</p>
               </div>
             </div>
@@ -796,9 +814,9 @@ function BCard({b,savedIds,onToggleSave}){const catStyle=CAT_ICON_STYLE[b.catego
         )}
       </div>
       <div style={{background:b.isComingSoon?'#f5f3ff':'#f9fafb',borderRadius:14,padding:'12px 14px',marginBottom:12}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:b.deadline?8:0}}>
-          <span style={{fontSize:13,color:'#6b7280',fontWeight:500}}>지원 내용</span>
-          <span style={{fontSize:13,fontWeight:700,color:'#111827'}}>{b.amount||'-'}</span>
+        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:8,marginBottom:b.deadline?8:0}}>
+          <span style={{fontSize:13,color:'#6b7280',fontWeight:500,flexShrink:0,whiteSpace:'nowrap'}}>지원 내용</span>
+          <span style={{fontSize:13,fontWeight:700,color:'#111827',textAlign:'right',wordBreak:'keep-all',overflowWrap:'break-word'}}>{b.amount||'-'}</span>
         </div>
         {b.deadline&&(
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
