@@ -100,19 +100,23 @@ const DAY_KR=['일','월','화','수','목','금','토'];
 
 // ─── 브랜드 로고 SVG 컴포넌트 ──────────────────────────────────────
 function BrandLogo({size=44, style={}}){
+  // 런처 아이콘(512px)의 큐브 좌표를 44px로 스케일 (×0.08594)
+  // 배경 + 여백 + 큐브 비율이 핸드폰 설치 아이콘과 동일
   return(
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 44 44" fill="none" style={style}>
+      {/* 어두운 배경 — 런처 아이콘과 동일 */}
+      <rect width="44" height="44" rx="8" fill="#0d1117"/>
       {/* 윗면 */}
-      <polygon points="22,5 40,14 22,23 4,14" fill="#5fd45a"/>
+      <polygon points="22,9 36,16 22,22 8,16" fill="#5fd45a"/>
       {/* 오른쪽 면 */}
-      <polygon points="40,14 40,32 22,41 22,23" fill="#2a8f2a"/>
+      <polygon points="36,16 36,30 22,36 22,22" fill="#2a8f2a"/>
       {/* 왼쪽 면 */}
-      <polygon points="4,14 22,23 22,41 4,32" fill="#3db83d"/>
+      <polygon points="8,16 22,22 22,36 8,30" fill="#3db83d"/>
       {/* 모서리 선 */}
-      <polyline points="22,5 40,14 40,32 22,41 4,32 4,14 22,5" stroke="#1e6b1e" strokeWidth="1.2" strokeLinejoin="round" fill="none"/>
-      <line x1="22" y1="23" x2="22" y2="41" stroke="#1e6b1e" strokeWidth="1.2"/>
-      <line x1="22" y1="23" x2="40" y2="14" stroke="#1e6b1e" strokeWidth="1.2"/>
-      <line x1="22" y1="23" x2="4" y2="14" stroke="#1e6b1e" strokeWidth="1.2"/>
+      <polyline points="22,9 36,16 36,30 22,36 8,30 8,16 22,9" stroke="#1e6b1e" strokeWidth="1" strokeLinejoin="round" fill="none"/>
+      <line x1="22" y1="22" x2="22" y2="36" stroke="#1e6b1e" strokeWidth="1"/>
+      <line x1="22" y1="22" x2="36" y2="16" stroke="#1e6b1e" strokeWidth="1"/>
+      <line x1="22" y1="22" x2="8"  y2="16" stroke="#1e6b1e" strokeWidth="1"/>
     </svg>
   );
 }
