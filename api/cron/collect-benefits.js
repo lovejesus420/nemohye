@@ -1,7 +1,6 @@
 // api/cron/collect-benefits.js — Vercel Cron Job Endpoint
 import { exploreBenefits } from '../../services/benefit-explorer.js';
 import { saveBenefits, deleteExpiredBenefits } from '../../lib/db.js';
-import { scrapeTravelmonthBenefits } from '../../services/travelmonth-benefit-scraper.js';
 
 const PRIORITY_REGIONS = [
   { name: '전국',  dbRegion: '전국',        group: '전체' }, // 전국 공통 혜택 (여행가는 달 등)
@@ -18,8 +17,10 @@ const PRIORITY_REGIONS = [
 ];
 
 const QUERY_PATTERNS = [
-  { pattern: 'event',    keyword: '여행가는 달 혜택 숙박 할인', site: 'site:korean.visitkorea.or.kr' },
-  { pattern: 'event',    keyword: '대한민국 숙박 세일 페스타',  site: '' },
+  { pattern: 'finance',  keyword: '청년 우대형 청약통장 금리',  site: '' },
+  { pattern: 'finance',  keyword: '주요 은행 청년 적금 혜택',    site: '' },
+  { pattern: 'finance',  keyword: '카드사 캐시백 지원금 이벤트',  site: '' },
+  { pattern: 'event',    keyword: '여행가는 달 혜택 숙박 할인',  site: 'site:korean.visitkorea.or.kr' },
   { pattern: 'year',     keyword: '지원금 혜택',          site: 'site:blog.naver.com' },
   { pattern: 'year',     keyword: '복지 혜택 신청 방법',   site: 'site:blog.naver.com' },
   { pattern: 'latest',   keyword: '복지 혜택',             site: 'site:blog.naver.com' },
@@ -36,7 +37,8 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 function buildQuery(regionName, pat) {
   const year = new Date().getFullYear();
   let base;
-  if      (pat.pattern === 'event')     base = `${pat.keyword}`; // 전국 이벤트는 지역명 제외
+  if      (pat.pattern === 'event')     base = `${pat.keyword}`;
+  if      (pat.pattern === 'finance')   base = `${year} ${pat.keyword}`; 
   else if (pat.pattern === 'latest')    base = `최신 ${regionName} ${pat.keyword}`;
   else if (pat.pattern === 'official')  base = `${regionName} ${pat.keyword}`;
   else if (pat.pattern === 'instagram') base = `${year} ${pat.keyword}`;
@@ -62,25 +64,6 @@ export default async function handler(req, res) {
   try { deleted = await deleteExpiredBenefits(); } catch (e) {}
 
   const report = [];
-
-  if (region.dbRegion === '?꾧뎅' && region.group === '?꾩껜') {
-    try {
-      const travelmonthBenefits = await scrapeTravelmonthBenefits();
-      if (travelmonthBenefits.length > 0) {
-        const saved = await saveBenefits(travelmonthBenefits, {
-          targetRegion: '?꾧뎅',
-          targetGroup: '?꾩껜',
-          sourceQuery: 'travelmonth-html-scrape',
-        });
-        report.push({ query: 'travelmonth-html-scrape', saved, status: 'ok' });
-      } else {
-        report.push({ query: 'travelmonth-html-scrape', saved: 0, status: 'empty' });
-      }
-    } catch (e) {
-      report.push({ query: 'travelmonth-html-scrape', saved: 0, status: 'error', error: e.message });
-    }
-  }
-
   const patterns = QUERY_PATTERNS.slice(0, MAX_PATTERNS_PER_RUN);
 
   for (let pi = 0; pi < patterns.length; pi++) {

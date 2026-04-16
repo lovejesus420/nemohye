@@ -105,7 +105,7 @@ function BrandLogo({size=44, style={}}){
   return(
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 44 44" fill="none" style={style}>
       {/* 어두운 배경 — 런처 아이콘과 동일 */}
-      <rect width="44" height="44" rx="8" fill="#0d1117"/>
+      <rect width="44" height="44" rx="8" fill="#ffffff"/>
       {/* 윗면 */}
       <polygon points="22,9 36,16 22,22 8,16" fill="#5fd45a"/>
       {/* 오른쪽 면 */}
@@ -357,7 +357,7 @@ const CS={
   background:C.surface,border:`1px solid ${C.border}`,borderRadius:20,padding:'24px',
   boxShadow:'0 1px 3px rgba(15,23,42,0.04),0 8px 28px rgba(15,23,42,0.07)',
 };
-function Logo({size=38}){return(<svg width={size} height={size} viewBox="0 0 42 42" fill="none"><rect x="2" y="2" width="38" height="38" rx="9" stroke={C.gold} strokeWidth="2.2"/><line x1="21" y1="11.5" x2="21" y2="14.5" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="21" y1="27.5" x2="21" y2="30.5" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="11.5" y1="21" x2="14.5" y2="21" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="27.5" y1="21" x2="30.5" y2="21" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="14.3" y1="14.3" x2="16.4" y2="16.4" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="25.6" y1="25.6" x2="27.7" y2="27.7" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="27.7" y1="14.3" x2="25.6" y2="16.4" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><line x1="14.3" y1="27.7" x2="16.4" y2="25.6" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round"/><circle cx="21" cy="21" r="4.5" fill={C.gold}/></svg>);}
+function Logo({size=38}){return(<svg width={size} height={size} viewBox="0 0 44 44" fill="none"><rect width="44" height="44" rx="8" fill="#ffffff"/><polygon points="22,9 36,16 22,22 8,16" fill="#5fd45a"/><polygon points="36,16 36,30 22,36 22,22" fill="#2a8f2a"/><polygon points="8,16 22,22 22,36 8,30" fill="#3db83d"/><polyline points="22,9 36,16 36,30 22,36 8,30 8,16 22,9" stroke="#1e6b1e" strokeWidth="1" strokeLinejoin="round" fill="none"/><line x1="22" y1="22" x2="22" y2="36" stroke="#1e6b1e" strokeWidth="1"/><line x1="22" y1="22" x2="36" y2="16" stroke="#1e6b1e" strokeWidth="1"/><line x1="22" y1="22" x2="8" y2="16" stroke="#1e6b1e" strokeWidth="1"/></svg>);}
 const R=()=><span style={{color:C.err,marginLeft:2}}>*</span>;
 function Divider({label}){return(<div style={{display:'flex',alignItems:'center',gap:10,margin:'22px 0 14px'}}><div style={{flex:1,height:1,background:C.border}}/><span style={{fontSize:11,fontWeight:700,color:C.text3,textTransform:'uppercase',letterSpacing:2,whiteSpace:'nowrap'}}>{label}</span><div style={{flex:1,height:1,background:C.border}}/></div>);}
 
@@ -482,6 +482,8 @@ const KNOWN_BENEFIT_URLS = [
   {kw:['임차보증금','임차 보증금','청년 임차'],url:'https://youth.seoul.go.kr/youthConts.do?key=2310100007'},
   {kw:['긴급복지 의료지원','긴급복지 의료'],url:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveWlfareInfoDetlView.do?wlfareInfoId=WLF00000053'},
   {kw:['긴급복지 생계지원','긴급복지 생계'],url:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveWlfareInfoDetlView.do?wlfareInfoId=WLF00000052'},
+  {kw:['에너지 바우처','에너지바우처'],url:'https://www.energyv.or.kr/'},
+  {kw:['통신요금 감면','통신비 지원','휴대폰 요금 감면'],url:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveWlfareInfoDetlView.do?wlfareInfoId=WLF00000061'},
 ];
 const APPLY_DOMAIN_MAP = {
   'bokjiro.go.kr':'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do',
@@ -1770,13 +1772,18 @@ ${isSeoul ? `[서울] 서울청년수당(월50만원), 희망두배청년통장,
 소상공인 정책자금 직접대출, 소상공인 대환대출, 소공인특화자금, 소상공인 온라인 무료교육, 소상공인 경영안정 바우처, 노란우산공제, 소상공인 고용보험료 지원` : '';
 
   if(mode==='hidden'){
-    return `대한민국 복지 전문가. 아래 사람의 숨겨진 혜택을 발굴하세요.
+    return `대한민국 복지 및 금융 전문가. 아래 사람의 숨겨진 혜택(Hidden Benefits)을 발굴하세요.
 [정보] ${age}세/${gender}/${job}/${income}/${address}/추가:${extra}/${today}
 ${ELIGIBILITY_CONSTRAINT}
-${YOUTH_SECTION}${SME_SECTION}
-분야: 시중은행 특별금리·적금, 통신사 요금감면, 건강보험 환급금, 연말정산 공제, 근로복지공단 복지포인트, 에너지바우처, 알뜰폰, 공공임대 청약, 민간장학재단
+
+### 💡 발굴 대상 (반드시 포함할 것)
+1. **은행/금융**: 시중 은행(국민, 신한, 우리, 농협 등)의 청년 우대 고금리 적금, 대출 이자 감면, 금융권 사회공헌 대출
+2. **생활/통신**: 통신3사 취약계층·청년 요금 감면, 에너지바우처, 건강보험 환급금(본인부담상한제)
+3. **민간 재단**: 아산재단, 카카오임팩트 등 민간 재단 장학금 및 청년 지원금
+4. **연말정산/세금**: 놓치기 쉬운 세액 공제 항목 및 세금 환급 정보
+
 순수 JSON만: {"benefits":[${SCHEMA}]}
-6~8개. isHidden:true. ${URL_GUIDE}`;
+6~8개 발굴. isHidden:true. ${URL_GUIDE}`;
   }
 
   // API 데이터: 핵심 항목만 압축 전달
@@ -1928,6 +1935,11 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
         if (dbResp.collectedAt) setDbCollectedAt(new Date(dbResp.collectedAt));
         onResultsReady?.(parsed);
         setLoading(false);
+        
+        // 분석 완료 3초 후 알림 권한 유도 (사용자가 결과를 잠시 본 뒤에 띄움)
+        if (Notification.permission === 'default') {
+          setTimeout(() => setShowNotifPrompt(true), 3000);
+        }
         return; 
       }
 
@@ -1978,11 +1990,29 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
   const toggleSave=(b)=>{const key=`benefit_item:${user.phone}:${b.id}`;if(savedIds.has(String(b.id))){sDel(key);setSavedIds(p=>{const n=new Set(p);n.delete(String(b.id));return n;});}else{sSet(key,{...b,savedAt:new Date().toISOString(),userPhone:user.phone});setSavedIds(p=>new Set([...p,String(b.id)]));}onSaved();};
 
   const allBenefits=[...(results?.benefits||[]),...(hiddenResults||[])];
+  
+  // ── 혜택 분류 로직 (금융/은행을 숨겨진 혜택으로 포함) ──
+  const isFinance = (b) => {
+    const t = (b.title || '').toLowerCase();
+    const c = (b.category || '').toLowerCase();
+    const s = (b.source || '').toLowerCase();
+    return t.includes('은행') || t.includes('적금') || t.includes('금리') || t.includes('카드') || t.includes('캐시백') || c === '금융' || s.includes('금융') || s.includes('은행');
+  };
+
+  const isHidden = (b) => b.isHidden || isFinance(b) || b.source === '기업/협회' || b.source === '금융/은행';
+  const isUrgent = (b) => b.isUrgent && !isHidden(b);
+  const isNormal = (b) => !isUrgent(b) && !isHidden(b);
+
   const sources=[...new Set(allBenefits.map(b=>b.source).filter(Boolean))];
   const filtered=filterSources.size===0?allBenefits:allBenefits.filter(b=>filterSources.has(b.source));
-  const urgent=filtered.filter(b=>b.isUrgent);
-  const hidden=filtered.filter(b=>b.isHidden&&!b.isUrgent);
-  const normal=filtered.filter(b=>!b.isUrgent&&!b.isHidden);
+  
+  const urgent=filtered.filter(isUrgent);
+  const hidden=filtered.filter(isHidden).sort((a, b) => {
+    if (isFinance(a) && !isFinance(b)) return -1;
+    if (!isFinance(a) && isFinance(b)) return 1;
+    return 0;
+  });
+  const normal=filtered.filter(isNormal);
   const NIS={width:'100%',background:'#f9fafb',border:'1px solid #e5e7eb',borderRadius:12,padding:'14px 16px',fontSize:14,color:'#111827',outline:'none',boxSizing:'border-box',fontFamily:'inherit',transition:'border-color 0.15s,box-shadow 0.15s'};
   const NSS={...NIS,paddingLeft:16,paddingRight:40,appearance:'none',WebkitAppearance:'none',cursor:'pointer'};
   const CARD={background:'#fff',borderRadius:24,padding:'24px',marginBottom:16,boxShadow:'0 1px 2px rgba(0,0,0,0.05)',border:'1px solid #f3f4f6'};
@@ -2428,7 +2458,39 @@ function RealEstateTab({user}){
   const[situation,setSituation]=useState('');
   const[loading,setLoading]=useState(false);
   const[stepIdx,setStepIdx]=useState(0);
-  const[result,setResult]=useState(null);
+  // ── 알림 권한 요청 및 맞춤 문구 생성 로직 ──
+  const [showNotifPrompt, setShowNotifPrompt] = useState(false);
+
+  const getPersonalizedNotifMsg = (results, region, group) => {
+    if (!results?.benefits?.length) return "새로운 혜택이 업데이트되었습니다.";
+
+    // 가장 금액이 큰 혜택 찾기
+    const topBenefit = results.benefits.reduce((prev, current) => {
+      const getVal = (s) => {
+        const m = String(s).match(/(\d+)만/);
+        return m ? parseInt(m[1]) : 0;
+      };
+      return getVal(current.amount) > getVal(prev.amount) ? current : prev;
+    }, results.benefits[0]);
+
+    const amountStr = topBenefit.amount.includes('만') ? topBenefit.amount.match(/\d+만/)[0] : "맞춤형";
+    const regionName = region !== '전국' ? region : '우리 동네';
+
+    return `${regionName} ${group}이라면? 오늘 새로 올라온 ${amountStr} 지원금을 확인하세요!`;
+  };
+
+  const handleRequestNotif = async () => {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      const msg = getPersonalizedNotifMsg(results, address.split(' ')[1] || '서울', extras.includes('청년') ? '청년' : '시민');
+      new Notification("🔔 알림 설정 완료!", {
+        body: `앞으로 이런 소식을 보내드릴게요: "${msg}"`,
+        icon: '/favicon.svg'
+      });
+    }
+    setShowNotifPrompt(false);
+  };
+
   const[err,setErr]=useState('');
   const rRef=useRef();
 
