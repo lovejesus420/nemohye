@@ -369,10 +369,10 @@ const KNOWN_BENEFIT_URLS = [
   {kw:['자녀장려금'],url:'https://www.hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&menuCd=WME3000'},
   {kw:['종합소득세 환급','환급금 조회'],url:'https://www.hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&menuCd=WME1400'},
   // ── 고용노동부 / 실업급여 / 취업 ──
-  {kw:['실업급여','구직급여'],url:'https://www.work.go.kr/benefitService/doReceivingBenefit.do'},
+  {kw:['실업급여','구직급여'],url:'https://ei.work24.go.kr/ei/eih/cp/cc/ccEminsrFollow/retrieveCc200Info.do'},
   {kw:['국민취업지원제도','취업지원제도','국민취업'],url:'https://www.work24.go.kr/ua/z/z/1300/selectEmssRqutIntro.do'},
-  {kw:['청년일자리도약장려금','일자리도약'],url:'https://www.work.go.kr/youngWork/doYoungWork.do'},
-  {kw:['청년내일채움공제','내일채움공제'],url:'https://www.work.go.kr/youngtomorrow/main/main.do'},
+  {kw:['청년일자리도약장려금','일자리도약'],url:'https://www.work.go.kr/youthjob/intro/yngJumpIntro.do'},
+  {kw:['청년내일채움공제','내일채움공제'],url:'https://www.work.go.kr/youngtomorrow/index.do'},
   {kw:['육아휴직','출산전후휴가','배우자 출산휴가'],url:'https://www.moel.go.kr/policy/policyinfo/child/list7.do'},
   {kw:['고용보험 환급','직업능력개발 환급'],url:'https://www.hrd.go.kr/hrdp/ma/pmmao/indexNew.do'},
   // ── 복지로 (복지급여) ──
@@ -404,7 +404,7 @@ const KNOWN_BENEFIT_URLS = [
   {kw:['디딤돌 대출','디딤돌대출'],url:'https://nhuf.molit.go.kr/FP/FP05/FP0502/FP05020201.jsp'},
   {kw:['주거급여'],url:'https://www.myhome.go.kr/hws/portal/sch/selectRsdtRcritNtcList.do'},
   // ── 청년 특화 ──
-  {kw:['청년희망적금'],url:'https://kinfa.or.kr/youth/youth02.do'},
+  // 청년희망적금 — 상품 종료로 제거
   {kw:['청년저축계좌','내일저축계좌'],url:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do'},
   {kw:['청년 정책','청년 지원','온통청년'],url:'https://www.youthcenter.go.kr/youngPlcyUnif/youngPlcyUnifList.do'},
   {kw:['대학생 학자금','학자금 대출','한국장학재단'],url:'https://www.kosaf.go.kr/ko/loan.do?pg=loan01_01'},
@@ -492,10 +492,10 @@ const APPLY_DOMAIN_MAP = {
   'hf.go.kr':'https://www.hf.go.kr/hf/sub04/sub04_01_01.do',
   'lh.or.kr':'https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWtWrtanc.do',
   'apply.lh.or.kr':'https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWtWrtanc.do',
-  'sbcrc.or.kr':'https://www.sbcrc.or.kr/site/main/apply/applyView',
+  'sbcrc.or.kr':'https://www.semas.or.kr/',
   'kosaf.go.kr':'https://www.kosaf.go.kr/ko/loan.do?pg=loan01_01',
   'hometax.go.kr':'https://www.hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&menuCd=WME3000',
-  'kinfa.or.kr':'https://kinfa.or.kr/youth/youth01.do',
+  'kinfa.or.kr':'https://kinfa.or.kr/',
   'energyv.or.kr':'https://www.energyv.or.kr/user/cstmrRqstPage.do',
   'mnuri.kr':'https://www.mnuri.kr/mnuri/index.do',
   'longtermcare.or.kr':'https://www.longtermcare.or.kr/npbs/e/b/101/npeb101m01.web',
@@ -515,6 +515,10 @@ const APPLY_DOMAIN_MAP = {
   'voucher.sbiz24.kr':'https://voucher.sbiz24.kr/',
   'sbiz24.kr':'https://www.sbiz24.kr/#/pbanc?rcrtTypeCd=FN',
   'www.sbiz24.kr':'https://www.sbiz24.kr/#/pbanc?rcrtTypeCd=FN',
+  'ydpcf.or.kr':'https://www.ydpcf.or.kr/festival/festival.do',
+  'www.ydpcf.or.kr':'https://www.ydpcf.or.kr/festival/festival.do',
+  'giff.flower.or.kr':'https://giff.flower.or.kr/main/',
+  'flower.or.kr':'https://giff.flower.or.kr/main/',
 };
 function getBestApplyUrl(url, title='', institution=''){
   const haystack=(title+' '+institution).toLowerCase();
@@ -666,7 +670,7 @@ const MONTHLY_EVENTS=[
     highlight:'국내 최대 벚꽃 축제 · 경화역·여좌천·안민도로 일대 360만 그루',
     admission:'무료',
     tips:'주말 극혼잡 예상, 평일 방문 권장. 진해역·창원역에서 셔틀버스 운행.',
-    applyUrl:'https://www.changwon.go.kr',
+    applyUrl:'https://www.changwon.go.kr/cwportal/depart/11063/11090/12962.web',
   },
   {
     id:'event-festival-yeouido',
@@ -681,7 +685,7 @@ const MONTHLY_EVENTS=[
     highlight:'한강 윤중로 벚꽃길 6km · 야간 조명 이벤트 · 푸드트럭 마켓',
     admission:'무료',
     tips:'지하철 5호선 여의나루역 하차. 주차 불가, 대중교통 이용 권장.',
-    applyUrl:'https://www.ydp.go.kr',
+    applyUrl:'https://www.ydpcf.or.kr/festival/festival.do',
   },
   {
     id:'event-festival-icheon',
@@ -696,7 +700,7 @@ const MONTHLY_EVENTS=[
     highlight:'도자기 체험·구매, 전통 도예 시연, 가마 불 지피기 체험',
     admission:'성인 5,000원 / 청소년 3,000원 / 어린이 무료',
     tips:'도자기 만들기 체험 사전 예약 권장. 주차장 무료.',
-    applyUrl:'https://www.ceramic.or.kr',
+    applyUrl:'https://www.ceramic.or.kr/',
   },
   {
     id:'event-festival-goyang',
@@ -711,7 +715,7 @@ const MONTHLY_EVENTS=[
     highlight:'100만 송이 꽃 전시 · 대형 플라워 쇼 · 야간 경관',
     admission:'성인 12,000원 / 청소년 8,000원 / 어린이 6,000원',
     tips:'일산호수공원 일대. 사전 온라인 예매 시 최대 30% 할인.',
-    applyUrl:'https://www.kintex.com',
+    applyUrl:'https://giff.flower.or.kr/main/',
   },
 ];
 
@@ -1480,11 +1484,109 @@ return(
 </div>);}
 
 // ─── AnalyzeTab ───────────────────────────────────────────────────
+
+// ── 소득 등급 (1=최저, 8=최고) ─────────────────────────────────────
+const INCOME_RANK_MAP = {
+  '기초생활수급자': 1,
+  '월 50만원 미만':  2,
+  '월 50~100만원':   3,
+  '월 100~200만원':  4,
+  '월 200~300만원':  5,
+  '월 300~500만원':  6,
+  '월 500~700만원':  7,
+  '월 700만원 이상': 8,
+};
+
+/**
+ * DB에서 가져온 scraped 혜택이 유저 프로필에 적합한지 판단합니다.
+ * "정보 없음" 또는 판단 불가인 경우 포함으로 처리합니다.
+ */
+function isDbBenefitEligible(benefit, { age, income, extras = [] }) {
+  const target   = String(benefit.지원대상 || '').trim();
+  const ageNum   = parseInt(age, 10) || 30;
+  const rank     = INCOME_RANK_MAP[income] ?? 5;
+  const extraStr = extras.join(',');
+  const hasExtra = (kw) => extraStr.includes(kw);
+  const hasNearPoverty = rank <= 2 || hasExtra('기초생활수급자 또는 차상위계층');
+
+  // 판단 불가 → 포함
+  if (!target || target === '정보 없음') return true;
+  const t = target;
+
+  // 전체 국민 대상 → 항상 포함
+  if (/전국민|누구나|모든\s*국민|전체\s*국민/.test(t)) return true;
+
+  // ── 소득 기준 ──────────────────────────────────────────────────
+  // "기초생활수급자" 단독 → 기초수급자만
+  if (/기초생활수급자|기초수급자/.test(t) && !/차상위/.test(t) && !/또는/.test(t)) {
+    if (rank !== 1) return false;
+  }
+  // "차상위계층" 포함 → rank 3 이하 또는 차상위 선택자만
+  if (/차상위/.test(t)) {
+    if (!hasNearPoverty && rank > 3) return false;
+  }
+  // "저소득" 포함 → rank 5 이하
+  if (/저소득/.test(t)) {
+    if (rank > 5) return false;
+  }
+
+  // ── 나이 기준 ─────────────────────────────────────────────────
+  // "청년" 키워드
+  if (/청년/.test(t)) {
+    if (ageNum < 19 || ageNum > 39) return false;
+  }
+  // 구체적 나이 범위 "만 19~34세" 등
+  const ageRange = t.match(/만\s*(\d+)\s*[~～]\s*(\d+)\s*세/);
+  if (ageRange) {
+    const lo = parseInt(ageRange[1], 10), hi = parseInt(ageRange[2], 10);
+    if (ageNum < lo || ageNum > hi) return false;
+  }
+  // "X세 이상"
+  const ageAbove = t.match(/(\d+)\s*세\s*이상/);
+  if (ageAbove && parseInt(ageAbove[1], 10) >= 40) {
+    if (ageNum < parseInt(ageAbove[1], 10)) return false;
+  }
+  // "X세 이하"
+  const ageBelow = t.match(/(\d+)\s*세\s*이하/);
+  if (ageBelow) {
+    if (ageNum > parseInt(ageBelow[1], 10)) return false;
+  }
+  // 노인 혜택
+  if (/노인|어르신|65세/.test(t)) {
+    if (ageNum < 65) return false;
+  }
+
+  // ── 특수 상황 기준 ────────────────────────────────────────────
+  if (/임산부/.test(t) && !hasExtra('임산부') && !hasExtra('출산')) return false;
+  if (/장애인/.test(t) && !hasExtra('장애인')) return false;
+  if (/한부모/.test(t) && !hasExtra('한부모')) return false;
+  if (/다자녀/.test(t) && !hasExtra('다자녀')) return false;
+  if (/국가유공자/.test(t) && !hasExtra('국가유공자')) return false;
+
+  return true;
+}
+
 // ─── 혜택 분석 프롬프트 빌더 ─────────────────────────────────────
 function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='full',bokjiroData=null,gov24Data=null,ggData=null,seoulData=null,youthData=null,youthContentData=null}){
   const isYouth = extra.includes('청년');
   const isSME   = extra.includes('자영업자/소상공인') || extra.includes('소상공인') || job.includes('자영업');
   const isSeoul = address.includes('서울');
+
+  // ── 신청자격 제한 지침 — Claude가 맞지 않는 혜택을 절대 포함하지 않도록 ──
+  const incomeRankVal = INCOME_RANK_MAP[income] ?? 5;
+  const ageNum2       = parseInt(age, 10) || 30;
+  const exclusions    = [];
+  if (incomeRankVal > 1) exclusions.push('기초생활수급자 전용 혜택');
+  if (incomeRankVal > 3 && !extra.includes('차상위')) exclusions.push('차상위계층 전용 혜택');
+  if (incomeRankVal > 5) exclusions.push('저소득층 전용 혜택');
+  if (ageNum2 < 19 || ageNum2 > 39) exclusions.push('청년(만 19~39세) 전용 혜택');
+  if (ageNum2 < 65) exclusions.push('노인(65세 이상) 전용 혜택');
+  if (!extra.includes('임산부')) exclusions.push('임산부 전용 혜택');
+  if (!extra.includes('장애인')) exclusions.push('장애인 전용 혜택');
+  if (!extra.includes('한부모')) exclusions.push('한부모 전용 혜택');
+  const ELIGIBILITY_CONSTRAINT = exclusions.length > 0
+    ? `⚠️ 신청자격 엄수 — 아래 항목은 이 사람이 해당되지 않으므로 절대 포함 금지: ${exclusions.join(' / ')}`
+    : '';
 
   // 핵심 URL만 포함 (나머지는 클라이언트 getBestApplyUrl 처리)
   const URL_GUIDE=`applyUrl: 신청 직접 페이지만. 복지로=https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do, 정부24=https://www.gov.kr/portal/serviceList, 고용24=https://www.work.go.kr/jobcenter/main.do, 건강보험=https://www.nhis.or.kr/nhis/policy/wbhada02800m01.do, 주택도시기금=https://nhuf.molit.go.kr/FP/FP05/FP0503/FP05030101.jsp, 소상공인정책자금=https://ols.semas.or.kr/ols/man/SMAN010M/page.do${isSeoul?', 서울청년수당=https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=V202600005, 서울탄생육아=https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtList.do':''}`;
@@ -1504,6 +1606,7 @@ ${isSeoul ? `[서울] 서울청년수당(월50만원), 희망두배청년통장,
   if(mode==='hidden'){
     return `대한민국 복지 전문가. 아래 사람의 숨겨진 혜택을 발굴하세요.
 [정보] ${age}세/${gender}/${job}/${income}/${address}/추가:${extra}/${today}
+${ELIGIBILITY_CONSTRAINT}
 ${YOUTH_SECTION}${SME_SECTION}
 분야: 시중은행 특별금리·적금, 통신사 요금감면, 건강보험 환급금, 연말정산 공제, 근로복지공단 복지포인트, 에너지바우처, 알뜰폰, 공공임대 청약, 민간장학재단
 순수 JSON만: {"benefits":[${SCHEMA}]}
@@ -1532,8 +1635,9 @@ ${YOUTH_SECTION}${SME_SECTION}
 
   return `대한민국 복지·혜택 전문가. 아래 사람의 맞춤 혜택을 분석하세요.
 [정보] ${age}세/${gender}/${job}/${income}/${address}/추가:${extra}/${today}
+${ELIGIBILITY_CONSTRAINT}
 ${BOKJIRO_SECTION}${GOV24_SECTION}${GG_SECTION}${SEOUL_SECTION}${YOUTH_SECTION_API}${YOUTH_CONTENT_SECTION}${YOUTH_SECTION}${SME_SECTION}
-출처별 필수 포함: 정부복지(복지로·정부24·고용24·건강보험·국민연금), 지자체(${address} 특화사업${isSeoul?'·서울청년몽땅·서울복지포털·서울탄생육아':''}), 금융(주택도시기금·서민금융·청년희망적금), 에너지바우처·통신감면, 세금환급(근로장려금·자녀장려금), 주거(LH·SH·버팀목전세), 숨겨진혜택 3개이상(isHidden:true)
+출처별 필수 포함: 정부복지(복지로·정부24·고용24·건강보험·국민연금), 지자체(${address} 특화사업${isSeoul?'·서울청년몽땅·서울복지포털·서울탄생육아':''}), 금융(주택도시기금·서민금융), 에너지바우처·통신감면, 세금환급(근로장려금·자녀장려금), 주거(LH·SH·버팀목전세), 숨겨진혜택 3개이상(isHidden:true)
 순수 JSON만 (코드블록 없이):
 {"summary":{"totalBenefits":숫자,"estimatedMonthlyBenefit":"금액범위","topPriority":"혜택명","hiddenCount":숫자},"benefits":[${SCHEMA}]}
 10~14개. 실제 존재하는 혜택만. ${URL_GUIDE}`;
@@ -1567,37 +1671,66 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
       const group=extras.find(e=>e.includes('청년'))?'청년':extras.find(e=>e.includes('임산부'))?'임산부':'전체';
       const apiBase=import.meta.env.VITE_API_BASE||'';
 
-      // ── 1단계: DB 우선 조회 (24시간 캐시)
-      // Cron이 미리 수집해 둔 데이터가 있으면 Claude/정부 API 호출을 완전히 생략합니다.
+      // ── 1단계: DB 우선 조회 (밤새 수집된 최신 데이터)
       const dbResp=await fetch(
         `${apiBase}/api/benefits?region=${encodeURIComponent(region)}&group=${encodeURIComponent(group)}`
       ).then(r=>r.ok?r.json():null).catch(()=>null);
 
-      if(dbResp?.benefits?.length>0){
-        // DB에 신선한 데이터 있음 → 즉시 결과 구성
-        const dbBenefits=dbResp.benefits.map((b,i)=>({
-          id:`db-scraped-${Date.now()}-${i}`,
-          source:b.카테고리==='지자체'?'지자체/공공':b.카테고리==='기업/제휴'?'기업/제휴':'생활/꿀팁',
-          sourceIcon:b.카테고리==='지자체'?'🏛️':b.카테고리==='기업/제휴'?'🏢':'💡',
-          category:b.카테고리||'생활',categoryIcon:'🔍',
-          scope:'전국',isUrgent:false,isHidden:false,isComingSoon:false,
-          title:b.혜택명||b.title||'',institution:'',
-          amount:b.지원내용||b.amount||'',deadline:b.마감일||'연중',
-          requiredDocuments:[],howToApply:b.신청방법||'',applyUrl:b.출처||'',
+      if(dbResp?.benefits?.length >= 8){
+        // DB에 충분한 데이터(8건 이상)가 있으면 즉시 결과 구성
+        const dbBenefits = dbResp.benefits.map((b, i) => ({
+          id: `db-scraped-${Date.now()}-${i}`,
+          source: b.카테고리 === '지자체' ? '지자체/공공' : b.카테고리 === '기업/제휴' ? '기업/제휴' : '생활/꿀팁',
+          sourceIcon: b.카테고리 === '지자체' ? '🏛️' : b.카테고리 === '기업/제휴' ? '🏢' : '💡',
+          category: b.카테고리 || '생활',
+          categoryIcon: '🔍',
+          scope: region,
+          isUrgent: false,
+          isHidden: false,
+          isComingSoon: false,
+          title: b.혜택명 || b.title || '',
+          institution: b.기관 || '',
+          amount: b.지원내용 || b.amount || '',
+          deadline: b.마감일 || '연중 상시',
+          requiredDocuments: [],
+          howToApply: b.신청방법 || '',
+          applyUrl: b.출처 || '',
         }));
-        // 항상 포함할 정적 카드 주입
-        let benefits=[...dbBenefits,KUKMIN_EMPLOYMENT];
-        if(extras.some(e=>e.includes('청년'))) benefits=[YOUTH_FUTURE_SAVINGS,...benefits];
-        if(parseInt(age)>=19) benefits=[...benefits,KPASS_BENEFIT];
-        const parsed={benefits,summary:{}};
+
+        // 유저 프로필 기준 적격성 필터 — 자격 없는 혜택(차상위계층·노인 등) 제거
+        const profileCtx = { age, income, extras };
+        const filteredDbBenefits = dbBenefits.filter(b => isDbBenefitEligible(b, profileCtx));
+        console.log(`[analyze] DB 혜택 적격성 필터: ${dbBenefits.length}건 → ${filteredDbBenefits.length}건`);
+
+        // 국민취업지원제도: 월 500만원 이상 고소득자는 해당 없음
+        const addEmployment = (INCOME_RANK_MAP[income] ?? 5) <= 6;
+
+        let benefits = addEmployment
+          ? [...filteredDbBenefits, KUKMIN_EMPLOYMENT]
+          : [...filteredDbBenefits];
+        if (extras.some(e => e.includes('청년')) && parseInt(age) >= 19 && parseInt(age) <= 34)
+          benefits = [YOUTH_FUTURE_SAVINGS, ...benefits];
+        if (parseInt(age) >= 19) benefits = [...benefits, KPASS_BENEFIT];
+
+        const parsed = {
+          benefits,
+          summary: {
+            totalBenefits: benefits.length,
+            estimatedMonthlyBenefit: "분석 중...",
+            topPriority: dbBenefits[0]?.title || "신규 혜택",
+            hiddenCount: 3
+          }
+        };
         setResults(parsed);
         setAnalyzedAt(new Date());
-        if(dbResp.collectedAt) setDbCollectedAt(new Date(dbResp.collectedAt));
+        if (dbResp.collectedAt) setDbCollectedAt(new Date(dbResp.collectedAt));
         onResultsReady?.(parsed);
-        return; // Claude 호출 생략
+        setLoading(false);
+        return; 
       }
 
-      // ── 2단계: DB 비어있음 → 실시간 정부 API + 온통청년 + Claude 분석 (폴백)
+      // ── 2단계: DB 데이터가 부족한 경우에만 실시간 분석 진행
+      console.log("[analyze] DB 데이터 부족으로 실시간 분석을 시작합니다.");
       const [bokjiroData,gov24Data,ggData,seoulData,youthData,youthContentData]=await Promise.all([
         fetchBokjiroData({age,extras}),
         fetchGov24Data({age,extras,job,income}),

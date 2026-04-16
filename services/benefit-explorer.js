@@ -15,7 +15,14 @@ const GEMINI_BATCH_DELAY_MS = 8_000; // 배치 간 딜레이 8초
 const DEFAULT_QUERIES = [
   '지자체 생활 혜택 할인 후기',
   '청년 지원금 신청 방법',
+  'site:instagram.com "gg24_kr" 2026 혜택',
+  '"iammoneytip" 지원금 혜택',
 ];
+
+// 인스타그램 전용 계정 쿼리 — site: 제약 포함 여부로 판별
+const INSTAGRAM_ACCOUNTS = ['gg24_kr', 'iammoneytip'];
+const isInstagramQuery = (q) =>
+  q.includes('instagram.com') || INSTAGRAM_ACCOUNTS.some((a) => q.includes(a));
 
 /** ms 대기 */
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -87,12 +94,23 @@ export async function exploreBenefits(queries = DEFAULT_QUERIES) {
   const tasks = [];
   for (const q of queryList) {
     tasks.push({ query: q, type: 'search' });
-    tasks.push({ query: q, type: 'news' });
 
-    // site: 제약이 있는 쿼리는 제약 없는 폴백도 추가
-    if (q.includes('site:')) {
-      const qWithoutSite = q.replace(/\s*site:\S+/g, '').trim();
-      tasks.push({ query: qWithoutSite, type: 'search' });
+    // 인스타그램 쿼리는 news 타입 대신 계정명 기반 web 검색 추가
+    // (인스타그램은 뉴스 인덱스에 거의 없음 → news 검색 비효율)
+    if (isInstagramQuery(q)) {
+      // site: 없는 계정명 단독 검색 — 블로그·커뮤니티 등 2차 확산 결과 포착
+      if (q.includes('site:instagram.com')) {
+        const qWithoutSite = q.replace(/\s*site:\S+/g, '').trim();
+        tasks.push({ query: qWithoutSite, type: 'search' });
+      }
+    } else {
+      tasks.push({ query: q, type: 'news' });
+
+      // site: 제약이 있는 일반 쿼리는 제약 없는 폴백도 추가
+      if (q.includes('site:')) {
+        const qWithoutSite = q.replace(/\s*site:\S+/g, '').trim();
+        tasks.push({ query: qWithoutSite, type: 'search' });
+      }
     }
   }
 

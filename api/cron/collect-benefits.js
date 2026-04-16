@@ -28,21 +28,24 @@ const PRIORITY_REGIONS = [
 
 // ── 쿼리 패턴 세트
 const QUERY_PATTERNS = [
-  { pattern: 'year',     keyword: '지원금 혜택',          site: 'site:blog.naver.com' },
-  { pattern: 'year',     keyword: '복지 혜택 신청 방법',   site: 'site:blog.naver.com' },
-  { pattern: 'year',     keyword: '생활 혜택 할인',        site: 'site:cafe.naver.com' },
-  { pattern: 'year',     keyword: '지원금 후기',           site: 'site:tistory.com'    },
-  { pattern: 'latest',   keyword: '복지 혜택',             site: 'site:blog.naver.com' },
-  { pattern: 'latest',   keyword: '지원금 신청 후기',       site: ''                    },
-  { pattern: 'official', keyword: '시청 공고 지원금',       site: ''                    },
-  { pattern: 'official', keyword: '구청 복지 혜택 신청',    site: ''                    },
+  { pattern: 'year',      keyword: '지원금 혜택',          site: 'site:blog.naver.com' },
+  { pattern: 'year',      keyword: '복지 혜택 신청 방법',   site: 'site:blog.naver.com' },
+  { pattern: 'year',      keyword: '생활 혜택 할인',        site: 'site:cafe.naver.com' },
+  { pattern: 'year',      keyword: '지원금 후기',           site: 'site:tistory.com'    },
+  { pattern: 'latest',    keyword: '복지 혜택',             site: 'site:blog.naver.com' },
+  { pattern: 'latest',    keyword: '지원금 신청 후기',       site: ''                    },
+  { pattern: 'official',  keyword: '시청 공고 지원금',       site: ''                    },
+  { pattern: 'official',  keyword: '구청 복지 혜택 신청',    site: ''                    },
+  // ── 인스타그램 계정 기반 패턴 (@gg24_kr 경기도 공식 · @iammoneytip 금융/지원금 정보)
+  { pattern: 'instagram', keyword: '"gg24_kr" 혜택 지원금', site: 'site:instagram.com'  },
+  { pattern: 'instagram', keyword: '"iammoneytip" 지원금',  site: ''                    },
 ];
 
 // ── 1회 실행 제한 — Vercel 300s 타임아웃 방지
 // 패턴 1개당 예상 소요: Serper ~2s + Gemini 2배치 × ~5s + 딜레이 8s ≈ 25s
-// 패턴 1개 × 1지역 = 약 25~40s → 300s 제한에 충분히 안전
-const MAX_PATTERNS_PER_RUN = 1;       // 파이프라인 검증이 끝나면 2~3으로 올리세요
-const SOFT_TIMEOUT_MS      = 240_000; // 240초 초과 시 루프 조기 종료 (안전망)
+// 패턴 3개 × 1지역 = 약 75~120s → 300s 제한 내에서 안정적으로 여러 패턴 수집 가능
+const MAX_PATTERNS_PER_RUN = 3;       // 수집량 증대를 위해 3으로 상향
+const SOFT_TIMEOUT_MS      = 260_000; // 260초 (안전망 강화)
 
 // 쿼리 패턴 사이 최소 딜레이 (Serper 레이트 리밋 방지)
 const INTER_QUERY_DELAY_MS = 1_500;
@@ -52,9 +55,11 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 function buildQuery(regionName, pat) {
   const year = new Date().getFullYear();
   let base;
-  if (pat.pattern === 'latest')        base = `최신 ${regionName} ${pat.keyword}`;
-  else if (pat.pattern === 'official') base = `${regionName} ${pat.keyword}`;
-  else                                 base = `${year}년 ${regionName} ${pat.keyword}`;
+  if      (pat.pattern === 'latest')    base = `최신 ${regionName} ${pat.keyword}`;
+  else if (pat.pattern === 'official')  base = `${regionName} ${pat.keyword}`;
+  // 인스타그램 패턴: 계정명 기반이므로 지역명 없이 연도만 붙임
+  else if (pat.pattern === 'instagram') base = `${year} ${pat.keyword}`;
+  else                                  base = `${year}년 ${regionName} ${pat.keyword}`;
   return pat.site ? `${base} ${pat.site}` : base;
 }
 
