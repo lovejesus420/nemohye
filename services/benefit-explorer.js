@@ -9,8 +9,8 @@ const SERPER_API_KEY    = process.env.SERPER_API_KEY;
 // Gemini 무료 티어 레이트 리밋 + Vercel 300s 타임아웃 대응
 // 패턴 1개 기준 최대 소요: 5건 × 2배치 + 딜레이 8s ≈ 20~30s
 const GEMINI_BATCH_SIZE     = 5;     // 한 번에 Gemini에 보낼 검색 결과 수
-const GEMINI_MAX_BATCHES    = 2;     // 최대 배치 횟수 — 파이프라인 안정 후 3으로 올리세요
-const GEMINI_BATCH_DELAY_MS = 8_000; // 배치 간 딜레이 8초
+const GEMINI_MAX_BATCHES    = 2;     // 최대 배치 횟수
+const GEMINI_BATCH_DELAY_MS = 10_000; // 딜레이를 10초로 상향
 
 const DEFAULT_QUERIES = [
   '지자체 생활 혜택 할인 후기',

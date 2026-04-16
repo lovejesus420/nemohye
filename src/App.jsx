@@ -440,7 +440,7 @@ const KNOWN_BENEFIT_URLS = [
   {kw:['신중년사회공헌','신중년 사회공헌'],url:'https://wis.seoul.go.kr/main.do'},
   // ── 서울청년몽땅정보통 (youth.seoul.go.kr) — 금융/복지 ──
   {kw:['서울 청년수당','서울청년수당','청년 수당'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=V202600005'},
-  {kw:['희망두배 청년통장','희망두배청년통장'],url:'https://youth.seoul.go.kr/content.do?key=2310100069'},
+  {kw:['희망두배 청년통장','희망두배청년통장'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?sprtInfoId=&plcyBizId=20250519005400210852&key=2309150002'},
   {kw:['서울 청년 마음건강','청년 마음건강 지원','청년마음건강'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=20250519005400210855'},
   {kw:['은둔청년','고립청년','청년 고립'],url:'https://youth.seoul.go.kr/infoData/plcyInfo/view.do?key=2309150002&plcyBizId=R2023050912524'},
   // ── 서울청년몽땅정보통 — 주거 ──
@@ -835,6 +835,45 @@ function EventDetailModal({ev,onClose}){
               </div>
             </>)}
           </>)}
+
+          {/* ── API 수집 축제 (KorService2 / 표준데이터) ── */}
+          {ev.eventType==='festival-api'&&(<>
+            {ev.thumbnail&&(
+              <div style={{borderRadius:14,overflow:'hidden',marginBottom:16,aspectRatio:'16/9'}}>
+                <img src={ev.thumbnail} alt={ev.title} style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.currentTarget.style.display='none';}}/>
+              </div>
+            )}
+            <div style={{background:'linear-gradient(135deg,#fdf2f8,#fce7f3)',borderRadius:14,padding:'14px 16px',marginBottom:16,display:'flex',gap:12,alignItems:'center'}}>
+              <span style={{fontSize:26,flexShrink:0}}>{ev.categoryIcon}</span>
+              <div>
+                <div style={{fontSize:13,fontWeight:800,color:'#be185d',marginBottom:2}}>{ev.period}</div>
+                <div style={{fontSize:12,color:'#9d174d'}}>{ev.scope}</div>
+              </div>
+            </div>
+            {secTitle('🎟️','행사 정보','#db2777')}
+            <div style={{background:'#f9fafb',borderRadius:14,padding:'4px 16px',marginBottom:16}}>
+              {[
+                {l:'📅 기간',v:ev.period},
+                {l:'📍 장소',v:ev.address||ev.scope},
+                {l:'🏛️ 주관',v:ev.institution},
+                ev.phone?{l:'📞 문의',v:ev.phone}:null,
+              ].filter(Boolean).map(({l,v})=>(
+                <div key={l} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',padding:'11px 0',borderBottom:'1px solid #f0f0f0'}}>
+                  <span style={{fontSize:13,color:'#6b7280',flexShrink:0,marginRight:8}}>{l}</span>
+                  <span style={{fontSize:13,fontWeight:600,color:'#111827',textAlign:'right',flex:1}}>{v}</span>
+                </div>
+              ))}
+            </div>
+            {ev.amount&&ev.amount!=='현장 방문'&&(<>
+              {secTitle('📋','행사 내용','#7c3aed')}
+              <div style={{background:'#f5f3ff',borderRadius:12,padding:'14px',border:'1px solid #ddd6fe',marginBottom:16}}>
+                <p style={{fontSize:13,color:'#5b21b6',lineHeight:1.7,margin:0}}>{ev.amount}</p>
+              </div>
+            </>)}
+            <div style={{background:'#fffbeb',borderRadius:12,padding:'12px 14px',border:'1px solid #fde68a'}}>
+              <p style={{fontSize:12,color:'#92400e',lineHeight:1.65,margin:0}}>💡 입장료·운영시간·세부 프로그램은 공식 홈페이지 또는 방문 전 전화로 확인하세요.</p>
+            </div>
+          </>)}
         </div>
 
         {/* 버튼 */}
@@ -904,6 +943,14 @@ function calcTotalYearly(benefits){
 }
 
 // ─── BenefitDetail 모달 ───────────────────────────────────────────
+function shouldExcludeBenefitTitle(title=''){
+  return /생활안정자금\s*융자/i.test(String(title));
+}
+
+function filterExcludedBenefits(benefits=[]){
+  return benefits.filter(b=>!shouldExcludeBenefitTitle(b?.title||b?.혜택명||''));
+}
+
 function BenefitDetail({b,onClose,days,dl}){
   const steps=[
     {n:1,title:'서류 준비',icon:'📂',bg:'#eff6ff',color:'#1e40af',items:b.requiredDocuments||[],text:b.requiredDocuments?.length?'':'기관에 문의하여 필요 서류를 확인하세요.'},
@@ -1650,9 +1697,41 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
   const[dbCollectedAt,setDbCollectedAt]=useState(null);
   const[hiddenLoading,setHiddenLoading]=useState(false);const[hiddenResults,setHiddenResults]=useState(null);
   const[filterSources,setFilterSources]=useState(new Set());
+  // ── 여행가는 달 데이터
+  const[travelBenefits,setTravelBenefits]=useState(null);
+  const[travelLoading,setTravelLoading]=useState(false);
+  // ── 전국문화축제 데이터
+  const[festivalList,setFestivalList]=useState(null);
+  const[festivalLoading,setFestivalLoading]=useState(false);
   const toggleFilter=s=>setFilterSources(prev=>{const n=new Set(prev);n.has(s)?n.delete(s):n.add(s);return n;});
   const loadSavedIds=useCallback(()=>{const ids=new Set(sList(`benefit_item:${user.phone}:`).map(k=>k.split(':').pop()));setSavedIds(ids);},[user.phone]);
   useEffect(()=>{loadSavedIds();},[loadSavedIds]);
+
+  // ── 여행가는 달 혜택 fetch (탭 진입 시 1회)
+  useEffect(()=>{
+    if(travelBenefits!==null||travelLoading)return;
+    const apiBase=import.meta.env.VITE_API_BASE||'';
+    setTravelLoading(true);
+    fetch(`${apiBase}/api/travelmonth`)
+      .then(r=>r.ok?r.json():null)
+      .then(data=>{if(data?.benefits)setTravelBenefits(data.benefits);})
+      .catch(()=>{})
+      .finally(()=>setTravelLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[]);
+
+  // ── 전국문화축제 fetch (탭 진입 시 1회)
+  useEffect(()=>{
+    if(festivalList!==null||festivalLoading)return;
+    const apiBase=import.meta.env.VITE_API_BASE||'';
+    setFestivalLoading(true);
+    fetch(`${apiBase}/api/festival`)
+      .then(r=>r.ok?r.json():null)
+      .then(data=>{if(data?.festivals)setFestivalList(data.festivals);else setFestivalList([]);})
+      .catch(()=>setFestivalList([]))
+      .finally(()=>setFestivalLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[]);
   useEffect(()=>{if(!loading)return;let i=0;const t=setInterval(()=>{i=(i+1)%LOADING_STEPS.length;setStep(i);},1800);return()=>clearInterval(t);},[loading]);
   useEffect(()=>{if(results&&rRef.current)rRef.current.scrollIntoView({behavior:'smooth'});},[results]);
   const toggleExtra=v=>setExtras(p=>p.includes(v)?p.filter(x=>x!==v):[...p,v]);
@@ -1699,7 +1778,9 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
 
         // 유저 프로필 기준 적격성 필터 — 자격 없는 혜택(차상위계층·노인 등) 제거
         const profileCtx = { age, income, extras };
-        const filteredDbBenefits = dbBenefits.filter(b => isDbBenefitEligible(b, profileCtx));
+        const filteredDbBenefits = filterExcludedBenefits(
+          dbBenefits.filter(b => isDbBenefitEligible(b, profileCtx))
+        );
         console.log(`[analyze] DB 혜택 적격성 필터: ${dbBenefits.length}건 → ${filteredDbBenefits.length}건`);
 
         // 국민취업지원제도: 월 500만원 이상 고소득자는 해당 없음
@@ -1711,6 +1792,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
         if (extras.some(e => e.includes('청년')) && parseInt(age) >= 19 && parseInt(age) <= 34)
           benefits = [YOUTH_FUTURE_SAVINGS, ...benefits];
         if (parseInt(age) >= 19) benefits = [...benefits, KPASS_BENEFIT];
+        benefits = filterExcludedBenefits(benefits);
 
         const parsed = {
           benefits,
@@ -1721,6 +1803,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
             hiddenCount: 3
           }
         };
+        parsed.summary.topPriority = benefits[0]?.title || parsed.summary?.topPriority;
         setResults(parsed);
         setAnalyzedAt(new Date());
         if (dbResp.collectedAt) setDbCollectedAt(new Date(dbResp.collectedAt));
@@ -1742,6 +1825,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
       const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full',bokjiroData,gov24Data,ggData,seoulData,youthData,youthContentData}),4500);
       const parsed=repairJSON(raw);
       if(parsed?.benefits){
+        parsed.benefits=filterExcludedBenefits(parsed.benefits);
         parsed.benefits=parsed.benefits
           .filter(b=>!/(청년도약계좌)/i.test(b.title||''))
           .map(b=>{
@@ -1752,6 +1836,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
         parsed.benefits=parsed.benefits.filter(b=>{if(seen.has(b.id))return false;seen.add(b.id);return true;});
         if(extras.some(e=>e.includes('청년'))) parsed.benefits=[YOUTH_FUTURE_SAVINGS,...parsed.benefits];
         if(parseInt(age)>=19) parsed.benefits=[...parsed.benefits,KPASS_BENEFIT];
+        parsed.benefits=filterExcludedBenefits(parsed.benefits);
       }
       setResults(parsed);
       setAnalyzedAt(new Date());
@@ -1766,7 +1851,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
     try{
       const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'hidden'}),3000);
       const parsed=repairJSON(raw);
-      setHiddenResults(parsed.benefits||[]);
+      setHiddenResults(filterExcludedBenefits(parsed.benefits||[]));
     }catch(e){showToast('추가 혜택 발굴 중 오류: '+e.message);}
     finally{setHiddenLoading(false);}
   };
@@ -2021,9 +2106,55 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}>
           <div style={{width:4,height:18,background:'linear-gradient(to bottom,#f59e0b,#db2777)',borderRadius:2}}/>
           <span style={{fontSize:15,fontWeight:800,color:'#111827'}}>🎉 이달의 행사 및 할인</span>
-          <span style={{fontSize:11,fontWeight:700,color:'#db2777',background:'#fdf2f8',padding:'2px 8px',borderRadius:20,border:'1px solid #fbcfe8'}}>4월</span>
+          <span style={{fontSize:11,fontWeight:700,color:'#db2777',background:'#fdf2f8',padding:'2px 8px',borderRadius:20,border:'1px solid #fbcfe8'}}>{MONTH_KR[new Date().getMonth()]}</span>
         </div>
         {MONTHLY_EVENTS.map(ev=><EventCard key={ev.id} ev={ev}/>)}
+
+        {/* ── 전국문화축제 (공공데이터포털) ── */}
+        <div style={{marginTop:20}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+            <div style={{width:4,height:16,background:'linear-gradient(to bottom,#db2777,#f59e0b)',borderRadius:2}}/>
+            <span style={{fontSize:14,fontWeight:800,color:'#111827'}}>🎊 전국 문화축제</span>
+            <span style={{fontSize:10,fontWeight:600,color:'#6b7280',background:'#f3f4f6',padding:'2px 8px',borderRadius:20,marginLeft:'auto'}}>공공데이터포털 제공</span>
+          </div>
+          {festivalLoading&&(
+            <div style={{textAlign:'center',padding:'20px 0',color:'#6b7280',fontSize:13}}>
+              <div style={{width:28,height:28,border:'2px solid #e5e7eb',borderTopColor:'#db2777',borderRadius:'50%',animation:'spin 0.8s linear infinite',margin:'0 auto 8px'}}/>
+              축제 정보 불러오는 중...
+            </div>
+          )}
+          {!festivalLoading&&festivalList&&festivalList.length===0&&(
+            <div style={{textAlign:'center',padding:'16px',background:'#f8fafc',borderRadius:12,fontSize:13,color:'#9ca3af'}}>
+              이달의 문화축제 정보가 없거나 API 키가 미설정 상태입니다.
+            </div>
+          )}
+          {!festivalLoading&&festivalList&&festivalList.map(ev=><EventCard key={ev.id} ev={ev}/>)}
+        </div>
+
+        {/* ── 여행가는 달 (한국관광공사) ── */}
+        <div style={{marginTop:20}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+            <div style={{width:4,height:16,background:'linear-gradient(to bottom,#0ea5e9,#2563eb)',borderRadius:2}}/>
+            <span style={{fontSize:14,fontWeight:800,color:'#111827'}}>🗺️ 여행가는 달</span>
+            <a href="https://korean.visitkorea.or.kr/travelmonth/main.do" target="_blank" rel="noreferrer"
+               style={{fontSize:10,fontWeight:700,color:'#2563eb',background:'#eff6ff',padding:'2px 8px',borderRadius:20,border:'1px solid #bfdbfe',textDecoration:'none',marginLeft:'auto'}}>
+              원본 보기 →
+            </a>
+          </div>
+          {travelLoading&&(
+            <div style={{textAlign:'center',padding:'20px 0',color:'#6b7280',fontSize:13}}>
+              <div style={{width:28,height:28,border:'2px solid #e5e7eb',borderTopColor:'#2563eb',borderRadius:'50%',animation:'spin 0.8s linear infinite',margin:'0 auto 8px'}}/>
+              여행 혜택 수집 중...
+            </div>
+          )}
+          {!travelLoading&&travelBenefits&&travelBenefits.length===0&&(
+            <div style={{textAlign:'center',padding:'16px',background:'#f8fafc',borderRadius:12,fontSize:13,color:'#9ca3af'}}>
+              현재 여행가는 달 혜택 데이터를 불러오지 못했습니다.{' '}
+              <a href="https://korean.visitkorea.or.kr/travelmonth/main.do" target="_blank" rel="noreferrer" style={{color:'#2563eb'}}>직접 확인하기</a>
+            </div>
+          )}
+          {!travelLoading&&travelBenefits&&travelBenefits.map(ev=><EventCard key={ev.id} ev={ev}/>)}
+        </div>
       </div>
 
       {/* ── 유의사항 ── */}
