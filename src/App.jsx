@@ -541,6 +541,78 @@ function getBestApplyUrl(url, title='', institution=''){
 }
 
 // ─── 청년미래적금 (출시 예정 고정 혜택) ──────────────────────────────
+const YOUTH_HOUSING_DREAM_BANKS = [
+  { id:'woori', name:'우리은행', short:'WOORI', bg:'#1f6feb', fg:'#ffffff', url:'https://www.wooribank.com/', phone:'1599-0800' },
+  { id:'kb', name:'KB국민은행', short:'KB', bg:'#ffcc00', fg:'#111827', url:'https://obank.kbstar.com/', phone:'1599-1771' },
+  { id:'ibk', name:'IBK기업은행', short:'IBK', bg:'#2b6cb0', fg:'#ffffff', url:'https://www.ibk.co.kr/', phone:'1566-2566' },
+  { id:'nh', name:'NH농협은행', short:'NH', bg:'#00a86b', fg:'#ffffff', url:'https://banking.nonghyup.com/', phone:'1588-2100' },
+  { id:'shinhan', name:'신한은행', short:'SOL', bg:'#1e40af', fg:'#ffffff', url:'https://bank.shinhan.com/', phone:'1599-8000' },
+  { id:'hana', name:'하나은행', short:'Hana', bg:'#0f766e', fg:'#ffffff', url:'https://www.kebhana.com/', phone:'1599-1111' },
+  { id:'im', name:'iM뱅크', short:'iM', bg:'#60a5fa', fg:'#0f172a', url:'https://www.imbank.co.kr/', phone:'1588-0956' },
+  { id:'busan', name:'부산은행', short:'BNK', bg:'#ef4444', fg:'#ffffff', url:'https://www.busanbank.co.kr/', phone:'1800-1333' },
+  { id:'kn', name:'경남은행', short:'BNK', bg:'#b91c1c', fg:'#ffffff', url:'https://www.knbank.co.kr/', phone:'1600-8585' },
+];
+
+function isYouthHousingDreamBenefit(benefitOrTitle='', institution=''){
+  const title = typeof benefitOrTitle === 'object'
+    ? `${benefitOrTitle?.title||''} ${benefitOrTitle?.institution||''} ${benefitOrTitle?.applyUrl||''}`
+    : `${benefitOrTitle||''} ${institution||''}`;
+  return /청년\s*주택드림\s*청약통장/i.test(title);
+}
+
+function BankBrandLogo({bank, size=48}){
+  return(
+    <div style={{width:size,height:size,borderRadius:16,background:bank.bg,color:bank.fg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontWeight:800,fontSize:bank.short.length >= 4 ? 13 : 16,letterSpacing:'0.2px',boxShadow:'inset 0 1px 0 rgba(255,255,255,0.22), 0 6px 18px rgba(15,23,42,0.12)'}}>
+      {bank.short}
+    </div>
+  );
+}
+
+function YouthHousingDreamBankModal({onClose}){
+  return(
+    <div style={{position:'fixed',inset:0,zIndex:1100}}>
+      <div onClick={onClose} style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)'}}/>
+      <div style={{position:'absolute',bottom:0,left:0,right:0,maxHeight:'88vh',background:'#fff',borderRadius:'28px 28px 0 0',display:'flex',flexDirection:'column'}}>
+        <div style={{flexShrink:0,padding:'16px 20px',borderBottom:'1px solid #f3f4f6'}}>
+          <div style={{width:36,height:4,borderRadius:2,background:'#d1d5db',margin:'0 auto 14px'}}/>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12}}>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',gap:6,marginBottom:8,flexWrap:'wrap'}}>
+                <span style={{fontSize:11,fontWeight:700,color:'#15803d',background:'#dcfce7',padding:'3px 10px',borderRadius:20}}>주거</span>
+                <span style={{fontSize:11,fontWeight:700,color:'#1d4ed8',background:'#dbeafe',padding:'3px 10px',borderRadius:20}}>취급은행 9곳</span>
+              </div>
+              <h2 style={{fontSize:18,fontWeight:800,color:'#111827',lineHeight:1.3,margin:0}}>청년주택드림 청약통장 신청 은행</h2>
+              <p style={{fontSize:13,color:'#6b7280',margin:'6px 0 0'}}>은행을 선택하면 해당 은행 공식 사이트로 이동합니다.</p>
+            </div>
+            <button onClick={onClose} style={{background:'#f3f4f6',border:'none',borderRadius:'50%',width:34,height:34,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0,fontFamily:'inherit'}}>×</button>
+          </div>
+        </div>
+        <div style={{flex:1,overflowY:'auto',padding:'20px'}}>
+          <div style={{background:'linear-gradient(135deg,#eff6ff,#f0fdf4)',border:'1px solid #dbeafe',borderRadius:16,padding:'14px 16px',marginBottom:16}}>
+            <div style={{fontSize:13,fontWeight:800,color:'#1e3a8a',marginBottom:4}}>공식 취급은행 안내</div>
+            <p style={{fontSize:13,color:'#334155',lineHeight:1.65,margin:0}}>주택도시기금 상품안내 기준으로 우리, KB국민, IBK기업, NH농협, 신한, 하나, iM뱅크, 부산, 경남은행에서 가입할 수 있습니다.</p>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))',gap:12}}>
+            {YOUTH_HOUSING_DREAM_BANKS.map(bank=>(
+              <a key={bank.id} href={bank.url} target="_blank" rel="noreferrer" style={{textDecoration:'none',background:'#fff',border:'1px solid #e5e7eb',borderRadius:18,padding:'14px',display:'flex',alignItems:'center',gap:12,boxShadow:'0 8px 24px rgba(15,23,42,0.06)'}}>
+                <BankBrandLogo bank={bank}/>
+                <div style={{minWidth:0,flex:1}}>
+                  <div style={{fontSize:14,fontWeight:800,color:'#111827'}}>{bank.name}</div>
+                  <div style={{fontSize:12,color:'#6b7280',marginTop:3}}>대표번호 {bank.phone}</div>
+                  <div style={{fontSize:12,fontWeight:700,color:'#15803d',marginTop:7}}>공식 사이트로 이동 →</div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+        <div style={{flexShrink:0,padding:'12px 20px',paddingBottom:'calc(12px + env(safe-area-inset-bottom,0px))',borderTop:'1px solid #f3f4f6'}}>
+          <button onClick={onClose} style={{width:'100%',padding:'14px',borderRadius:14,background:'#f3f4f6',color:'#374151',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit'}}>닫기</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const YOUTH_FUTURE_SAVINGS = {
   id:'youth-future-savings-static',
   source:'금융/은행', sourceIcon:'🏦',
@@ -944,14 +1016,37 @@ function calcTotalYearly(benefits){
 
 // ─── BenefitDetail 모달 ───────────────────────────────────────────
 function shouldExcludeBenefitTitle(title=''){
-  return /생활안정자금\s*융자/i.test(String(title));
+  const t = String(title);
+  if (/생활안정자금[\s(]*융자/i.test(t)) return true;
+  if (/청년월세지원서울|청년\s*월세\s*지원\s*서울/i.test(t)) return true;
+  return false;
+}
+
+// ── 특정 혜택명에 고정 아이콘 적용 (Claude 생성 결과 덮어쓰기용)
+const BENEFIT_ICON_OVERRIDES = [
+  { pattern: /서울\s*청년\s*수당/i,            categoryIcon: '💰', sourceIcon: '💰' },
+  { pattern: /청년\s*월세\s*지원/i,            categoryIcon: '🏠', sourceIcon: '🏠' },
+];
+
+function applyIconOverrides(benefit) {
+  const title = String(benefit?.title || '');
+  for (const rule of BENEFIT_ICON_OVERRIDES) {
+    if (rule.pattern.test(title)) {
+      return { ...benefit, categoryIcon: rule.categoryIcon, sourceIcon: rule.sourceIcon };
+    }
+  }
+  return benefit;
 }
 
 function filterExcludedBenefits(benefits=[]){
-  return benefits.filter(b=>!shouldExcludeBenefitTitle(b?.title||b?.혜택명||''));
+  return benefits
+    .filter(b=>!shouldExcludeBenefitTitle(b?.title||b?.혜택명||''))
+    .map(applyIconOverrides);
 }
 
 function BenefitDetail({b,onClose,days,dl}){
+  const [bankModalOpen,setBankModalOpen]=useState(false);
+  const isYouthHousingDream = isYouthHousingDreamBenefit(b);
   const steps=[
     {n:1,title:'서류 준비',icon:'📂',bg:'#eff6ff',color:'#1e40af',items:b.requiredDocuments||[],text:b.requiredDocuments?.length?'':'기관에 문의하여 필요 서류를 확인하세요.'},
     {n:2,title:'신청 방법',icon:'📝',bg:'#f0fdf4',color:'#166534',items:[],text:b.howToApply||'해당 기관 홈페이지 또는 주민센터 방문'},
@@ -1136,15 +1231,20 @@ function BenefitDetail({b,onClose,days,dl}){
         {/* 버튼 - 스크롤 밖 하단 고정 */}
         <div style={{flexShrink:0,display:'flex',gap:8,padding:'12px 20px',paddingBottom:'calc(12px + env(safe-area-inset-bottom,0px))'}}>
           <button onClick={onClose} style={{flex:1,padding:'14px',borderRadius:14,background:'#f3f4f6',color:'#374151',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit'}}>닫기</button>
-          <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{flex:2,padding:'14px',borderRadius:14,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',gap:6,boxShadow:'0 4px 14px rgba(21,128,61,0.3)'}}>바로 신청하기 →</a>
+          {isYouthHousingDream?(
+            <button onClick={()=>setBankModalOpen(true)} style={{flex:2,padding:'14px',borderRadius:14,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 14px rgba(21,128,61,0.3)'}}>은행 선택하기 →</button>
+          ):(
+            <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{flex:2,padding:'14px',borderRadius:14,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',gap:6,boxShadow:'0 4px 14px rgba(21,128,61,0.3)'}}>바로 신청하기 →</a>
+          )}
         </div>
       </div>
+      {bankModalOpen&&<YouthHousingDreamBankModal onClose={()=>setBankModalOpen(false)}/>}
     </div>
   );
 }
 
 // ─── BCard ────────────────────────────────────────────────────────
-function BCard({b,savedIds,onToggleSave}){const catStyle=CAT_ICON_STYLE[b.category]||{bg:'#f9fafb',color:'#6b7280'};const isSaved=savedIds?.has(String(b.id));const dl=parseDeadline(b.deadline);const days=daysLeft(dl);const[detailOpen,setDetailOpen]=useState(false);
+function BCard({b,savedIds,onToggleSave}){const catStyle=CAT_ICON_STYLE[b.category]||{bg:'#f9fafb',color:'#6b7280'};const isSaved=savedIds?.has(String(b.id));const dl=parseDeadline(b.deadline);const days=daysLeft(dl);const[detailOpen,setDetailOpen]=useState(false);const[bankModalOpen,setBankModalOpen]=useState(false);const isYouthHousingDream=isYouthHousingDreamBenefit(b);
 // Status badge
   let statusBadge;
   if(b.isComingSoon){
@@ -1195,11 +1295,12 @@ function BCard({b,savedIds,onToggleSave}){const catStyle=CAT_ICON_STYLE[b.catego
         {b.isComingSoon?(
           <button disabled style={{flex:1,padding:'11px 0',borderRadius:12,background:'#e5e7eb',color:'#9ca3af',fontSize:14,fontWeight:700,border:'none',cursor:'not-allowed',fontFamily:'inherit'}}>🔜 출시 예정</button>
         ):(
-          <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} target="_blank" rel="noreferrer" style={{flex:1,padding:'11px 0',borderRadius:12,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px rgba(21,128,61,0.25)'}}>바로 신청</a>
+          <a href={getBestApplyUrl(b.applyUrl,b.title,b.institution)} onClick={(e)=>{if(isYouthHousingDream){e.preventDefault();setBankModalOpen(true);}}} target="_blank" rel="noreferrer" style={{flex:1,padding:'11px 0',borderRadius:12,background:'#15803d',color:'#fff',fontSize:14,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px rgba(21,128,61,0.25)'}}>바로 신청</a>
         )}
       </div>
     </div>
     {detailOpen&&<BenefitDetail b={b} onClose={()=>setDetailOpen(false)} days={days} dl={dl}/>}
+    {bankModalOpen&&<YouthHousingDreamBankModal onClose={()=>setBankModalOpen(false)}/>}
   </>);}
 
 // ─── CalendarWidget ───────────────────────────────────────────────
@@ -1643,7 +1744,7 @@ function buildBenefitPrompt({age,gender,job,income,address,extra,today,mode='ful
   const YOUTH_SECTION = isYouth ? `
 ★★ 청년 특화 — 반드시 포함:
 [전국] 청년희망적금, 국민취업지원제도, 청년내일저축계좌, 청년내일채움공제, 국가장학금, 청년 버팀목전세자금, 청년 월세 지원(LH), K-디지털 훈련, 청년일자리도약장려금
-${isSeoul ? `[서울] 서울청년수당(월50만원), 희망두배청년통장, 청년취업사관학교새싹, 청년월세지원서울, 청년임차보증금이자지원, 서울청년문화패스` : ''}` : '';
+${isSeoul ? `[서울] 서울청년수당(월50만원), 희망두배청년통장, 청년취업사관학교새싹, 청년임차보증금이자지원, 서울청년문화패스` : ''}` : '';
 
   // ── 소상공인 특화 섹션 ──
   const SME_SECTION = isSME ? `
