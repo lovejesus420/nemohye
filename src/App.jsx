@@ -478,6 +478,10 @@ const KNOWN_BENEFIT_URLS = [
   {kw:['서울아기 건강 첫걸음','건강 첫걸음'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtList.do'},
   {kw:['유축기 대여'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtList.do'},
   {kw:['서울키즈 오케이존','키즈 오케이존'],url:'https://umppa.seoul.go.kr/hmpg/sprt/bzin/bzmgComtDetail.do?biz_mng_no=99341E4FE02244FFA897EF1BF7678DD1'},
+  // ── 수동 링크 수정 (오류 제보 대응) ──
+  {kw:['임차보증금','임차 보증금','청년 임차'],url:'https://youth.seoul.go.kr/youthConts.do?key=2310100007'},
+  {kw:['긴급복지 의료지원','긴급복지 의료'],url:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveWlfareInfoDetlView.do?wlfareInfoId=WLF00000053'},
+  {kw:['긴급복지 생계지원','긴급복지 생계'],url:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveWlfareInfoDetlView.do?wlfareInfoId=WLF00000052'},
 ];
 const APPLY_DOMAIN_MAP = {
   'bokjiro.go.kr':'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do',
@@ -526,18 +530,32 @@ function getBestApplyUrl(url, title='', institution=''){
   for(const{kw,url:dest}of KNOWN_BENEFIT_URLS){
     if(kw.some(k=>haystack.includes(k.toLowerCase())))return dest;
   }
-  if(!url)return'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do';
+  
+  // 2) 일반 도메인(메인 페이지)인 경우 검색 페이지 유도
+  const GENERIC_DOMAINS = ['gov.kr', 'bokjiro.go.kr', 'youthcenter.go.kr', 'youth.go.kr', 'seoul.go.kr'];
+  try {
+    if (url) {
+      const parsed = new URL(url);
+      const host = parsed.hostname.replace(/^www\./, '');
+      if (GENERIC_DOMAINS.some(d => host === d || host.endsWith('.' + d)) && (parsed.pathname === '/' || parsed.pathname === '')) {
+        return `https://www.gov.kr/portal/main?srchField=1&searchWrd=${encodeURIComponent(title)}`;
+      }
+    }
+  } catch(e) {}
+
+  if(!url)return`https://www.gov.kr/portal/main?srchField=1&searchWrd=${encodeURIComponent(title)}`;
+  
   try{
     const parsed=new URL(url);
     const host=parsed.hostname.replace(/^www\./,'');
-    // 2) 이미 서브페이지면 그대로
+    // 3) 이미 서브페이지면 그대로
     if(parsed.pathname&&parsed.pathname!=='/'&&parsed.pathname.length>1)return url;
-    // 3) 도메인 매핑
+    // 4) 도메인 매핑
     for(const[domain,dest]of Object.entries(APPLY_DOMAIN_MAP)){
       if(host===domain||host.endsWith('.'+domain))return dest;
     }
   }catch{}
-  return url||'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do';
+  return url || `https://www.gov.kr/portal/main?srchField=1&searchWrd=${encodeURIComponent(title)}`;
 }
 
 // ─── 청년미래적금 (출시 예정 고정 혜택) ──────────────────────────────
@@ -2254,7 +2272,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
               <a href="https://korean.visitkorea.or.kr/travelmonth/main.do" target="_blank" rel="noreferrer" style={{color:'#2563eb'}}>직접 확인하기</a>
             </div>
           )}
-          {!travelLoading&&travelBenefits&&travelBenefits.map(ev=><EventCard key={ev.id} ev={ev}/>)}
+          {!travelLoading&&travelBenefits&&travelBenefits.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}
         </div>
       </div>
 
