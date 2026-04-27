@@ -1,5 +1,11 @@
 {
   "rewrites": [
+    { "source": "/api/send-otp", "destination": "/api/auth" },
+    { "source": "/api/verify-otp", "destination": "/api/auth" },
+    { "source": "/api/youth-policy", "destination": "/api/youth" },
+    { "source": "/api/youth-content", "destination": "/api/youth" },
+    { "source": "/api/seoul", "destination": "/api/regions" },
+    { "source": "/api/gg", "destination": "/api/regions" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "crons": [
