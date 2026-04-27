@@ -2639,6 +2639,132 @@ function AdminTab(){
     </div>))}
   </div>);}
 
+// ─── DiscountTab ──────────────────────────────────────────────────
+const DISCOUNT_CAT_STYLE = {
+  '마트·식품':  { bg:'#dcfce7', color:'#166534', icon:'🛒' },
+  '패션·뷰티':  { bg:'#fce7f3', color:'#9d174d', icon:'👗' },
+  '전자·가전':  { bg:'#dbeafe', color:'#1e40af', icon:'📱' },
+  '여행·레저':  { bg:'#fef9c3', color:'#854d0e', icon:'✈️' },
+  '온라인쇼핑': { bg:'#ede9fe', color:'#5b21b6', icon:'🛍️' },
+  '기타':       { bg:'#f3f4f6', color:'#374151', icon:'🎁' },
+};
+function DiscountTab() {
+  const [discounts, setDiscounts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState('');
+  const [filter, setFilter] = useState('전체');
+  useEffect(() => {
+    const BASE = import.meta.env.VITE_API_BASE || '';
+    fetch(`${BASE}/api/discount`)
+      .then(r => r.json())
+      .then(data => { setDiscounts(data.discounts || []); setLoading(false); })
+      .catch(e => { setErr(e.message); setLoading(false); });
+  }, []);
+  const cats = ['전체', ...Object.keys(DISCOUNT_CAT_STYLE)];
+  const filtered = filter === '전체' ? discounts : discounts.filter(d => d.category === filter);
+  if (loading) return (<div style={{textAlign:'center',padding:'60px 20px'}}><div style={{width:44,height:44,border:'3px solid #e5e7eb',borderTopColor:'#f59e0b',borderRadius:'50%',animation:'spin 0.9s linear infinite',margin:'0 auto 14px'}}/><div style={{fontSize:14,color:'#6b6560'}}>전국 할인 행사를 불러오는 중...</div></div>);
+  return (<div>
+    <div style={{background:'linear-gradient(135deg,#d97706,#f59e0b)',borderRadius:16,padding:'18px 20px',marginBottom:16,color:'#fff'}}>
+      <div style={{fontSize:10,letterSpacing:0.5,color:'rgba(255,255,255,0.8)',textTransform:'uppercase',marginBottom:6}}>🏷️ 전국 할인 행사</div>
+      <div style={{fontFamily:'serif',fontSize:'1.15rem',fontWeight:700,marginBottom:4,wordBreak:'keep-all'}}>지금 바로 혜택 받는 할인 행사</div>
+      <p style={{fontSize:12,color:'rgba(255,255,255,0.8)',lineHeight:1.6,margin:0}}>전국 대형마트·온라인쇼핑·백화점·편의점 할인 이벤트를 모아드려요</p>
+    </div>
+    <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:4,marginBottom:16}}>
+      {cats.map(cat => {
+        const info = DISCOUNT_CAT_STYLE[cat];
+        const active = filter === cat;
+        return (<button key={cat} onClick={() => setFilter(cat)} style={{flexShrink:0,padding:'6px 12px',border:`1.5px solid ${active?'#d97706':'#e5e7eb'}`,borderRadius:20,fontSize:12,fontWeight:active?700:500,background:active?'#d97706':'#fff',color:active?'#fff':'#6b6560',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>{info?.icon||''} {cat}</button>);
+      })}
+    </div>
+    {err&&<div style={{background:'#fef2f2',border:'1px solid #fca5a5',borderRadius:10,padding:'12px 16px',color:'#991b1b',fontSize:13,marginBottom:16}}><strong>불러오기 실패:</strong> {err}</div>}
+    {filtered.length===0&&!err&&(<div style={{textAlign:'center',padding:'60px 20px'}}><div style={{fontSize:48,marginBottom:14}}>🏷️</div><div style={{fontSize:16,fontWeight:700,marginBottom:8}}>현재 수집된 할인 행사가 없습니다</div><div style={{fontSize:13,color:'#9ca3af'}}>잠시 후 다시 확인해주세요</div></div>)}
+    <div>
+      {filtered.map((d, i) => {
+        const info = DISCOUNT_CAT_STYLE[d.category] || DISCOUNT_CAT_STYLE['기타'];
+        return (<div key={i} style={{background:'#fff',border:'1px solid #e5e7eb',borderRadius:14,padding:'16px',marginBottom:12,boxShadow:'0 1px 4px rgba(0,0,0,0.05)'}}>
+          <div style={{display:'flex',alignItems:'flex-start',gap:12,marginBottom:10}}>
+            <div style={{width:44,height:44,borderRadius:12,background:info.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>{d.icon||info.icon}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4,flexWrap:'wrap'}}>
+                <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:5,background:info.bg,color:info.color}}>{d.category}</span>
+                {d.region&&<span style={{fontSize:11,color:'#9ca3af',background:'#f3f4f6',padding:'2px 8px',borderRadius:5}}>{d.region}</span>}
+              </div>
+              <div style={{fontSize:14,fontWeight:700,marginBottom:2,wordBreak:'keep-all',lineHeight:1.4}}>{d.title}</div>
+              {d.store&&<div style={{fontSize:12,color:'#6b6560'}}>{d.store}</div>}
+            </div>
+          </div>
+          {d.discount&&(<div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'8px 12px',marginBottom:8,fontSize:13,fontWeight:700,color:'#d97706'}}>💰 {d.discount}</div>)}
+          {d.description&&(<div style={{fontSize:13,color:'#374151',lineHeight:1.6,marginBottom:8,wordBreak:'keep-all'}}>{d.description}</div>)}
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8}}>
+            {d.period&&<span style={{fontSize:12,color:'#9ca3af'}}>📅 {d.period}</span>}
+            {d.url?(<a href={d.url} target="_blank" rel="noreferrer" style={{fontSize:12,fontWeight:700,color:'#fff',background:'#d97706',padding:'6px 12px',borderRadius:8,textDecoration:'none',flexShrink:0}}>자세히 보기 →</a>):(<span style={{fontSize:12,color:'#9ca3af'}}>링크 없음</span>)}
+          </div>
+        </div>);
+      })}
+    </div>
+    <div style={{textAlign:'center',padding:'20px 0',fontSize:12,color:'#9ca3af',lineHeight:1.7}}>할인 행사 정보는 AI가 수집한 참고 자료입니다.<br/>실제 혜택은 해당 매장·사이트에서 확인하세요.</div>
+  </div>);
+}
+
+// ─── CouponTab ────────────────────────────────────────────────────
+const COUPON_PLATFORMS = [
+  {name:'쿠팡',        icon:'🛒', category:'온라인쇼핑', desc:'로켓배송 쿠폰·와우회원 할인·플래시딜',       url:'https://www.coupang.com/np/coupons',                                                           color:'#e04e3f', bg:'#fff1f0'},
+  {name:'네이버 쇼핑', icon:'🟢', category:'온라인쇼핑', desc:'네이버페이 포인트·스마트스토어 쿠폰',        url:'https://shopping.naver.com/ns/v1/home',                                                        color:'#03c75a', bg:'#f0fff5'},
+  {name:'SSG닷컴',     icon:'🛍️', category:'온라인쇼핑', desc:'SSG머니·신세계 제휴 할인쿠폰',              url:'https://www.ssg.com/event/eventList.ssg?gubun=cpn',                                            color:'#e20038', bg:'#fff0f3'},
+  {name:'11번가',      icon:'🏷️', category:'온라인쇼핑', desc:'십일절 특가·쿠폰 모음',                     url:'https://www.11st.co.kr/mw/contents/cpnList.tmall',                                             color:'#f04e23', bg:'#fff3ef'},
+  {name:'G마켓',       icon:'💛', category:'온라인쇼핑', desc:'G마켓 빅세일·할인 쿠폰',                    url:'https://www.gmarket.co.kr/n/coupon',                                                           color:'#f7c800', bg:'#fffef0'},
+  {name:'옥션',        icon:'🔵', category:'온라인쇼핑', desc:'옥션 쿠폰북·특가 혜택',                     url:'https://www.auction.co.kr/EventAuction/CouponCenter.aspx',                                     color:'#1b5fc0', bg:'#eff5ff'},
+  {name:'이마트',      icon:'🏪', category:'마트·식품',  desc:'주간 이마트 세일·E포인트 할인',             url:'https://emart.ssg.com/plan/planMain.ssg',                                                      color:'#f6c200', bg:'#fffdf0'},
+  {name:'롯데마트',    icon:'🧡', category:'마트·식품',  desc:'롯데마트 GO앱 전용쿠폰·신선 특가',          url:'https://www.lottemart.com/pc/display/displayCouponMain.do',                                    color:'#ed6b03', bg:'#fff5ef'},
+  {name:'홈플러스',    icon:'🟦', category:'마트·식품',  desc:'홈플러스 쿠폰 창고·앱 전용 특가',           url:'https://corporate.homeplus.co.kr/event/coupon',                                               color:'#1565c0', bg:'#eff5ff'},
+  {name:'CU',          icon:'🏬', category:'편의점',     desc:'CU 멤버십 쿠폰·1+1·증정 행사',              url:'https://cu.bgfretail.com/event/event.do',                                                      color:'#7b2fff', bg:'#f5f0ff'},
+  {name:'GS25',        icon:'🟩', category:'편의점',     desc:'GS25 나만의냉장고 쿠폰·행사상품',           url:'https://gs25.gsretail.com/gscvs/ko/customer-engagement/our-events/event-items',              color:'#1e7e34', bg:'#f0fff4'},
+  {name:'세븐일레븐',  icon:'7️⃣', category:'편의점',     desc:'세븐앱 쿠폰·POINT 적립 행사',               url:'https://www.7-eleven.co.kr/event/eventList.asp',                                               color:'#e30613', bg:'#fff0f0'},
+  {name:'배달의민족',  icon:'🍱', category:'외식·배달',  desc:'B마트 쿠폰·첫 주문 할인·배달비 무료',       url:'https://www.baemin.com/',                                                                       color:'#2ac1bc', bg:'#effffe'},
+  {name:'쿠팡이츠',   icon:'🚀', category:'외식·배달',  desc:'쿠팡이츠 첫 주문·추가 할인쿠폰',            url:'https://eats.coupang.com/',                                                                    color:'#e04e3f', bg:'#fff1f0'},
+  {name:'요기요',      icon:'🍔', category:'외식·배달',  desc:'요기요 슈퍼클럽·할인 쿠폰',                 url:'https://www.yogiyo.co.kr/',                                                                     color:'#f23d3d', bg:'#fff0f0'},
+  {name:'올리브영',    icon:'💄', category:'패션·뷰티',  desc:'올영세일·쿠폰·멤버십 할인',                 url:'https://www.oliveyoung.co.kr/store/event/getEventList.do',                                     color:'#2c9f4b', bg:'#f0fff4'},
+  {name:'W컨셉',       icon:'👗', category:'패션·뷰티',  desc:'브랜드 특가 기획전·할인쿠폰',               url:'https://www.wconcept.co.kr/Display/CouponList',                                               color:'#000000', bg:'#f5f5f5'},
+  {name:'무신사',      icon:'🧢', category:'패션·뷰티',  desc:'무신사 쿠폰·스탠다드·리미티드 특가',        url:'https://www.musinsa.com/app/campaign/index',                                                    color:'#000000', bg:'#f5f5f5'},
+  {name:'KT 멤버십',   icon:'📱', category:'통신·생활',  desc:'KT 포인트로 영화·커피·쇼핑 할인',           url:'https://membership.kt.com/',                                                                    color:'#e8003d', bg:'#fff0f4'},
+  {name:'T멤버십',     icon:'📡', category:'통신·생활',  desc:'SKT T멤버십 쿠폰·제휴 혜택',                url:'https://www.tworld.co.kr/benefit/membership',                                                  color:'#e83c2e', bg:'#fff0f0'},
+  {name:'카카오페이',  icon:'💛', category:'통신·생활',  desc:'카카오페이 청구 할인·포인트 쿠폰',          url:'https://pay.kakao.com/',                                                                        color:'#f7c800', bg:'#fffef0'},
+  {name:'티머니GO',    icon:'🚌', category:'통신·생활',  desc:'교통비 환급·대중교통 할인 혜택',             url:'https://www.tmoneygo.com/',                                                                     color:'#00adef', bg:'#effaff'},
+];
+const COUPON_CATS = ['전체','온라인쇼핑','마트·식품','편의점','외식·배달','패션·뷰티','통신·생활'];
+function CouponTab() {
+  const [filter, setFilter] = useState('전체');
+  const filtered = filter==='전체' ? COUPON_PLATFORMS : COUPON_PLATFORMS.filter(p => p.category===filter);
+  return (<div>
+    <div style={{background:'linear-gradient(135deg,#7c3aed,#a855f7)',borderRadius:16,padding:'18px 20px',marginBottom:16,color:'#fff'}}>
+      <div style={{fontSize:10,letterSpacing:0.5,color:'rgba(255,255,255,0.8)',textTransform:'uppercase',marginBottom:6}}>🎟️ 기업 할인쿠폰</div>
+      <div style={{fontFamily:'serif',fontSize:'1.15rem',fontWeight:700,marginBottom:4,wordBreak:'keep-all'}}>주요 기업 쿠폰을 한 곳에서</div>
+      <p style={{fontSize:12,color:'rgba(255,255,255,0.8)',lineHeight:1.6,margin:0}}>쇼핑몰·마트·편의점·배달앱·통신사 쿠폰 페이지로 바로 이동하세요</p>
+    </div>
+    <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:4,marginBottom:16}}>
+      {COUPON_CATS.map(cat => {
+        const active = filter===cat;
+        return (<button key={cat} onClick={() => setFilter(cat)} style={{flexShrink:0,padding:'6px 12px',border:`1.5px solid ${active?'#7c3aed':'#e5e7eb'}`,borderRadius:20,fontSize:12,fontWeight:active?700:500,background:active?'#7c3aed':'#fff',color:active?'#fff':'#6b6560',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>{cat}</button>);
+      })}
+    </div>
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+      {filtered.map((p, i) => (
+        <a key={i} href={p.url} target="_blank" rel="noreferrer" style={{textDecoration:'none'}}>
+          <div style={{background:'#fff',border:'1px solid #e5e7eb',borderRadius:14,padding:'14px',boxSizing:'border-box',boxShadow:'0 1px 4px rgba(0,0,0,0.05)',display:'flex',flexDirection:'column',height:'100%'}}>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
+              <div style={{width:40,height:40,borderRadius:12,background:p.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{p.icon}</div>
+              <div><div style={{fontSize:14,fontWeight:700,color:'#0d1117'}}>{p.name}</div><div style={{fontSize:11,color:p.color,fontWeight:600}}>{p.category}</div></div>
+            </div>
+            <div style={{fontSize:12,color:'#6b6560',lineHeight:1.6,flex:1}}>{p.desc}</div>
+            <div style={{marginTop:10,fontSize:12,fontWeight:700,color:p.color,textAlign:'right'}}>쿠폰 받기 →</div>
+          </div>
+        </a>
+      ))}
+    </div>
+    <div style={{textAlign:'center',padding:'20px 0',fontSize:12,color:'#9ca3af',lineHeight:1.7,marginTop:8}}>각 버튼을 누르면 해당 기업의 쿠폰 페이지로 이동합니다.<br/>로그인 후 쿠폰을 다운로드하세요.</div>
+  </div>);
+}
+
 // ─── ProfileTab ───────────────────────────────────────────────────
 function ProfileTab({user,onLogout,savedCount}){return(<div style={{maxWidth:480,margin:'0 auto'}}><div style={{...CS,textAlign:'center',padding:'32px 24px',marginBottom:14}}><div style={{width:68,height:68,borderRadius:'50%',background:'linear-gradient(135deg,#1a6b6b,#0d4f4f)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.76rem',fontWeight:900,color:'#c9a84c',margin:'0 auto 14px',fontFamily:'serif'}}>{user.name?.charAt(0)||'?'}</div><div style={{fontFamily:'serif',fontSize:'1.32rem',fontWeight:700,marginBottom:3}}>{user.name}</div><div style={{fontSize:14,color:'#6b6560',marginBottom:20}}>{formatPhone(user.phone)}</div><div style={{display:'flex',justifyContent:'center',gap:32,padding:'16px 0',borderTop:'1px solid #f0ebe0',borderBottom:'1px solid #f0ebe0',marginBottom:20}}><div style={{textAlign:'center'}}><div style={{fontSize:'1.98rem',fontWeight:900,color:'#1a6b6b',lineHeight:1}}>{savedCount}</div><div style={{fontSize:12,color:'#6b6560',marginTop:3}}>저장한 혜택</div></div><div style={{textAlign:'center'}}><div style={{fontSize:'1.10rem',fontWeight:700,color:'#c9a84c',lineHeight:1,paddingTop:4}}>{new Date(user.createdAt).toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'})}</div><div style={{fontSize:12,color:'#6b6560',marginTop:3}}>가입일</div></div></div><button onClick={onLogout} style={BP({width:'100%',padding:'12px',background:'#fee2e2',color:'#991b1b',borderRadius:10,fontSize:14})}>로그아웃</button></div><div style={{background:'#ede8dc',borderRadius:12,padding:'14px 16px',fontSize:13,color:'#6b6560',lineHeight:1.7}}><strong style={{color:'#0d1117'}}>💡 안내</strong><br/>저장된 혜택은 이 기기의 localStorage에 보관됩니다. 캘린더 알림은 브라우저 알림 권한을 허용하면 자동으로 작동합니다.</div></div>);}
 
@@ -2696,18 +2822,21 @@ export default function App() {
   }
 
   // 하단 탭 바 정의 (아이콘, 레이블, 탭ID)
+  // 인생·결혼·부동산 탭은 숨김 보관 (코드 유지, 네비게이션에서 제외)
   const BOTTOM_TABS = [
-    {v:'analyze', icon:'✦', label:'혜택'},
-    {v:'life',    icon:'🗺', label:'인생'},
-    {v:'wedding', icon:'💍', label:'결혼'},
-    {v:'realestate',icon:'🏠',label:'부동산'},
-    {v:'saved',   icon:'📁', label:`보관함${savedCount>0?` ${savedCount}`:''}` },
-    {v:'profile', icon:'👤', label:'MY'},
+    {v:'analyze',  icon:'✦',  label:'혜택'},
+    {v:'discount', icon:'🏷️', label:'할인'},
+    {v:'coupon',   icon:'🎟️', label:'쿠폰'},
+    {v:'saved',    icon:'📁', label:`보관함${savedCount>0?` ${savedCount}`:''}` },
+    {v:'profile',  icon:'👤', label:'MY'},
   ];
 
   // 페이지별 메타
   const PAGE_META = {
     analyze:     {title:'혜택 설계', sub:'나이·지역·상황을 입력하면 맞춤 혜택을 찾아드려요'},
+    discount:    {title:'전국 할인 행사', sub:'마트·백화점·온라인쇼핑·편의점 할인 이벤트를 모아드려요'},
+    coupon:      {title:'기업 할인쿠폰', sub:'주요 기업 쿠폰 페이지로 바로 이동하세요'},
+    // 숨김 탭 (코드 보관용)
     life:        {title:'인생 설계', sub:'목표와 재정 상황으로 현실적인 단계별 플랜을 설계해드려요'},
     wedding:     {title:'결혼 설계', sub:'예산·지역·스타일 입력 → 스드메·웨딩홀 추천 + 일정 캘린더'},
     realestate:  {title:'부동산 설계', sub:'집 유형과 조건으로 매물·대출·정부 지원을 한 번에 분석해드려요'},
@@ -2825,6 +2954,9 @@ export default function App() {
       {/* ── 탭 콘텐츠 ─────────────────────────────────────── */}
       <div style={{maxWidth:760,margin:'0 auto',padding:'16px 16px 100px',position:'relative',zIndex:10,marginTop:tab==='analyze'?-28:0}}>
         {tab==='analyze'    && <AnalyzeTab user={user} onSaved={refreshCount} onResultsReady={setAnalyzeResults}/>}
+        {tab==='discount'   && <DiscountTab/>}
+        {tab==='coupon'     && <CouponTab/>}
+        {/* 숨김 탭 (코드 보관) */}
         {tab==='life'       && <LifeTab user={user}/>}
         {tab==='wedding'    && <WeddingTab user={user}/>}
         {tab==='realestate' && <RealEstateTab user={user}/>}
