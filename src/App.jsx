@@ -2893,7 +2893,7 @@ const COUPON_PLATFORMS = [
     icon: '🛒',
     category: '온라인쇼핑',
     desc: '와우회원 전용 최대 50% 즉시할인 쿠폰 및 로켓직구·가전 브랜드별 중복 할인쿠폰을 제공합니다. [쿠폰받기] 버튼 클릭 시 발급 가능 리스트로 이동합니다.',
-    url: 'https://www.coupang.com/np/coupons',
+    url: 'https://www.coupang.com/np/promotion/coupons',
     color: '#e04e3f',
     bg: '#fff1f0'
   },
@@ -2902,7 +2902,7 @@ const COUPON_PLATFORMS = [
     icon: '🟢',
     category: '온라인쇼핑',
     desc: '스마트스토어별 첫 구매/알림받기 쿠폰과 네이버페이 포인트 적립 혜택을 제공합니다. 기획전 페이지에서 브랜드별 쿠폰을 한꺼번에 담을 수 있습니다.',
-    url: 'https://shopping.naver.com/ns/v1/home',
+    url: 'https://shopping.naver.com/v2/event/home',
     color: '#03c75a',
     bg: '#f0fff5'
   },
@@ -2911,7 +2911,7 @@ const COUPON_PLATFORMS = [
     icon: '🛍️',
     category: '온라인쇼핑',
     desc: '신세계몰·이마트몰 통합 등급별 할인쿠폰과 카드사 7% 청구할인 혜택을 매달 제공합니다. 공식 쿠폰존에서 오늘의 선착순 쿠폰을 확인하세요.',
-    url: 'https://www.ssg.com/event/eventList.ssg?gubun=cpn',
+    url: 'https://www.ssg.com/event/eventMain.ssg',
     color: '#e20038',
     bg: '#fff0f3'
   },
@@ -2920,7 +2920,7 @@ const COUPON_PLATFORMS = [
     icon: '🏷️',
     category: '온라인쇼핑',
     desc: '매달 11일 십일절 전야제 및 상시 브랜드 쿠폰북을 운영합니다. 아마존 무료배송 및 SKT T멤버십 중복 할인(최대 3천원)이 강력합니다.',
-    url: 'https://www.11st.co.kr/mw/contents/cpnList.tmall',
+    url: 'https://www.11st.co.kr/browsing/CouponPlace.tmall',
     color: '#f04e23',
     bg: '#fff3ef'
   },
@@ -2929,7 +2929,7 @@ const COUPON_PLATFORMS = [
     icon: '💛',
     category: '온라인쇼핑',
     desc: '신세계 유니버스 클럽 회원 전용 5~15% 할인쿠폰과 매일 발급되는 스마일배송 쿠폰을 제공합니다. [G마켓 쿠폰존]에서 확인 가능합니다.',
-    url: 'https://www.gmarket.co.kr/n/coupon',
+    url: 'https://www.gmarket.co.kr/Event/CouponZone',
     color: '#1b5fc0',
     bg: '#eff5ff'
   },
@@ -2938,7 +2938,7 @@ const COUPON_PLATFORMS = [
     icon: '🏪',
     category: '마트·식품',
     desc: '이마트 앱 내 "클럽" 가입 시 육아/와인/건강기능식품 할인쿠폰을 제공하며, 매주 업데이트되는 전단지 품목 할인 혜택을 확인하실 수 있습니다.',
-    url: 'https://emart.ssg.com/plan/planMain.ssg',
+    url: 'https://store.emart.com/main/flyer.do',
     color: '#f6c200',
     bg: '#fffdf0'
   },
