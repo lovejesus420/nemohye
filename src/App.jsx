@@ -2970,15 +2970,14 @@ const COUPON_PLATFORMS = [
     bg: '#f5f0ff'
   },
   {
-    name: 'GS25',
-    icon: '🟩',
-    category: '편의점',
-    desc: '우리동네GS 앱을 통해 "우리동네 픽업" 할인쿠폰과 주류 예약 할인 혜택을 제공합니다. KT/LG U+ 통신사 등급별 할인을 현장에서 적용하세요.',
-    url: 'http://gs25.gsretail.com/gscvs/ko/products/event-goods',
-    color: '#1e7e34',
-    bg: '#f0fff4'
-  },
-  {
+  name: 'GS25',
+  icon: '🟩',
+  category: '편의점',
+  desc: '우리동네GS 앱을 통해 "우리동네 픽업" 할인쿠폰과 주류 예약 할인 혜택을 제공합니다. KT/LG U+ 통신사 등급별 할인을 현장에서 적용하세요.',
+  url: 'https://gs25.gsretail.com/gscvs/ko/products/event-goods',
+  color: '#1e7e34',
+  bg: '#f0fff4'
+  },  {
     name: '올리브영',
     icon: '💄',
     category: '패션·뷰티',
@@ -3042,19 +3041,24 @@ function CouponTab() {
     </div>
     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
       {filtered.map((p, i) => (
-        <a key={i} href={p.url} target="_blank" rel="noreferrer" style={{textDecoration:'none'}}>
-          <div style={{background:'#fff',border:'1px solid #e5e7eb',borderRadius:14,padding:'14px',boxSizing:'border-box',boxShadow:'0 1px 4px rgba(0,0,0,0.05)',display:'flex',flexDirection:'column',height:'100%'}}>
-            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
-              <div style={{width:40,height:40,borderRadius:12,background:p.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{p.icon}</div>
-              <div><div style={{fontSize:14,fontWeight:700,color:'#0d1117'}}>{p.name}</div><div style={{fontSize:11,color:p.color,fontWeight:600}}>{p.category}</div></div>
-            </div>
-            <div style={{fontSize:12,color:'#6b6560',lineHeight:1.6,flex:1}}>{p.desc}</div>
-            <div style={{marginTop:10,fontSize:12,fontWeight:700,color:p.color,textAlign:'right'}}>쿠폰 받기 →</div>
+        <div 
+          key={i} 
+          onClick={() => window.open(p.url, '_blank')}
+          style={{
+            background:'#fff',border:'1px solid #e5e7eb',borderRadius:14,padding:'14px',
+            boxSizing:'border-box',boxShadow:'0 1px 4px rgba(0,0,0,0.05)',
+            display:'flex',flexDirection:'column',height:'100%',cursor:'pointer'
+          }}
+        >
+          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
+            <div style={{width:40,height:40,borderRadius:12,background:p.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{p.icon}</div>
+            <div><div style={{fontSize:14,fontWeight:700,color:'#0d1117'}}>{p.name}</div><div style={{fontSize:11,color:p.color,fontWeight:600}}>{p.category}</div></div>
           </div>
-        </a>
+          <div style={{fontSize:12,color:'#6b6560',lineHeight:1.6,flex:1}}>{p.desc}</div>
+          <div style={{marginTop:10,fontSize:12,fontWeight:700,color:p.color,textAlign:'right'}}>쿠폰 받기 →</div>
+        </div>
       ))}
-    </div>
-    <div style={{textAlign:'center',padding:'20px 0',fontSize:12,color:'#9ca3af',lineHeight:1.7,marginTop:8}}>각 버튼을 누르면 해당 기업의 쿠폰 페이지로 이동합니다.<br/>로그인 후 쿠폰을 다운로드하세요.</div>
+    </div>    <div style={{textAlign:'center',padding:'20px 0',fontSize:12,color:'#9ca3af',lineHeight:1.7,marginTop:8}}>각 버튼을 누르면 해당 기업의 쿠폰 페이지로 이동합니다.<br/>로그인 후 쿠폰을 다운로드하세요.</div>
   </div>);
 }
 
