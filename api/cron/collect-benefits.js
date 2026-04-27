@@ -1,6 +1,7 @@
 // api/cron/collect-benefits.js — Vercel Cron Job Endpoint
 import { exploreBenefits } from '../../services/benefit-explorer.js';
 import { scrapeTravelmonthBenefits } from '../../services/travelmonth-benefit-scraper.js';
+import { scrapeMartFlyers } from '../../services/mart-flyer-scraper.js';
 import { saveBenefits, deleteExpiredBenefits } from '../../lib/db.js';
 
 const PRIORITY_REGIONS = [
@@ -80,8 +81,10 @@ export default async function handler(req, res) {
     try {
       let benefits = [];
       if (region.name === '할인') {
-        // 특정 할인 행사 사이트 직접 스크래핑
-        benefits = await scrapeTravelmonthBenefits();
+        // 특정 할인 행사 사이트 직접 스크래핑 및 전단지 분석
+        const travel = await scrapeTravelmonthBenefits();
+        const mart = await scrapeMartFlyers().catch(() => []); 
+        benefits = [...travel, ...mart];
       } else {
         // 일반 검색 기반 수집
         benefits = await exploreBenefits(query);

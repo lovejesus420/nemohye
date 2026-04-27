@@ -1823,6 +1823,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
   const[dbCollectedAt,setDbCollectedAt]=useState(null);
   const[hiddenLoading,setHiddenLoading]=useState(false);const[hiddenResults,setHiddenResults]=useState(null);
   const[filterSources,setFilterSources]=useState(new Set());
+  const[sortOrder,setSortOrder]=useState('useful'); // 'useful'=정부·공공 우선 | 'latest'=AI수집 우선
   // ── 여행가는 달 데이터
   const[travelBenefits,setTravelBenefits]=useState(null);
   const[travelLoading,setTravelLoading]=useState(false);
@@ -1911,14 +1912,19 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
 
         // 국민취업지원제도: 월 500만원 이상 고소득자는 해당 없음
         const addEmployment = (INCOME_RANK_MAP[income] ?? 5) <= 6;
+        const isYouthAge = extras.some(e => e.includes('청년')) && parseInt(age) >= 19 && parseInt(age) <= 34;
 
-        let benefits = addEmployment
-          ? [...filteredDbBenefits, KUKMIN_EMPLOYMENT]
-          : [...filteredDbBenefits];
-        if (extras.some(e => e.includes('청년')) && parseInt(age) >= 19 && parseInt(age) <= 34)
-          benefits = [YOUTH_FUTURE_SAVINGS, ...benefits];
-        if (parseInt(age) >= 19) benefits = [...benefits, KPASS_BENEFIT];
-        benefits = filterExcludedBenefits(benefits);
+        // 정부·공공 고정 혜택 (항상 static으로 태그)
+        const staticOnes = [
+          ...(isYouthAge ? [YOUTH_FUTURE_SAVINGS] : []),
+          ...(addEmployment ? [KUKMIN_EMPLOYMENT] : []),
+          ...(parseInt(age) >= 19 ? [KPASS_BENEFIT] : []),
+        ].map(b => ({...b, _origin:'static'}));
+
+        // DB 수집 혜택 (AI/크론으로 수집된 crawled)
+        const crawledOnes = filteredDbBenefits.map(b => ({...b, _origin:'crawled'}));
+
+        let benefits = filterExcludedBenefits([...staticOnes, ...crawledOnes]);
 
         const parsed = {
           benefits,
@@ -1956,17 +1962,18 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
       const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full',bokjiroData,gov24Data,ggData,seoulData,youthData,youthContentData}),4500);
       const parsed=repairJSON(raw);
       if(parsed?.benefits){
+        const isYouthAge2=extras.some(e=>e.includes('청년'))&&parseInt(age)>=19&&parseInt(age)<=34;
         parsed.benefits=filterExcludedBenefits(parsed.benefits);
         parsed.benefits=parsed.benefits
           .filter(b=>!/(청년도약계좌)/i.test(b.title||''))
           .map(b=>{
-            if(/(국민\s*취업\s*지원)/i.test(b.title||'')) return KUKMIN_EMPLOYMENT;
-            return {...b, title:(b.title||'').replace(/청년\s*월세\s*지원사업/g,'청년 월세 지원')};
+            if(/(국민\s*취업\s*지원)/i.test(b.title||'')) return {...KUKMIN_EMPLOYMENT,_origin:'static'};
+            return {...b,_origin:'crawled',title:(b.title||'').replace(/청년\s*월세\s*지원사업/g,'청년 월세 지원')};
           });
         const seen=new Set();
         parsed.benefits=parsed.benefits.filter(b=>{if(seen.has(b.id))return false;seen.add(b.id);return true;});
-        if(extras.some(e=>e.includes('청년'))) parsed.benefits=[YOUTH_FUTURE_SAVINGS,...parsed.benefits];
-        if(parseInt(age)>=19) parsed.benefits=[...parsed.benefits,KPASS_BENEFIT];
+        if(isYouthAge2) parsed.benefits=[{...YOUTH_FUTURE_SAVINGS,_origin:'static'},...parsed.benefits];
+        if(parseInt(age)>=19) parsed.benefits=[...parsed.benefits,{...KPASS_BENEFIT,_origin:'static'}];
         parsed.benefits=filterExcludedBenefits(parsed.benefits);
       }
       setResults(parsed);
@@ -1982,7 +1989,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
     try{
       const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'hidden'}),3000);
       const parsed=repairJSON(raw);
-      setHiddenResults(filterExcludedBenefits(parsed.benefits||[]));
+      setHiddenResults(filterExcludedBenefits((parsed.benefits||[]).map(b=>({...b,_origin:'crawled'}))));
     }catch(e){showToast('추가 혜택 발굴 중 오류: '+e.message);}
     finally{setHiddenLoading(false);}
   };
@@ -1990,29 +1997,32 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
   const toggleSave=(b)=>{const key=`benefit_item:${user.phone}:${b.id}`;if(savedIds.has(String(b.id))){sDel(key);setSavedIds(p=>{const n=new Set(p);n.delete(String(b.id));return n;});}else{sSet(key,{...b,savedAt:new Date().toISOString(),userPhone:user.phone});setSavedIds(p=>new Set([...p,String(b.id)]));}onSaved();};
 
   const allBenefits=[...(results?.benefits||[]),...(hiddenResults||[])];
-  
-  // ── 혜택 분류 로직 (금융/은행을 숨겨진 혜택으로 포함) ──
-  const isFinance = (b) => {
-    const t = (b.title || '').toLowerCase();
-    const c = (b.category || '').toLowerCase();
-    const s = (b.source || '').toLowerCase();
-    return t.includes('은행') || t.includes('적금') || t.includes('금리') || t.includes('카드') || t.includes('캐시백') || c === '금융' || s.includes('금융') || s.includes('은행');
+
+  // ── 카드 캐시백 제외 — 할인 탭으로 이동 ──
+  const STATIC_IDS = new Set(['youth-future-savings-static','kukmin-employment-static','kpass-static']);
+  const isCardCashback = (b) => {
+    const t = b.title || '';
+    const s = b.source || '';
+    if (STATIC_IDS.has(b.id || '')) return false; // 정부 고정 혜택은 항상 유지
+    if (/카드\s*(캐시백|이벤트|행사|프로모션)/i.test(t)) return true;
+    if (/캐시백/i.test(t)) return true;
+    if (s === '기업/제휴' || s === '기업/협회') return true;
+    if ((s === '금융/은행' || /카드사/.test(s)) && !STATIC_IDS.has(b.id || '')) return true;
+    return false;
   };
 
-  const isHidden = (b) => b.isHidden || isFinance(b) || b.source === '기업/협회' || b.source === '금융/은행';
-  const isUrgent = (b) => b.isUrgent && !isHidden(b);
-  const isNormal = (b) => !isUrgent(b) && !isHidden(b);
+  // 정부·공공 혜택 (static 태그) / AI 수집 혜택 (crawled 태그)
+  const govGroup  = allBenefits.filter(b => b._origin === 'static'  && !isCardCashback(b));
+  const aiGroup   = allBenefits.filter(b => b._origin !== 'static'  && !isCardCashback(b));
 
-  const sources=[...new Set(allBenefits.map(b=>b.source).filter(Boolean))];
-  const filtered=filterSources.size===0?allBenefits:allBenefits.filter(b=>filterSources.has(b.source));
-  
-  const urgent=filtered.filter(isUrgent);
-  const hidden=filtered.filter(isHidden).sort((a, b) => {
-    if (isFinance(a) && !isFinance(b)) return -1;
-    if (!isFinance(a) && isFinance(b)) return 1;
-    return 0;
-  });
-  const normal=filtered.filter(isNormal);
+  // 정렬 순서에 따라 첫 번째·두 번째 섹션 결정
+  const firstGroup  = sortOrder === 'useful' ? govGroup  : aiGroup;
+  const secondGroup = sortOrder === 'useful' ? aiGroup   : govGroup;
+
+  const sources=[...new Set(allBenefits.filter(b=>!isCardCashback(b)).map(b=>b.source).filter(Boolean))];
+  const filterFn = (arr) => filterSources.size===0 ? arr : arr.filter(b=>filterSources.has(b.source));
+  const first  = filterFn(firstGroup);
+  const second = filterFn(secondGroup);
   const NIS={width:'100%',background:'#f9fafb',border:'1px solid #e5e7eb',borderRadius:12,padding:'14px 16px',fontSize:14,color:'#111827',outline:'none',boxSizing:'border-box',fontFamily:'inherit',transition:'border-color 0.15s,box-shadow 0.15s'};
   const NSS={...NIS,paddingLeft:16,paddingRight:40,appearance:'none',WebkitAppearance:'none',cursor:'pointer'};
   const CARD={background:'#fff',borderRadius:24,padding:'24px',marginBottom:16,boxShadow:'0 1px 2px rgba(0,0,0,0.05)',border:'1px solid #f3f4f6'};
@@ -2157,7 +2167,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
         );
       })()}
       {/* ── 총 예상 지원 규모 카드 ── */}
-      {(()=>{const total=calcTotalYearly(allBenefits);const monthly=Math.round(total/12);return(
+      {(()=>{const visibleAll=[...govGroup,...aiGroup];const total=calcTotalYearly(visibleAll);const monthly=Math.round(total/12);return(
         <div style={{background:'#fff',borderRadius:24,padding:'24px',marginBottom:12,boxShadow:'0 1px 3px rgba(0,0,0,0.04)',border:'1px solid #f3f4f6',textAlign:'center'}}>
           <span style={{fontSize:13,fontWeight:600,color:'#6b7280',display:'block',marginBottom:8}}>내가 받을 수 있는 월 혜택 금액</span>
           {monthly>0?(
@@ -2166,7 +2176,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
               <span style={{fontSize:18,fontWeight:700,color:'#15803d',marginBottom:4}}>만원</span>
             </div>
           ):(
-            <div style={{fontSize:24,fontWeight:800,color:'#15803d',marginBottom:10}}>총 {allBenefits.length}개 혜택</div>
+            <div style={{fontSize:24,fontWeight:800,color:'#15803d',marginBottom:10}}>총 {visibleAll.length}개 혜택</div>
           )}
           {results.summary?.topPriority&&<div style={{fontSize:13,color:'#374151',background:'#f0fdf4',borderRadius:10,padding:'8px 14px',marginBottom:10,display:'inline-block'}}>
             ⚡ 먼저 신청: <strong style={{color:'#15803d'}}>{results.summary.topPriority}</strong>
@@ -2180,12 +2190,11 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
       {/* ── 출처 필터 (다중 선택) ── */}
       {sources.length>0&&(
         <div style={{display:'flex',gap:6,overflowX:'auto',marginBottom:12,paddingBottom:4,scrollbarWidth:'none'}}>
-          {/* 전체 버튼 */}
           <button onClick={()=>setFilterSources(new Set())} style={{
             flexShrink:0,padding:'6px 12px',borderRadius:20,border:`1.5px solid ${filterSources.size===0?'#15803d':C.border}`,
             background:filterSources.size===0?'#15803d':'#fff',color:filterSources.size===0?'#fff':C.text2,
             fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',
-          }}>전체 {filterSources.size===0&&`(${allBenefits.length})`}</button>
+          }}>전체 {filterSources.size===0&&`(${govGroup.length+aiGroup.length})`}</button>
           {sources.map(s=>{const on=filterSources.has(s);return(
             <button key={s} onClick={()=>toggleFilter(s)} style={{
               flexShrink:0,padding:'6px 12px',borderRadius:20,border:`1.5px solid ${on?'#15803d':C.border}`,
@@ -2195,58 +2204,69 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
           );})}
           {filterSources.size>0&&(
             <span style={{flexShrink:0,padding:'6px 10px',fontSize:12,color:'#9ca3af',alignSelf:'center'}}>
-              {filtered.length}개 표시 중
+              {first.length+second.length}개 표시 중
             </span>
           )}
         </div>
       )}
 
-      {/* ── 추천 혜택 목록 헤더 ── */}
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'4px 2px 12px'}}>
+      {/* ── 추천 혜택 목록 헤더 + 정렬 선택 ── */}
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'4px 2px 10px'}}>
         <h2 style={{fontSize:17,fontWeight:700,color:'#111827',display:'flex',alignItems:'center',gap:8,margin:0}}>
           <div style={{width:5,height:16,background:'#16a34a',borderRadius:3}}/>
           추천 혜택 목록
         </h2>
-        <span style={{fontSize:12,color:'#9ca3af',fontWeight:500}}>총 {allBenefits.length}개</span>
+        <span style={{fontSize:12,color:'#9ca3af',fontWeight:500}}>총 {govGroup.length+aiGroup.length}개</span>
       </div>
 
-      {/* ── 긴급 혜택 ── */}
-      {urgent.length>0&&(<>
-        <div style={{fontSize:12,fontWeight:700,color:'#c2410c',marginBottom:8,display:'flex',alignItems:'center',gap:5}}>
-          <span style={{background:'#fff7ed',padding:'3px 10px',borderRadius:20,border:'1px solid #fed7aa'}}>⚡ 긴급 신청 필요 ({urgent.length})</span>
+      {/* ── 정렬 토글 ── */}
+      <div style={{display:'flex',background:'#f3f4f6',borderRadius:10,padding:3,marginBottom:14,gap:3}}>
+        {[['useful','⭐ 유용한 순'],['latest','🆕 최신 순']].map(([v,l])=>(
+          <button key={v} onClick={()=>setSortOrder(v)} style={{
+            flex:1,padding:'8px 0',border:'none',borderRadius:8,fontSize:13,fontWeight:700,
+            cursor:'pointer',fontFamily:'inherit',
+            background:sortOrder===v?'#15803d':'transparent',
+            color:sortOrder===v?'#fff':'#6b7280',
+            transition:'all 0.15s',
+          }}>{l}</button>
+        ))}
+      </div>
+
+      {/* ── 첫 번째 섹션 ── */}
+      {first.length>0&&(<>
+        <div style={{fontSize:12,fontWeight:700,color:sortOrder==='useful'?'#166534':'#1e40af',marginBottom:8,display:'flex',alignItems:'center',gap:5}}>
+          <span style={{background:sortOrder==='useful'?'#dcfce7':'#dbeafe',padding:'3px 10px',borderRadius:20,border:`1px solid ${sortOrder==='useful'?'#bbf7d0':'#bfdbfe'}`}}>
+            {sortOrder==='useful'?`🏛️ 정부·공공 혜택 (${first.length})`:`🔍 AI 수집 혜택 (${first.length})`}
+          </span>
         </div>
-        {urgent.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}
+        {first.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}
       </>)}
 
-      {/* ── 일반 혜택 ── */}
-      {normal.length>0&&(
-        <>
-          {urgent.length>0&&<div style={{fontSize:12,fontWeight:700,color:'#374151',marginBottom:8,marginTop:4,display:'flex',alignItems:'center',gap:5}}><span style={{background:'#f3f4f6',padding:'3px 10px',borderRadius:20}}>📋 맞춤 혜택 ({normal.length})</span></div>}
-          {normal.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}
-        </>
-      )}
-
-      {/* ── 숨겨진 혜택 ── */}
-      {hidden.length>0&&(<>
-        <div style={{fontSize:12,fontWeight:700,color:'#7c3aed',marginBottom:8,marginTop:4,display:'flex',alignItems:'center',gap:5}}><span style={{background:'#f5f3ff',padding:'3px 10px',borderRadius:20,border:'1px solid #ddd6fe'}}>🔍 숨겨진 혜택 ({hidden.length})</span></div>
-        {hidden.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}
+      {/* ── 두 번째 섹션 ── */}
+      {second.length>0&&(<>
+        <div style={{fontSize:12,fontWeight:700,color:sortOrder==='latest'?'#166534':'#1e40af',marginBottom:8,marginTop:first.length>0?12:0,display:'flex',alignItems:'center',gap:5}}>
+          <span style={{background:sortOrder==='latest'?'#dcfce7':'#dbeafe',padding:'3px 10px',borderRadius:20,border:`1px solid ${sortOrder==='latest'?'#bbf7d0':'#bfdbfe'}`}}>
+            {sortOrder==='latest'?`🏛️ 정부·공공 혜택 (${second.length})`:`🔍 AI 수집 혜택 (${second.length})`}
+          </span>
+        </div>
+        {second.map(b=><BCard key={b.id} b={b} savedIds={savedIds} onToggleSave={toggleSave}/>)}
       </>)}
 
-      {/* ── 숨겨진 혜택 추가 발굴 버튼 ── */}
+      {/* ── AI 혜택 추가 발굴 버튼 ── */}
       {!hiddenResults&&!hiddenLoading&&(
         <div style={{...CS,textAlign:'center',padding:'24px',marginTop:8,border:`2px dashed ${C.border}`}}>
           <div style={{fontSize:24,marginBottom:8}}>🔍</div>
-          <div style={{fontWeight:700,fontSize:15,color:C.text1,marginBottom:6}}>숨겨진 혜택 추가 발굴</div>
-          <div style={{fontSize:13,color:C.text2,marginBottom:16,lineHeight:1.6}}>은행 특별 상품, 건강보험 환급금, 협회 지원금,<br/>통신요금 감면 등 사람들이 잘 모르는 혜택을 더 찾아드려요</div>
+          <div style={{fontWeight:700,fontSize:15,color:C.text1,marginBottom:6}}>추가 정부 혜택 발굴</div>
+          <div style={{fontSize:13,color:C.text2,marginBottom:16,lineHeight:1.6}}>건강보험 환급금, 통신요금 감면, 협회 지원금 등<br/>숨겨진 정부·공공 혜택을 더 찾아드려요</div>
           <button onClick={loadHidden} style={BP({padding:'12px 24px',fontSize:14,borderRadius:10,background:`linear-gradient(135deg,#7c3aed,#5b21b6)`})}>
-            🔍 숨겨진 혜택 더 찾기
+            🔍 추가 혜택 더 찾기
           </button>
         </div>
       )}
       {hiddenLoading&&(
         <div style={{...CS,textAlign:'center',padding:'28px',marginTop:8}}>
           <div style={{width:36,height:36,border:`3px solid ${C.border}`,borderTopColor:'#7c3aed',borderRadius:'50%',animation:'spin 0.8s linear infinite',margin:'0 auto 12px'}}/>
-          <div style={{fontSize:13,color:'#7c3aed',fontWeight:600}}>숨겨진 혜택을 발굴하고 있습니다...</div>
+          <div style={{fontSize:13,color:'#7c3aed',fontWeight:600}}>추가 혜택을 발굴하고 있습니다...</div>
         </div>
       )}
 
