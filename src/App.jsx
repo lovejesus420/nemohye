@@ -1817,13 +1817,91 @@ ${BOKJIRO_SECTION}${GOV24_SECTION}${GG_SECTION}${SEOUL_SECTION}${YOUTH_SECTION_A
 }
 
 // ─── 공공 API 원시 데이터 → BCard 형식 변환 ──────────────────────
-function mapPublicApiToCards({bokjiroData=[], gov24Data=[], youthData=[], address=''}) {
+function mapPublicApiToCards({bokjiroData=[], gov24Data=[], youthData=[], address='', profile={}}) {
+  const {age='', income='', extras=[]} = profile;
+  const ageNum = parseInt(age, 10) || 30;
+  const rank   = INCOME_RANK_MAP[income] ?? 5;
+  const hasExtra = (kw) => extras.some(e => e.includes(kw));
+
+  // ── 복지로 생애주기 코드 (사용자 나이 기반)
+  const userLifeCodes = new Set();
+  if      (ageNum < 8)  userLifeCodes.add('001');
+  else if (ageNum < 14) userLifeCodes.add('002');
+  else if (ageNum < 19) userLifeCodes.add('003');
+  else if (ageNum < 35) userLifeCodes.add('004');
+  else if (ageNum < 65) userLifeCodes.add('005');
+  else                  userLifeCodes.add('006');
+  if (hasExtra('임산부') || hasExtra('출산')) userLifeCodes.add('007');
+
+  // 복지로 코드 기반 자격 필터
+  const isBokjiroEligible = (b) => {
+    // 생애주기 코드 확인
+    const lifeArr = b.lifeArray || '';
+    if (lifeArr) {
+      const codes = lifeArr.split(',').map(s => s.trim()).filter(Boolean);
+      if (codes.length > 0 && !codes.some(c => userLifeCodes.has(c))) return false;
+    }
+    // 대상자 특성 코드 확인 (020=다자녀, 030=보훈, 040=장애인, 050=저소득, 060=한부모)
+    const trgCode = b.target || '';
+    if (trgCode) {
+      const codes = trgCode.split(',').map(s => s.trim()).filter(Boolean);
+      const EXCLUSIVE = {
+        '010': () => hasExtra('다문화') || hasExtra('탈북'),
+        '020': () => hasExtra('다자녀'),
+        '030': () => hasExtra('보훈') || hasExtra('유공자'),
+        '040': () => hasExtra('장애인'),
+        '050': () => rank <= 3 || hasExtra('기초') || hasExtra('차상위') || hasExtra('저소득'),
+        '060': () => hasExtra('한부모'),
+      };
+      if (codes.length > 0) {
+        // 코드 중 하나라도 해당되면 포함, 모두 해당 안 되면 제외
+        const anyMatch = codes.some(c => EXCLUSIVE[c] ? EXCLUSIVE[c]() : true);
+        if (!anyMatch) return false;
+      }
+    }
+    return true;
+  };
+
+  // 텍스트 기반 자격 필터 (gov24 / 온통청년 공통)
+  const isTextEligible = (targetText) => {
+    const t = String(targetText || '').trim();
+    if (!t || t === '정보 없음') return true;
+    if (/전국민|누구나|모든\s*국민|전체\s*국민/.test(t)) return true;
+    // 소득 기준
+    if (/기초생활수급자|기초수급자/.test(t) && !/차상위/.test(t) && !/또는/.test(t)) {
+      if (rank !== 1) return false;
+    }
+    if (/차상위/.test(t)) {
+      if (rank > 3 && !hasExtra('기초') && !hasExtra('차상위')) return false;
+    }
+    if (/저소득/.test(t) && rank > 5) return false;
+    // 나이 기준
+    if (/청년/.test(t) && (ageNum < 19 || ageNum > 39)) return false;
+    const ageRange = t.match(/만\s*(\d+)\s*[~～]\s*(\d+)\s*세/);
+    if (ageRange) {
+      const lo = parseInt(ageRange[1], 10), hi = parseInt(ageRange[2], 10);
+      if (ageNum < lo || ageNum > hi) return false;
+    }
+    const ageAbove = t.match(/(\d+)\s*세\s*이상/);
+    if (ageAbove && parseInt(ageAbove[1], 10) >= 40 && ageNum < parseInt(ageAbove[1], 10)) return false;
+    const ageBelow = t.match(/(\d+)\s*세\s*이하/);
+    if (ageBelow && ageNum > parseInt(ageBelow[1], 10)) return false;
+    if (/노인|어르신|65세/.test(t) && ageNum < 65) return false;
+    // 특수 상황
+    if (/임산부/.test(t) && !hasExtra('임산부') && !hasExtra('출산')) return false;
+    if (/장애인/.test(t) && !hasExtra('장애인')) return false;
+    if (/한부모/.test(t) && !hasExtra('한부모')) return false;
+    if (/다자녀/.test(t) && !hasExtra('다자녀')) return false;
+    if (/국가유공자/.test(t) && !hasExtra('국가유공자') && !hasExtra('보훈')) return false;
+    return true;
+  };
+
   const cards = [];
   const seen  = new Set();
   const ts    = Date.now();
 
-  // 복지로 API
-  bokjiroData.slice(0, 25).forEach((b, i) => {
+  // 복지로 API — 코드 기반 필터 적용
+  bokjiroData.filter(isBokjiroEligible).slice(0, 25).forEach((b, i) => {
     const t = (b.title || '').trim();
     if (!t || seen.has(t)) return;
     seen.add(t);
@@ -1844,8 +1922,8 @@ function mapPublicApiToCards({bokjiroData=[], gov24Data=[], youthData=[], addres
     });
   });
 
-  // 정부24 API
-  gov24Data.slice(0, 25).forEach((b, i) => {
+  // 정부24 API — 지원대상 텍스트 필터 적용
+  gov24Data.filter(b => isTextEligible(b.target)).slice(0, 25).forEach((b, i) => {
     const t = (b.title || '').trim();
     if (!t || seen.has(t)) return;
     seen.add(t);
@@ -1858,16 +1936,16 @@ function mapPublicApiToCards({bokjiroData=[], gov24Data=[], youthData=[], addres
       institution: b.ministry || '행정안전부',
       description: b.summary || b.support || '',
       amount: b.support || '상세 페이지 확인',
-      deadline: '연중 상시',
+      deadline: b.applyDeadline || '연중 상시',
       requiredDocuments: [],
-      howToApply: '정부24 홈페이지 온라인 신청',
+      howToApply: b.applyMethod || '정부24 홈페이지 온라인 신청',
       applyUrl: b.applyUrl || 'https://www.gov.kr/portal/serviceList',
       _origin: 'static',
     });
   });
 
-  // 온통청년 정책 API
-  youthData.slice(0, 20).forEach((b, i) => {
+  // 온통청년 정책 API — 지원대상 텍스트 필터 적용
+  youthData.filter(b => isTextEligible(b.target)).slice(0, 20).forEach((b, i) => {
     const t = (b.title || '').trim();
     if (!t || seen.has(t)) return;
     seen.add(t);
@@ -1964,8 +2042,8 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
         fetchYouthPolicyData({age,extras,address}),
       ]);
 
-      // 공공 API 원시 데이터 → 정부 고정 혜택 카드 (static)
-      const apiCards = filterExcludedBenefits(mapPublicApiToCards({bokjiroData, gov24Data, youthData, address}));
+      // 공공 API 원시 데이터 → 정부 고정 혜택 카드 (static, 프로필 기반 필터링)
+      const apiCards = filterExcludedBenefits(mapPublicApiToCards({bokjiroData, gov24Data, youthData, address, profile:{age,income,extras,job}}));
       console.log(`[analyze] 공공API ${apiCards.length}건 (복지로${bokjiroData.length}+정부24${gov24Data.length}+온통청년${youthData.length})`);
 
       // 하드코딩 고정 혜택 + API 카드를 합쳐 static 섹션 구성
@@ -2787,7 +2865,19 @@ function DiscountTab() {
           {d.description&&(<div style={{fontSize:13,color:'#374151',lineHeight:1.6,marginBottom:8,wordBreak:'keep-all'}}>{d.description}</div>)}
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8}}>
             {d.period&&<span style={{fontSize:12,color:'#9ca3af'}}>📅 {d.period}</span>}
-            {d.url?(<a href={d.url} target="_blank" rel="noreferrer" style={{fontSize:12,fontWeight:700,color:'#fff',background:'#d97706',padding:'6px 12px',borderRadius:8,textDecoration:'none',flexShrink:0}}>자세히 보기 →</a>):(<span style={{fontSize:12,color:'#9ca3af'}}>링크 없음</span>)}
+            <button 
+              onClick={() => window.open(d.url, '_blank')}
+              style={{
+                fontSize:12,fontWeight:700,color:'#fff',background:'#d97706',
+                padding:'8px 16px',borderRadius:10,border:'none',cursor:'pointer',
+                boxShadow:'0 4px 12px rgba(217,119,6,0.25)',fontFamily:'inherit',
+                transition:'transform 0.1s'
+              }}
+              onMouseEnter={e=>e.currentTarget.style.transform='scale(1.02)'}
+              onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
+            >
+              할인받기 →
+            </button>
           </div>
         </div>);
       })}
@@ -2798,28 +2888,141 @@ function DiscountTab() {
 
 // ─── CouponTab ────────────────────────────────────────────────────
 const COUPON_PLATFORMS = [
-  {name:'쿠팡',        icon:'🛒', category:'온라인쇼핑', desc:'로켓배송 쿠폰·와우회원 할인·플래시딜',       url:'https://www.coupang.com/np/coupons',                                                           color:'#e04e3f', bg:'#fff1f0'},
-  {name:'네이버 쇼핑', icon:'🟢', category:'온라인쇼핑', desc:'네이버페이 포인트·스마트스토어 쿠폰',        url:'https://shopping.naver.com/ns/v1/home',                                                        color:'#03c75a', bg:'#f0fff5'},
-  {name:'SSG닷컴',     icon:'🛍️', category:'온라인쇼핑', desc:'SSG머니·신세계 제휴 할인쿠폰',              url:'https://www.ssg.com/event/eventList.ssg?gubun=cpn',                                            color:'#e20038', bg:'#fff0f3'},
-  {name:'11번가',      icon:'🏷️', category:'온라인쇼핑', desc:'십일절 특가·쿠폰 모음',                     url:'https://www.11st.co.kr/mw/contents/cpnList.tmall',                                             color:'#f04e23', bg:'#fff3ef'},
-  {name:'G마켓',       icon:'💛', category:'온라인쇼핑', desc:'G마켓 빅세일·할인 쿠폰',                    url:'https://www.gmarket.co.kr/n/coupon',                                                           color:'#f7c800', bg:'#fffef0'},
-  {name:'옥션',        icon:'🔵', category:'온라인쇼핑', desc:'옥션 쿠폰북·특가 혜택',                     url:'https://www.auction.co.kr/EventAuction/CouponCenter.aspx',                                     color:'#1b5fc0', bg:'#eff5ff'},
-  {name:'이마트',      icon:'🏪', category:'마트·식품',  desc:'주간 이마트 세일·E포인트 할인',             url:'https://emart.ssg.com/plan/planMain.ssg',                                                      color:'#f6c200', bg:'#fffdf0'},
-  {name:'롯데마트',    icon:'🧡', category:'마트·식품',  desc:'롯데마트 GO앱 전용쿠폰·신선 특가',          url:'https://www.lottemart.com/pc/display/displayCouponMain.do',                                    color:'#ed6b03', bg:'#fff5ef'},
-  {name:'홈플러스',    icon:'🟦', category:'마트·식품',  desc:'홈플러스 쿠폰 창고·앱 전용 특가',           url:'https://corporate.homeplus.co.kr/event/coupon',                                               color:'#1565c0', bg:'#eff5ff'},
-  {name:'CU',          icon:'🏬', category:'편의점',     desc:'CU 멤버십 쿠폰·1+1·증정 행사',              url:'https://cu.bgfretail.com/event/event.do',                                                      color:'#7b2fff', bg:'#f5f0ff'},
-  {name:'GS25',        icon:'🟩', category:'편의점',     desc:'GS25 나만의냉장고 쿠폰·행사상품',           url:'https://gs25.gsretail.com/gscvs/ko/customer-engagement/our-events/event-items',              color:'#1e7e34', bg:'#f0fff4'},
-  {name:'세븐일레븐',  icon:'7️⃣', category:'편의점',     desc:'세븐앱 쿠폰·POINT 적립 행사',               url:'https://www.7-eleven.co.kr/event/eventList.asp',                                               color:'#e30613', bg:'#fff0f0'},
-  {name:'배달의민족',  icon:'🍱', category:'외식·배달',  desc:'B마트 쿠폰·첫 주문 할인·배달비 무료',       url:'https://www.baemin.com/',                                                                       color:'#2ac1bc', bg:'#effffe'},
-  {name:'쿠팡이츠',   icon:'🚀', category:'외식·배달',  desc:'쿠팡이츠 첫 주문·추가 할인쿠폰',            url:'https://eats.coupang.com/',                                                                    color:'#e04e3f', bg:'#fff1f0'},
-  {name:'요기요',      icon:'🍔', category:'외식·배달',  desc:'요기요 슈퍼클럽·할인 쿠폰',                 url:'https://www.yogiyo.co.kr/',                                                                     color:'#f23d3d', bg:'#fff0f0'},
-  {name:'올리브영',    icon:'💄', category:'패션·뷰티',  desc:'올영세일·쿠폰·멤버십 할인',                 url:'https://www.oliveyoung.co.kr/store/event/getEventList.do',                                     color:'#2c9f4b', bg:'#f0fff4'},
-  {name:'W컨셉',       icon:'👗', category:'패션·뷰티',  desc:'브랜드 특가 기획전·할인쿠폰',               url:'https://www.wconcept.co.kr/Display/CouponList',                                               color:'#000000', bg:'#f5f5f5'},
-  {name:'무신사',      icon:'🧢', category:'패션·뷰티',  desc:'무신사 쿠폰·스탠다드·리미티드 특가',        url:'https://www.musinsa.com/app/campaign/index',                                                    color:'#000000', bg:'#f5f5f5'},
-  {name:'KT 멤버십',   icon:'📱', category:'통신·생활',  desc:'KT 포인트로 영화·커피·쇼핑 할인',           url:'https://membership.kt.com/',                                                                    color:'#e8003d', bg:'#fff0f4'},
-  {name:'T멤버십',     icon:'📡', category:'통신·생활',  desc:'SKT T멤버십 쿠폰·제휴 혜택',                url:'https://www.tworld.co.kr/benefit/membership',                                                  color:'#e83c2e', bg:'#fff0f0'},
-  {name:'카카오페이',  icon:'💛', category:'통신·생활',  desc:'카카오페이 청구 할인·포인트 쿠폰',          url:'https://pay.kakao.com/',                                                                        color:'#f7c800', bg:'#fffef0'},
-  {name:'티머니GO',    icon:'🚌', category:'통신·생활',  desc:'교통비 환급·대중교통 할인 혜택',             url:'https://www.tmoneygo.com/',                                                                     color:'#00adef', bg:'#effaff'},
+  {
+    name: '쿠팡',
+    icon: '🛒',
+    category: '온라인쇼핑',
+    desc: '와우회원 전용 최대 50% 즉시할인 쿠폰 및 로켓직구·가전 브랜드별 중복 할인쿠폰을 제공합니다. [쿠폰받기] 버튼 클릭 시 발급 가능 리스트로 이동합니다.',
+    url: 'https://www.coupang.com/np/coupons',
+    color: '#e04e3f',
+    bg: '#fff1f0'
+  },
+  {
+    name: '네이버 쇼핑',
+    icon: '🟢',
+    category: '온라인쇼핑',
+    desc: '스마트스토어별 첫 구매/알림받기 쿠폰과 네이버페이 포인트 적립 혜택을 제공합니다. 기획전 페이지에서 브랜드별 쿠폰을 한꺼번에 담을 수 있습니다.',
+    url: 'https://shopping.naver.com/ns/v1/home',
+    color: '#03c75a',
+    bg: '#f0fff5'
+  },
+  {
+    name: 'SSG닷컴',
+    icon: '🛍️',
+    category: '온라인쇼핑',
+    desc: '신세계몰·이마트몰 통합 등급별 할인쿠폰과 카드사 7% 청구할인 혜택을 매달 제공합니다. 공식 쿠폰존에서 오늘의 선착순 쿠폰을 확인하세요.',
+    url: 'https://www.ssg.com/event/eventList.ssg?gubun=cpn',
+    color: '#e20038',
+    bg: '#fff0f3'
+  },
+  {
+    name: '11번가',
+    icon: '🏷️',
+    category: '온라인쇼핑',
+    desc: '매달 11일 십일절 전야제 및 상시 브랜드 쿠폰북을 운영합니다. 아마존 무료배송 및 SKT T멤버십 중복 할인(최대 3천원)이 강력합니다.',
+    url: 'https://www.11st.co.kr/mw/contents/cpnList.tmall',
+    color: '#f04e23',
+    bg: '#fff3ef'
+  },
+  {
+    name: 'G마켓',
+    icon: '💛',
+    category: '온라인쇼핑',
+    desc: '신세계 유니버스 클럽 회원 전용 5~15% 할인쿠폰과 매일 발급되는 스마일배송 쿠폰을 제공합니다. [G마켓 쿠폰존]에서 확인 가능합니다.',
+    url: 'https://www.gmarket.co.kr/n/coupon',
+    color: '#1b5fc0',
+    bg: '#eff5ff'
+  },
+  {
+    name: '이마트',
+    icon: '🏪',
+    category: '마트·식품',
+    desc: '이마트 앱 내 "클럽" 가입 시 육아/와인/건강기능식품 할인쿠폰을 제공하며, 매주 업데이트되는 전단지 품목 할인 혜택을 확인하실 수 있습니다.',
+    url: 'https://emart.ssg.com/plan/planMain.ssg',
+    color: '#f6c200',
+    bg: '#fffdf0'
+  },
+  {
+    name: '롯데마트',
+    icon: '🧡',
+    category: '마트·식품',
+    desc: '롯데마트 GO 앱 설치 시 결제 금액별 할인쿠폰(3천원/5천원 등)과 전용 특가 L.Point 회원 혜택을 즉시 받으실 수 있습니다.',
+    url: 'https://www.lottemart.com/pc/display/displayCouponMain.do',
+    color: '#ed6b03',
+    bg: '#fff5ef'
+  },
+  {
+    name: '홈플러스',
+    icon: '🟦',
+    category: '마트·식품',
+    desc: '홈플러스 멤버십 앱에서 발급하는 첫 구매 쿠폰과 매일 오전 10시 선착순 할인쿠폰을 제공합니다. 마이 홈플러스 포인트 10배 적립 행사도 진행됩니다.',
+    url: 'https://front.homeplus.co.kr/exhibition?promoNo=123',
+    color: '#1565c0',
+    bg: '#eff5ff'
+  },
+  {
+    name: 'CU',
+    icon: '🏬',
+    category: '편의점',
+    desc: '포켓CU 앱에서 매일 오전 11시 신상품 50% 할인쿠폰과 매달 증정(1+1, 2+1) 쿠폰을 배포합니다. 통신사 SKT 중복 할인이 가능합니다.',
+    url: 'https://cu.bgfretail.com/event/plus.do',
+    color: '#7b2fff',
+    bg: '#f5f0ff'
+  },
+  {
+    name: 'GS25',
+    icon: '🟩',
+    category: '편의점',
+    desc: '우리동네GS 앱을 통해 "우리동네 픽업" 할인쿠폰과 주류 예약 할인 혜택을 제공합니다. KT/LG U+ 통신사 등급별 할인을 현장에서 적용하세요.',
+    url: 'http://gs25.gsretail.com/gscvs/ko/products/event-goods',
+    color: '#1e7e34',
+    bg: '#f0fff4'
+  },
+  {
+    name: '올리브영',
+    icon: '💄',
+    category: '패션·뷰티',
+    desc: '올영세일 기간 선착순 쿠폰과 앱 전용 첫 구매 5천원 할인 혜택을 제공합니다. 매달 진행되는 올영데이 멤버십 등급별 증정품 쿠폰을 확인하세요.',
+    url: 'https://www.oliveyoung.co.kr/store/event/getEventList.do',
+    color: '#2c9f4b',
+    bg: '#f0fff4'
+  },
+  {
+    name: '배달의민족',
+    icon: '🍱',
+    category: '외식·배달',
+    desc: '배민클럽 가입 시 배달비 무료 혜택과 브랜드별 최대 1만원 할인쿠폰을 상시 제공합니다. [My배민 > 쿠폰함]에서 확인 가능합니다.',
+    url: 'https://www.baemin.com/',
+    color: '#2ac1bc',
+    bg: '#effffe'
+  },
+  {
+    name: '무신사',
+    icon: '🧢',
+    category: '패션·뷰티',
+    desc: '신규 가입 시 20% 할인쿠폰팩과 매달 업데이트되는 등급별 정기 쿠폰을 제공합니다. 특정 브랜드 기획전 쿠폰은 상품 상세페이지에서 다운로드 가능합니다.',
+    url: 'https://www.musinsa.com/app/campaign/index',
+    color: '#000000',
+    bg: '#f5f5f5'
+  },
+  {
+    name: 'T멤버십',
+    icon: '📡',
+    category: '통신·생활',
+    desc: 'T-Day 파리바게뜨, 빕스 등 제휴처 40~50% 할인쿠폰과 매달 0 day(영데이) 청년 전용 혜택을 배포합니다. 앱에서 바코드와 함께 확인하세요.',
+    url: 'https://www.tworld.co.kr/benefit/membership',
+    color: '#e83c2e',
+    bg: '#fff0f0'
+  },
+  {
+    name: 'KT 멤버십',
+    icon: '📱',
+    category: '통신·생활',
+    desc: '나의 초이스 행사를 통해 스타벅스, 영화 관람권 등 인기 제휴처 할인쿠폰을 매달 제공합니다. VIP 등급은 연 6~12회 무료 혜택(초이스)이 가능합니다.',
+    url: 'https://membership.kt.com/',
+    color: '#e8003d',
+    bg: '#fff0f4'
+  }
 ];
 const COUPON_CATS = ['전체','온라인쇼핑','마트·식품','편의점','외식·배달','패션·뷰티','통신·생활'];
 function CouponTab() {
