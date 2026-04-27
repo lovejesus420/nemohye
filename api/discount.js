@@ -1,6 +1,8 @@
 // api/discount.js — 전국 할인 행사 데이터 엔드포인트
 // GET /api/discount
-// Serper API로 할인 행사를 검색하고 Gemini로 구조화해서 반환
+// DB에 수집된 할인 정보 + Serper 실시간 검색 결과를 결합하여 반환
+
+import { queryFreshBenefits } from '../lib/db.js';
 
 const SERPER_KEY  = process.env.SERPER_API_KEY;
 const GEMINI_KEY  = process.env.GEMINI_API_KEY;
@@ -75,47 +77,78 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  if (!SERPER_KEY) return res.status(503).json({ ok: false, error: 'SERPER_API_KEY 미설정', discounts: [] });
-  if (!GEMINI_KEY) return res.status(503).json({ ok: false, error: 'GEMINI_API_KEY 미설정', discounts: [] });
-
   // 캐시 히트
   if (_cache && Date.now() - _cacheAt < CACHE_TTL) {
     return res.status(200).json({ ok: true, fromCache: true, count: _cache.length, discounts: _cache });
   }
 
   try {
-    // 검색 쿼리 중 3개만 실행 (타임아웃 방지)
-    const queries = SEARCH_QUERIES.slice(0, 3);
-    const results = await Promise.allSettled(queries.map(serperSearch));
+    // 1. DB에서 수집된 할인 정보 가져오기 (targetGroup='할인행사')
+    const { benefits: dbBenefits } = await queryFreshBenefits({ region: '전국', group: '할인행사', limit: 20 });
+    const formattedDbBenefits = dbBenefits.map(b => ({
+      title: b.혜택명 || b.title,
+      store: b.지원대상 || b.store || '전국 공통',
+      category: b.카테고리 || '여행·레저',
+      discount: b.지원내용 || b.discount,
+      period: b.마감일 ? `~${b.마감일}` : (b.period || '상시'),
+      region: '전국',
+      description: b.신청방법 || b.description,
+      url: b.출처 || b.url,
+      icon: '🎁'
+    }));
 
-    const snippets = results
-      .filter(r => r.status === 'fulfilled')
-      .flatMap(r => [
-        ...(r.value?.organic || []).map(it => `[${it.title}] ${it.snippet || ''} ${it.link || ''}`),
-        ...(r.value?.news || []).map(it => `[뉴스] ${it.title} ${it.snippet || ''} ${it.link || ''}`),
-      ])
-      .slice(0, 50)
-      .join('\n');
+    // 2. 실시간 검색 결과 가져오기 (SERPER_KEY와 GEMINI_KEY가 있을 때만)
+    let validLive = [];
+    if (SERPER_KEY && GEMINI_KEY) {
+      const queries = SEARCH_QUERIES.slice(0, 2);
+      const results = await Promise.allSettled(queries.map(serperSearch));
 
-    if (!snippets.trim()) {
-      return res.status(200).json({ ok: true, fromCache: false, count: 0, discounts: [] });
+      const snippets = results
+        .filter(r => r.status === 'fulfilled')
+        .flatMap(r => [
+          ...(r.value?.organic || []).map(it => `[${it.title}] ${it.snippet || ''} ${it.link || ''}`),
+          ...(r.value?.news || []).map(it => `[뉴스] ${it.title} ${it.snippet || ''} ${it.link || ''}`),
+        ])
+        .slice(0, 40)
+        .join('\n');
+
+      if (snippets.trim()) {
+        try {
+          const liveDiscounts = await geminiExtract(snippets);
+          validLive = Array.isArray(liveDiscounts) ? liveDiscounts.filter(d => d?.title) : [];
+        } catch (e) {
+          console.error('[discount] Gemini error:', e.message);
+        }
+      }
     }
 
-    const discounts = await geminiExtract(snippets);
-    const valid = Array.isArray(discounts) ? discounts.filter(d => d?.title) : [];
+    // 3. 결합 및 중복 제거 (제목 기준)
+    const combined = [...formattedDbBenefits, ...validLive];
+    const seen = new Set();
+    const finalDiscounts = combined.filter(d => {
+      const key = (d.title || '').replace(/\s+/g, '');
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
-    _cache = valid;
-    _cacheAt = Date.now();
+    // 결과 저장 (캐시)
+    if (finalDiscounts.length > 0) {
+      _cache = finalDiscounts;
+      _cacheAt = Date.now();
+    }
 
     return res.status(200).json({
       ok: true,
       fromCache: false,
-      count: valid.length,
+      count: finalDiscounts.length,
+      dbCount: formattedDbBenefits.length,
+      liveCount: validLive.length,
       fetchedAt: new Date().toISOString(),
-      discounts: valid,
+      discounts: finalDiscounts,
     });
   } catch (e) {
-    console.error('[discount]', e.message);
+    console.error('[discount] handler error:', e.message);
     return res.status(500).json({ ok: false, error: e.message, discounts: [] });
   }
 }

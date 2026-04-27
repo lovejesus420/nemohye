@@ -1,9 +1,11 @@
 // api/cron/collect-benefits.js — Vercel Cron Job Endpoint
 import { exploreBenefits } from '../../services/benefit-explorer.js';
+import { scrapeTravelmonthBenefits } from '../../services/travelmonth-benefit-scraper.js';
 import { saveBenefits, deleteExpiredBenefits } from '../../lib/db.js';
 
 const PRIORITY_REGIONS = [
-  { name: '전국',  dbRegion: '전국',        group: '전체' }, // 전국 공통 혜택 (여행가는 달 등)
+  { name: '전국',  dbRegion: '전국',        group: '전체' },
+  { name: '할인',  dbRegion: '전국',        group: '할인행사' }, // 전국 할인 행사 전용
   { name: '서울',  dbRegion: '서울특별시',  group: '전체' },
   { name: '경기',  dbRegion: '경기도',      group: '전체' },
   { name: '인천',  dbRegion: '인천광역시',  group: '전체' },
@@ -74,14 +76,22 @@ export default async function handler(req, res) {
     const query = buildQuery(region.name, pat);
     
     try {
-      const benefits = await exploreBenefits(query);
+      let benefits = [];
+      if (region.name === '할인') {
+        // 특정 할인 행사 사이트 직접 스크래핑
+        benefits = await scrapeTravelmonthBenefits();
+      } else {
+        // 일반 검색 기반 수집
+        benefits = await exploreBenefits(query);
+      }
+
       if (benefits.length > 0) {
         const saved = await saveBenefits(benefits, {
           targetRegion: region.dbRegion,
           targetGroup:  region.group,
-          sourceQuery:  query,
+          sourceQuery:  region.name === '할인' ? '스크래핑:여행가는달' : query,
         });
-        report.push({ query, saved, status: 'ok' });
+        report.push({ query: region.name === '할인' ? '할인스크래핑' : query, saved, status: 'ok' });
       }
     } catch (e) {
       report.push({ query, saved: 0, status: 'error', error: e.message });
