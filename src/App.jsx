@@ -1816,6 +1816,81 @@ ${BOKJIRO_SECTION}${GOV24_SECTION}${GG_SECTION}${SEOUL_SECTION}${YOUTH_SECTION_A
 10~14개. 실제 존재하는 혜택만. ${URL_GUIDE}`;
 }
 
+// ─── 공공 API 원시 데이터 → BCard 형식 변환 ──────────────────────
+function mapPublicApiToCards({bokjiroData=[], gov24Data=[], youthData=[], address=''}) {
+  const cards = [];
+  const seen  = new Set();
+  const ts    = Date.now();
+
+  // 복지로 API
+  bokjiroData.slice(0, 25).forEach((b, i) => {
+    const t = (b.title || '').trim();
+    if (!t || seen.has(t)) return;
+    seen.add(t);
+    cards.push({
+      id: `bokjiro-${b.servId || i}-${ts}`,
+      source: '정부복지', sourceIcon: '🏛️',
+      category: '복지', categoryIcon: '🏛️',
+      scope: '전국', isUrgent: false, isHidden: false, isComingSoon: false,
+      title: t,
+      institution: b.ministry || '보건복지부',
+      description: b.summary || '',
+      amount: b.method && b.cycle ? `${b.cycle} · ${b.method}` : (b.summary?.slice(0, 50) || '상세 페이지 확인'),
+      deadline: '연중 상시',
+      requiredDocuments: [],
+      howToApply: b.onlineApp === 'Y' ? '복지로 홈페이지 온라인 신청 가능' : '복지로 홈페이지 또는 관할 주민센터 방문',
+      applyUrl: b.detailUrl || 'https://www.bokjiro.go.kr',
+      _origin: 'static',
+    });
+  });
+
+  // 정부24 API
+  gov24Data.slice(0, 25).forEach((b, i) => {
+    const t = (b.title || '').trim();
+    if (!t || seen.has(t)) return;
+    seen.add(t);
+    cards.push({
+      id: `gov24-${i}-${ts}`,
+      source: '정부복지', sourceIcon: '🏛️',
+      category: '공공서비스', categoryIcon: '🏢',
+      scope: '전국', isUrgent: false, isHidden: false, isComingSoon: false,
+      title: t,
+      institution: b.ministry || '행정안전부',
+      description: b.summary || b.support || '',
+      amount: b.support || '상세 페이지 확인',
+      deadline: '연중 상시',
+      requiredDocuments: [],
+      howToApply: '정부24 홈페이지 온라인 신청',
+      applyUrl: b.applyUrl || 'https://www.gov.kr/portal/serviceList',
+      _origin: 'static',
+    });
+  });
+
+  // 온통청년 정책 API
+  youthData.slice(0, 20).forEach((b, i) => {
+    const t = (b.title || '').trim();
+    if (!t || seen.has(t)) return;
+    seen.add(t);
+    cards.push({
+      id: `youth-${b.plcyNo || i}-${ts}`,
+      source: '청년정책', sourceIcon: '🌱',
+      category: '청년', categoryIcon: '🌱',
+      scope: b.region || '전국', isUrgent: false, isHidden: false, isComingSoon: false,
+      title: t,
+      institution: '청년정책조정위원회',
+      description: b.support || '',
+      amount: b.support?.slice(0, 60) || '상세 페이지 확인',
+      deadline: b.period || '연중 상시',
+      requiredDocuments: [],
+      howToApply: b.method || '온통청년 포털 신청',
+      applyUrl: b.url || 'https://www.youthcenter.go.kr',
+      _origin: 'static',
+    });
+  });
+
+  return cards;
+}
+
 function AnalyzeTab({user,onSaved,onResultsReady}){
   const[age,setAge]=useState('');const[gender,setGender]=useState('');const[job,setJob]=useState('');const[income,setIncome]=useState('');const[address,setAddress]=useState('');const[extras,setExtras]=useState([]);
   const[loading,setLoading]=useState(false);const[step,setStep]=useState(0);const[results,setResults]=useState(null);const[err,setErr]=useState('');const[savedIds,setSavedIds]=useState(new Set());const rRef=useRef();
@@ -1876,24 +1951,41 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
       const region=Object.keys(REGIONS).find(r=>address.startsWith(r))||'전국';
       const group=extras.find(e=>e.includes('청년'))?'청년':extras.find(e=>e.includes('임산부'))?'임산부':'전체';
       const apiBase=import.meta.env.VITE_API_BASE||'';
+      const profileCtx = { age, income, extras };
+      const addEmployment = (INCOME_RANK_MAP[income] ?? 5) <= 6;
+      const isYouthAge = extras.some(e=>e.includes('청년')) && parseInt(age)>=19 && parseInt(age)<=34;
 
-      // ── 1단계: DB 우선 조회 (밤새 수집된 최신 데이터)
-      const dbResp=await fetch(
-        `${apiBase}/api/benefits?region=${encodeURIComponent(region)}&group=${encodeURIComponent(group)}`
-      ).then(r=>r.ok?r.json():null).catch(()=>null);
+      // ── 1단계: DB + 공공 API 병렬 조회 (항상 동시에 실행)
+      const [dbResp, bokjiroData, gov24Data, youthData] = await Promise.all([
+        fetch(`${apiBase}/api/benefits?region=${encodeURIComponent(region)}&group=${encodeURIComponent(group)}`)
+          .then(r=>r.ok?r.json():null).catch(()=>null),
+        fetchBokjiroData({age,extras}),
+        fetchGov24Data({age,extras,job,income}),
+        fetchYouthPolicyData({age,extras,address}),
+      ]);
 
-      if(dbResp?.benefits?.length >= 8){
-        // DB에 충분한 데이터(8건 이상)가 있으면 즉시 결과 구성
-        const dbBenefits = dbResp.benefits.map((b, i) => ({
+      // 공공 API 원시 데이터 → 정부 고정 혜택 카드 (static)
+      const apiCards = filterExcludedBenefits(mapPublicApiToCards({bokjiroData, gov24Data, youthData, address}));
+      console.log(`[analyze] 공공API ${apiCards.length}건 (복지로${bokjiroData.length}+정부24${gov24Data.length}+온통청년${youthData.length})`);
+
+      // 하드코딩 고정 혜택 + API 카드를 합쳐 static 섹션 구성
+      const staticOnes = [
+        ...apiCards,
+        ...(isYouthAge ? [YOUTH_FUTURE_SAVINGS] : []),
+        ...(addEmployment ? [KUKMIN_EMPLOYMENT] : []),
+        ...(parseInt(age)>=19 ? [KPASS_BENEFIT] : []),
+      ].map(b=>({...b, _origin:'static'}));
+
+      if(staticOnes.length >= 3 || (dbResp?.benefits?.length ?? 0) >= 5){
+        // DB 수집 혜택 (AI 크롤링, crawled)
+        const dbBenefits = (dbResp?.benefits || []).map((b, i) => ({
           id: `db-scraped-${Date.now()}-${i}`,
           source: b.카테고리 === '지자체' ? '지자체/공공' : b.카테고리 === '기업/제휴' ? '기업/제휴' : '생활/꿀팁',
           sourceIcon: b.카테고리 === '지자체' ? '🏛️' : b.카테고리 === '기업/제휴' ? '🏢' : '💡',
           category: b.카테고리 || '생활',
           categoryIcon: '🔍',
           scope: region,
-          isUrgent: false,
-          isHidden: false,
-          isComingSoon: false,
+          isUrgent: false, isHidden: false, isComingSoon: false,
           title: b.혜택명 || b.title || '',
           institution: b.기관 || '',
           amount: b.지원내용 || b.amount || '',
@@ -1903,60 +1995,38 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
           applyUrl: b.출처 || '',
         }));
 
-        // 유저 프로필 기준 적격성 필터 — 자격 없는 혜택(차상위계층·노인 등) 제거
-        const profileCtx = { age, income, extras };
         const filteredDbBenefits = filterExcludedBenefits(
           dbBenefits.filter(b => isDbBenefitEligible(b, profileCtx))
         );
-        console.log(`[analyze] DB 혜택 적격성 필터: ${dbBenefits.length}건 → ${filteredDbBenefits.length}건`);
+        console.log(`[analyze] DB ${filteredDbBenefits.length}건 (원본 ${dbBenefits.length}건)`);
 
-        // 국민취업지원제도: 월 500만원 이상 고소득자는 해당 없음
-        const addEmployment = (INCOME_RANK_MAP[income] ?? 5) <= 6;
-        const isYouthAge = extras.some(e => e.includes('청년')) && parseInt(age) >= 19 && parseInt(age) <= 34;
-
-        // 정부·공공 고정 혜택 (항상 static으로 태그)
-        const staticOnes = [
-          ...(isYouthAge ? [YOUTH_FUTURE_SAVINGS] : []),
-          ...(addEmployment ? [KUKMIN_EMPLOYMENT] : []),
-          ...(parseInt(age) >= 19 ? [KPASS_BENEFIT] : []),
-        ].map(b => ({...b, _origin:'static'}));
-
-        // DB 수집 혜택 (AI/크론으로 수집된 crawled)
-        const crawledOnes = filteredDbBenefits.map(b => ({...b, _origin:'crawled'}));
-
+        const crawledOnes = filteredDbBenefits.map(b=>({...b, _origin:'crawled'}));
         let benefits = filterExcludedBenefits([...staticOnes, ...crawledOnes]);
 
         const parsed = {
           benefits,
           summary: {
             totalBenefits: benefits.length,
-            estimatedMonthlyBenefit: "분석 중...",
-            topPriority: dbBenefits[0]?.title || "신규 혜택",
-            hiddenCount: 3
+            estimatedMonthlyBenefit: '분석 중...',
+            topPriority: staticOnes[0]?.title || dbBenefits[0]?.title || '신규 혜택',
+            hiddenCount: 3,
           }
         };
         parsed.summary.topPriority = benefits[0]?.title || parsed.summary?.topPriority;
         setResults(parsed);
         setAnalyzedAt(new Date());
-        if (dbResp.collectedAt) setDbCollectedAt(new Date(dbResp.collectedAt));
+        if (dbResp?.collectedAt) setDbCollectedAt(new Date(dbResp.collectedAt));
         onResultsReady?.(parsed);
         setLoading(false);
-        
-        // 분석 완료 3초 후 알림 권한 유도 (사용자가 결과를 잠시 본 뒤에 띄움)
-        if (Notification.permission === 'default') {
-          setTimeout(() => setShowNotifPrompt(true), 3000);
-        }
-        return; 
+        if (Notification.permission === 'default') setTimeout(()=>setShowNotifPrompt(true), 3000);
+        return;
       }
 
-      // ── 2단계: DB 데이터가 부족한 경우에만 실시간 분석 진행
-      console.log("[analyze] DB 데이터 부족으로 실시간 분석을 시작합니다.");
-      const [bokjiroData,gov24Data,ggData,seoulData,youthData,youthContentData]=await Promise.all([
-        fetchBokjiroData({age,extras}),
-        fetchGov24Data({age,extras,job,income}),
+      // ── 2단계: 공공 API + DB 모두 부족한 경우 Claude 실시간 분석
+      console.log('[analyze] 공공 API 부족 — Claude 실시간 분석 시작');
+      const [ggData, seoulData, youthContentData] = await Promise.all([
         fetchGGData({address,extras}),
         fetchSeoulData({age,address,extras}),
-        fetchYouthPolicyData({age,extras,address}),
         fetchYouthContentData({age,extras,address}),
       ]);
       const raw=await callClaude(buildBenefitPrompt({...buildCtx(),mode:'full',bokjiroData,gov24Data,ggData,seoulData,youthData,youthContentData}),4500);
