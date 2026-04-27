@@ -19,6 +19,10 @@ const PRIORITY_REGIONS = [
 ];
 
 const QUERY_PATTERNS = [
+  { pattern: 'discount', keyword: '이마트 롯데마트 홈플러스 전단지 할인 행사', site: '' },
+  { pattern: 'discount', keyword: '롯데백화점 신세계백화점 현대백화점 정기 세일 이벤트', site: '' },
+  { pattern: 'discount', keyword: '쿠팡 11번가 G마켓 최신 특가 할인 이벤트', site: '' },
+  { pattern: 'discount', keyword: 'CU GS25 세븐일레븐 1+1 2+1 이달의 행사', site: '' },
   { pattern: 'finance',  keyword: '청년 우대형 청약통장 금리',  site: '' },
   { pattern: 'finance',  keyword: '주요 은행 청년 적금 혜택',    site: '' },
   { pattern: 'finance',  keyword: '카드사 캐시백 지원금 이벤트',  site: '' },
@@ -27,11 +31,9 @@ const QUERY_PATTERNS = [
   { pattern: 'year',     keyword: '복지 혜택 신청 방법',   site: 'site:blog.naver.com' },
   { pattern: 'latest',   keyword: '복지 혜택',             site: 'site:blog.naver.com' },
   { pattern: 'official', keyword: '시청 공고 지원금',       site: '' },
-  { pattern: 'instagram', keyword: '"gg24_kr" 혜택 지원금', site: 'site:instagram.com' },
-  { pattern: 'instagram', keyword: '"iammoneytip" 지원금',  site: '' },
 ];
 
-const MAX_PATTERNS_PER_RUN = 3;
+const MAX_PATTERNS_PER_RUN = 4; // 수집 범위 확대
 const SOFT_TIMEOUT_MS      = 260_000;
 const INTER_QUERY_DELAY_MS = 1_500;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -88,7 +90,7 @@ export default async function handler(req, res) {
       if (benefits.length > 0) {
         const saved = await saveBenefits(benefits, {
           targetRegion: region.dbRegion,
-          targetGroup:  region.group,
+          targetGroup:  pat.pattern === 'discount' ? '할인행사' : region.group,
           sourceQuery:  region.name === '할인' ? '스크래핑:여행가는달' : query,
         });
         report.push({ query: region.name === '할인' ? '할인스크래핑' : query, saved, status: 'ok' });
