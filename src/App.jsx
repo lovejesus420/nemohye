@@ -2887,178 +2887,280 @@ function DiscountTab() {
 }
 
 // ─── CouponTab ────────────────────────────────────────────────────
-const COUPON_PLATFORMS = [
-  {
-    name: '쿠팡',
-    icon: '🛒',
-    category: '온라인쇼핑',
-    desc: '와우회원 전용 최대 50% 즉시할인 쿠폰 및 로켓직구·가전 브랜드별 중복 할인쿠폰을 제공합니다. [쿠폰받기] 버튼 클릭 시 발급 가능 리스트로 이동합니다.',
-    url: 'https://www.coupang.com/np/promotion/coupons',
-    color: '#e04e3f',
-    bg: '#fff1f0'
-  },
-  {
-    name: '네이버 쇼핑',
-    icon: '🟢',
-    category: '온라인쇼핑',
-    desc: '스마트스토어별 첫 구매/알림받기 쿠폰과 네이버페이 포인트 적립 혜택을 제공합니다. 기획전 페이지에서 브랜드별 쿠폰을 한꺼번에 담을 수 있습니다.',
-    url: 'https://shopping.naver.com/v2/event/home',
-    color: '#03c75a',
-    bg: '#f0fff5'
-  },
-  {
-    name: 'SSG닷컴',
-    icon: '🛍️',
-    category: '온라인쇼핑',
-    desc: '신세계몰·이마트몰 통합 등급별 할인쿠폰과 카드사 7% 청구할인 혜택을 매달 제공합니다. 공식 쿠폰존에서 오늘의 선착순 쿠폰을 확인하세요.',
-    url: 'https://www.ssg.com/event/eventMain.ssg',
-    color: '#e20038',
-    bg: '#fff0f3'
-  },
-  {
-    name: '11번가',
-    icon: '🏷️',
-    category: '온라인쇼핑',
-    desc: '매달 11일 십일절 전야제 및 상시 브랜드 쿠폰북을 운영합니다. 아마존 무료배송 및 SKT T멤버십 중복 할인(최대 3천원)이 강력합니다.',
-    url: 'https://www.11st.co.kr/browsing/CouponPlace.tmall',
-    color: '#f04e23',
-    bg: '#fff3ef'
-  },
-  {
-    name: 'G마켓',
-    icon: '💛',
-    category: '온라인쇼핑',
-    desc: '신세계 유니버스 클럽 회원 전용 5~15% 할인쿠폰과 매일 발급되는 스마일배송 쿠폰을 제공합니다. [G마켓 쿠폰존]에서 확인 가능합니다.',
-    url: 'https://www.gmarket.co.kr/Event/CouponZone',
-    color: '#1b5fc0',
-    bg: '#eff5ff'
-  },
-  {
-    name: '이마트',
-    icon: '🏪',
-    category: '마트·식품',
-    desc: '이마트 앱 내 "클럽" 가입 시 육아/와인/건강기능식품 할인쿠폰을 제공하며, 매주 업데이트되는 전단지 품목 할인 혜택을 확인하실 수 있습니다.',
-    url: 'https://store.emart.com/main/flyer.do',
-    color: '#f6c200',
-    bg: '#fffdf0'
-  },
-  {
-    name: '롯데마트',
-    icon: '🧡',
-    category: '마트·식품',
-    desc: '롯데마트 GO 앱 설치 시 결제 금액별 할인쿠폰(3천원/5천원 등)과 전용 특가 L.Point 회원 혜택을 즉시 받으실 수 있습니다.',
-    url: 'https://www.lottemart.com/pc/display/displayCouponMain.do',
-    color: '#ed6b03',
-    bg: '#fff5ef'
-  },
-  {
-    name: '홈플러스',
-    icon: '🟦',
-    category: '마트·식품',
-    desc: '홈플러스 멤버십 앱에서 발급하는 첫 구매 쿠폰과 매일 오전 10시 선착순 할인쿠폰을 제공합니다. 마이 홈플러스 포인트 10배 적립 행사도 진행됩니다.',
-    url: 'https://front.homeplus.co.kr/exhibition?promoNo=123',
-    color: '#1565c0',
-    bg: '#eff5ff'
-  },
-  {
-    name: 'CU',
-    icon: '🏬',
-    category: '편의점',
-    desc: '포켓CU 앱에서 매일 오전 11시 신상품 50% 할인쿠폰과 매달 증정(1+1, 2+1) 쿠폰을 배포합니다. 통신사 SKT 중복 할인이 가능합니다.',
-    url: 'https://cu.bgfretail.com/event/plus.do',
-    color: '#7b2fff',
-    bg: '#f5f0ff'
-  },
-  {
-  name: 'GS25',
-  icon: '🟩',
-  category: '편의점',
-  desc: '우리동네GS 앱을 통해 "우리동네 픽업" 할인쿠폰과 주류 예약 할인 혜택을 제공합니다. KT/LG U+ 통신사 등급별 할인을 현장에서 적용하세요.',
-  url: 'https://gs25.gsretail.com/gscvs/ko/products/event-goods',
-  color: '#1e7e34',
-  bg: '#f0fff4'
-  },  {
-    name: '올리브영',
-    icon: '💄',
-    category: '패션·뷰티',
-    desc: '올영세일 기간 선착순 쿠폰과 앱 전용 첫 구매 5천원 할인 혜택을 제공합니다. 매달 진행되는 올영데이 멤버십 등급별 증정품 쿠폰을 확인하세요.',
-    url: 'https://www.oliveyoung.co.kr/store/event/getEventList.do',
-    color: '#2c9f4b',
-    bg: '#f0fff4'
-  },
-  {
-    name: '배달의민족',
-    icon: '🍱',
-    category: '외식·배달',
-    desc: '배민클럽 가입 시 배달비 무료 혜택과 브랜드별 최대 1만원 할인쿠폰을 상시 제공합니다. [My배민 > 쿠폰함]에서 확인 가능합니다.',
-    url: 'https://www.baemin.com/',
-    color: '#2ac1bc',
-    bg: '#effffe'
-  },
-  {
-    name: '무신사',
-    icon: '🧢',
-    category: '패션·뷰티',
-    desc: '신규 가입 시 20% 할인쿠폰팩과 매달 업데이트되는 등급별 정기 쿠폰을 제공합니다. 특정 브랜드 기획전 쿠폰은 상품 상세페이지에서 다운로드 가능합니다.',
-    url: 'https://www.musinsa.com/app/campaign/index',
-    color: '#000000',
-    bg: '#f5f5f5'
-  },
-  {
-    name: 'T멤버십',
-    icon: '📡',
-    category: '통신·생활',
-    desc: 'T-Day 파리바게뜨, 빕스 등 제휴처 40~50% 할인쿠폰과 매달 0 day(영데이) 청년 전용 혜택을 배포합니다. 앱에서 바코드와 함께 확인하세요.',
-    url: 'https://www.tworld.co.kr/benefit/membership',
-    color: '#e83c2e',
-    bg: '#fff0f0'
-  },
-  {
-    name: 'KT 멤버십',
-    icon: '📱',
-    category: '통신·생활',
-    desc: '나의 초이스 행사를 통해 스타벅스, 영화 관람권 등 인기 제휴처 할인쿠폰을 매달 제공합니다. VIP 등급은 연 6~12회 무료 혜택(초이스)이 가능합니다.',
-    url: 'https://membership.kt.com/',
-    color: '#e8003d',
-    bg: '#fff0f4'
-  }
+const COUPONS = [
+  // ── 쿠팡
+  { id:'cp1', brand:'쿠팡', brandIcon:'🛒', brandColor:'#e04e3f', brandBg:'#fff1f0', category:'온라인쇼핑',
+    title:'와우회원 로켓배송 5,000원 할인', discount:'5,000원',
+    desc:'로켓배송 상품 3만원 이상 구매 시 5,000원 즉시 할인. 와우 회원이라면 매달 신규 발급 가능.',
+    url:'https://www.coupang.com/np/promotion/coupons' },
+  { id:'cp2', brand:'쿠팡', brandIcon:'🛒', brandColor:'#e04e3f', brandBg:'#fff1f0', category:'온라인쇼핑',
+    title:'신규 와우 회원 첫 달 무료', discount:'월 7,890원',
+    desc:'쿠팡 와우 멤버십 첫 달 무료 체험. 로켓배송·로켓프레시·쿠팡플레이 모두 포함. 가입 즉시 적용.',
+    url:'https://www.coupang.com/np/landing/rocket-wow' },
+  { id:'cp3', brand:'쿠팡', brandIcon:'🛒', brandColor:'#e04e3f', brandBg:'#fff1f0', category:'온라인쇼핑',
+    title:'로켓직구 10% 할인쿠폰', discount:'최대 10%',
+    desc:'해외 직구 상품 10% 할인. 쿠폰함에서 다운로드 후 결제 시 자동 적용. 일부 브랜드 제외.',
+    url:'https://www.coupang.com/np/promotion/coupons' },
+  // ── 네이버쇼핑
+  { id:'nv1', brand:'네이버 쇼핑', brandIcon:'🟢', brandColor:'#03c75a', brandBg:'#f0fff5', category:'온라인쇼핑',
+    title:'네이버페이 첫 결제 3,000원 적립', discount:'3,000원',
+    desc:'네이버페이 첫 결제 고객 대상 3,000 포인트 즉시 적립. 스마트스토어 전 상품 적용 가능.',
+    url:'https://shopping.naver.com/v2/event/home' },
+  { id:'nv2', brand:'네이버 쇼핑', brandIcon:'🟢', brandColor:'#03c75a', brandBg:'#f0fff5', category:'온라인쇼핑',
+    title:'스마트스토어 알림받기 전용 쿠폰', discount:'최대 5,000원',
+    desc:'관심 스토어 알림받기 설정 후 발급되는 단독 할인쿠폰. 스토어별 금액 상이. 앱에서 확인.',
+    url:'https://shopping.naver.com/v2/event/home' },
+  { id:'nv3', brand:'네이버 쇼핑', brandIcon:'🟢', brandColor:'#03c75a', brandBg:'#f0fff5', category:'온라인쇼핑',
+    title:'쇼핑라이브 시청 즉시 쿠폰', discount:'최대 3%',
+    desc:'라이브 방송 시청 중 채팅창 "받기" 버튼 클릭 시 즉시 발급. 방송 종료 전까지만 사용 가능.',
+    url:'https://shoppinglive.naver.com' },
+  // ── SSG닷컴
+  { id:'ssg1', brand:'SSG닷컴', brandIcon:'🛍️', brandColor:'#e20038', brandBg:'#fff0f3', category:'온라인쇼핑',
+    title:'신규 가입 5,000원 할인쿠폰', discount:'5,000원',
+    desc:'SSG닷컴 신규 회원 가입 즉시 발급. 2만원 이상 구매 시 사용 가능. 이마트몰·신세계몰 통합 적용.',
+    url:'https://www.ssg.com/event/couponZone.ssg' },
+  { id:'ssg2', brand:'SSG닷컴', brandIcon:'🛍️', brandColor:'#e20038', brandBg:'#fff0f3', category:'온라인쇼핑',
+    title:'SSG 오늘의 선착순 쿠폰', discount:'최대 7%',
+    desc:'매일 오전 10시 선착순 발급. 신선식품·생필품·의류 전 카테고리 적용. 수량 소진 시 종료.',
+    url:'https://www.ssg.com/event/couponZone.ssg' },
+  { id:'ssg3', brand:'SSG닷컴', brandIcon:'🛍️', brandColor:'#e20038', brandBg:'#fff0f3', category:'온라인쇼핑',
+    title:'신세계 등급별 할인쿠폰 (GOLD↑)', discount:'최대 15%',
+    desc:'GOLD 등급 이상 회원 전용. 매달 1일 자동 발급. 명품·뷰티·가전 구매 시 청구 할인 적용.',
+    url:'https://www.ssg.com/event/eventMain.ssg' },
+  // ── 11번가
+  { id:'st1', brand:'11번가', brandIcon:'🏷️', brandColor:'#f04e23', brandBg:'#fff3ef', category:'온라인쇼핑',
+    title:'십일절 브랜드 쿠폰북', discount:'최대 11%',
+    desc:'매달 11일 자정 개최. 100개 이상 브랜드 단독 할인쿠폰 동시 오픈. 중복 할인 최대 3만원.',
+    url:'https://www.11st.co.kr/browsing/CouponPlace.tmall' },
+  { id:'st2', brand:'11번가', brandIcon:'🏷️', brandColor:'#f04e23', brandBg:'#fff3ef', category:'온라인쇼핑',
+    title:'아마존 글로벌 직구 무료배송', discount:'배송비 무료',
+    desc:'아마존 글로벌 스토어 상품 무료배송 쿠폰. 3만원 이상 주문 시 적용. 단, 일부 대형 품목 제외.',
+    url:'https://www.11st.co.kr/browsing/AmazonGlobal.tmall' },
+  { id:'st3', brand:'11번가', brandIcon:'🏷️', brandColor:'#f04e23', brandBg:'#fff3ef', category:'온라인쇼핑',
+    title:'SKT T멤버십 추가 3,000원 할인', discount:'3,000원',
+    desc:'SKT 회원 T멤버십 연동 시 결제금액에서 3,000원 추가 할인. 월 1회, 5만원 이상 구매 시 적용.',
+    url:'https://www.11st.co.kr/browsing/CouponPlace.tmall' },
+  // ── G마켓
+  { id:'gm1', brand:'G마켓', brandIcon:'💛', brandColor:'#1b5fc0', brandBg:'#eff5ff', category:'온라인쇼핑',
+    title:'스마일배송 신규 3,000원 쿠폰', discount:'3,000원',
+    desc:'스마일배송 상품 첫 구매 고객 전용. 1만5천원 이상 구매 시 적용. G마켓 앱에서 다운로드.',
+    url:'https://www.gmarket.co.kr/Event/CouponZone' },
+  { id:'gm2', brand:'G마켓', brandIcon:'💛', brandColor:'#1b5fc0', brandBg:'#eff5ff', category:'온라인쇼핑',
+    title:'유니버스 클럽 회원 5% 추가 쿠폰', discount:'5%',
+    desc:'신세계 유니버스 클럽 가입 회원 전용. G마켓·SSG·신세계 통합 할인. 매달 자동 발급.',
+    url:'https://www.gmarket.co.kr/Event/CouponZone' },
+  // ── 이마트
+  { id:'em1', brand:'이마트', brandIcon:'🏪', brandColor:'#f6c200', brandBg:'#fffdf0', category:'마트·식품',
+    title:'이마트 앱 전용 신선식품 20% 할인', discount:'20%',
+    desc:'이마트 앱 로그인 후 [쿠폰함]에서 다운로드. 신선식품(채소·과일·육류) 카테고리 전용. 주 1회 한정.',
+    url:'https://emart.ssg.com/event/eventMain.ssg' },
+  { id:'em2', brand:'이마트', brandIcon:'🏪', brandColor:'#f6c200', brandBg:'#fffdf0', category:'마트·식품',
+    title:'이마트 전단 행사 당일 추가 5% 할인', discount:'5%',
+    desc:'이마트 주간 전단 행사 품목 구매 시 앱 쿠폰 제시하면 추가 5% 할인. 전단 앱에서 당일 확인 필수.',
+    url:'https://store.emart.com/main/flyer.do' },
+  { id:'em3', brand:'이마트', brandIcon:'🏪', brandColor:'#f6c200', brandBg:'#fffdf0', category:'마트·식품',
+    title:'이마트24 편의점 음료 1+1 쿠폰', discount:'1+1',
+    desc:'이마트24 앱 회원 전용. 탄산음료·커피·주스 1+1 증정. 앱 내 [쿠폰받기] 후 현장 스캔.',
+    url:'https://www.emart24.co.kr/goods/event' },
+  // ── 롯데마트
+  { id:'lm1', brand:'롯데마트', brandIcon:'🧡', brandColor:'#ed6b03', brandBg:'#fff5ef', category:'마트·식품',
+    title:'롯데마트 GO 앱 3,000원 쿠폰', discount:'3,000원',
+    desc:'롯데마트 GO 앱 설치 후 [쿠폰함] 에서 다운로드. 2만원 이상 구매 시 적용. 신선식품 제외.',
+    url:'https://www.lottemart.com/pc/display/displayCouponMain.do' },
+  { id:'lm2', brand:'롯데마트', brandIcon:'🧡', brandColor:'#ed6b03', brandBg:'#fff5ef', category:'마트·식품',
+    title:'L.POINT 회원 10배 적립 쿠폰', discount:'10배 적립',
+    desc:'L.POINT 카드 소지 회원 전용. 지정 상품 구매 시 포인트 10배 적립. 매주 수요일 한정 발급.',
+    url:'https://www.lottemart.com/pc/display/displayCouponMain.do' },
+  { id:'lm3', brand:'롯데마트', brandIcon:'🧡', brandColor:'#ed6b03', brandBg:'#fff5ef', category:'마트·식품',
+    title:'롯데마트 금주의 반값 행사', discount:'50%',
+    desc:'매주 목요일~수요일 운영. 인기 식품·생필품 50% 할인. 앱에서 당일 선착순 쿠폰 다운로드 필수.',
+    url:'https://www.lottemart.com/pc/display/displayCouponMain.do' },
+  // ── 홈플러스
+  { id:'hp1', brand:'홈플러스', brandIcon:'🟦', brandColor:'#1565c0', brandBg:'#eff5ff', category:'마트·식품',
+    title:'첫 구매 5,000원 할인쿠폰', discount:'5,000원',
+    desc:'홈플러스 멤버십 앱 신규 가입 후 첫 구매 시 즉시 할인. 온·오프라인 통합 3만원 이상 구매 시 적용.',
+    url:'https://mfront.homeplus.co.kr/coupon' },
+  { id:'hp2', brand:'홈플러스', brandIcon:'🟦', brandColor:'#1565c0', brandBg:'#eff5ff', category:'마트·식품',
+    title:'매일 오전 10시 선착순 쿠폰', discount:'최대 3,000원',
+    desc:'앱 알림 수신 동의 시 오전 10시 자동 발송. 당일 사용 한정. 선착순 1만 명, 소진 즉시 마감.',
+    url:'https://mfront.homeplus.co.kr/coupon' },
+  // ── CU
+  { id:'cu1', brand:'CU', brandIcon:'🏬', brandColor:'#7b2fff', brandBg:'#f5f0ff', category:'편의점',
+    title:'포켓CU 신상품 50% 할인쿠폰', discount:'50%',
+    desc:'포켓CU 앱 매일 오전 11시 발급. 당월 출시 신상품 1개에 한해 50% 즉시 할인. 1일 1쿠폰 한정.',
+    url:'https://cu.bgfretail.com/event/plus.do' },
+  { id:'cu2', brand:'CU', brandIcon:'🏬', brandColor:'#7b2fff', brandBg:'#f5f0ff', category:'편의점',
+    title:'이달의 1+1 행사 쿠폰', discount:'1+1',
+    desc:'포켓CU 앱에서 이달의 1+1 행사 상품 목록 확인 후 쿠폰 다운로드. 음료·과자·간편식 포함.',
+    url:'https://cu.bgfretail.com/event/plus.do' },
+  { id:'cu3', brand:'CU', brandIcon:'🏬', brandColor:'#7b2fff', brandBg:'#f5f0ff', category:'편의점',
+    title:'SKT T멤버십 CU 할인 쿠폰', discount:'최대 20%',
+    desc:'SKT T멤버십 앱 연동 후 CU 결제 시 20% 청구 할인. 월 2회 사용 가능. 주류·담배 제외.',
+    url:'https://cu.bgfretail.com/event/plus.do' },
+  // ── GS25
+  { id:'gs1', brand:'GS25', brandIcon:'🟩', brandColor:'#1e7e34', brandBg:'#f0fff4', category:'편의점',
+    title:'우리동네GS 픽업 10% 할인쿠폰', discount:'10%',
+    desc:'우리동네GS 앱 픽업 예약 시 10% 할인. 도시락·베이커리·음료 전 품목 적용. 앱 주문 후 현장 수령.',
+    url:'https://gs25.gsretail.com/gscvs/ko/products/event-goods' },
+  { id:'gs2', brand:'GS25', brandIcon:'🟩', brandColor:'#1e7e34', brandBg:'#f0fff4', category:'편의점',
+    title:'GS25 이달의 2+1 행사 쿠폰', discount:'2+1',
+    desc:'우리동네GS 앱 이달의 행사 탭에서 2+1 상품 확인. 과자·음료·라면 등 매달 새 상품 업데이트.',
+    url:'https://gs25.gsretail.com/gscvs/ko/products/event-goods' },
+  { id:'gs3', brand:'GS25', brandIcon:'🟩', brandColor:'#1e7e34', brandBg:'#f0fff4', category:'편의점',
+    title:'KT/LGU+ 제휴 할인 쿠폰', discount:'최대 20%',
+    desc:'KT/LG U+ 멤버십 회원 전용. GS25 결제 시 20% 즉시 할인. 월 2회 한정. 담배·주류 제외.',
+    url:'https://gs25.gsretail.com/gscvs/ko/products/event-goods' },
+  // ── 세븐일레븐
+  { id:'sl1', brand:'세븐일레븐', brandIcon:'7️⃣', brandColor:'#e63946', brandBg:'#fff0f0', category:'편의점',
+    title:'세븐일레븐 앱 전용 1+1 쿠폰', discount:'1+1',
+    desc:'세븐일레븐 앱 회원 전용. 이달의 1+1 인기 상품 쿠폰을 앱에서 다운로드 후 현장 스캔.',
+    url:'https://www.7-eleven.co.kr/seven/eventPage.asp' },
+  { id:'sl2', brand:'세븐일레븐', brandIcon:'7️⃣', brandColor:'#e63946', brandBg:'#fff0f0', category:'편의점',
+    title:'세븐일레븐 모바일쿠폰 3,000원', discount:'3,000원',
+    desc:'세븐일레븐 앱 첫 가입 회원에게 3,000원 할인쿠폰 즉시 발급. 1만원 이상 구매 시 사용 가능.',
+    url:'https://www.7-eleven.co.kr/seven/eventPage.asp' },
+  // ── 올리브영
+  { id:'oy1', brand:'올리브영', brandIcon:'💄', brandColor:'#2c9f4b', brandBg:'#f0fff4', category:'패션·뷰티',
+    title:'올리브영 앱 첫 구매 5,000원 할인', discount:'5,000원',
+    desc:'올리브영 앱 설치 후 첫 온라인 구매 시 5,000원 할인. 2만원 이상 구매 적용. 배송비 별도.',
+    url:'https://www.oliveyoung.co.kr/store/event/getEventList.do' },
+  { id:'oy2', brand:'올리브영', brandIcon:'💄', brandColor:'#2c9f4b', brandBg:'#f0fff4', category:'패션·뷰티',
+    title:'올영세일 추가 5% 쿠폰', discount:'추가 5%',
+    desc:'올리브영 정기 세일 기간 중 앱에서 추가 5% 할인쿠폰 발급. 등급 무관 전 회원 대상.',
+    url:'https://www.oliveyoung.co.kr/store/event/getEventList.do' },
+  { id:'oy3', brand:'올리브영', brandIcon:'💄', brandColor:'#2c9f4b', brandBg:'#f0fff4', category:'패션·뷰티',
+    title:'올영데이 멤버십 등급 쿠폰 (매달 15일)', discount:'최대 15%',
+    desc:'매달 15일 올영데이. GOLD 이상 회원 전용 15% 쿠폰 자동 발급. 뷰티·헬스·생활용품 전 품목 적용.',
+    url:'https://www.oliveyoung.co.kr/store/event/getEventList.do' },
+  // ── 무신사
+  { id:'ms1', brand:'무신사', brandIcon:'🧢', brandColor:'#1a1a1a', brandBg:'#f5f5f5', category:'패션·뷰티',
+    title:'신규 가입 20% 할인쿠폰팩', discount:'20%',
+    desc:'무신사 첫 가입 시 즉시 발급. 3만원 이상 구매 시 사용 가능. 스탠다드·솔드아웃 통합 적용.',
+    url:'https://www.musinsa.com/app/campaign/index' },
+  { id:'ms2', brand:'무신사', brandIcon:'🧢', brandColor:'#1a1a1a', brandBg:'#f5f5f5', category:'패션·뷰티',
+    title:'무신사 등급별 정기 쿠폰 (VVIP)', discount:'최대 10%',
+    desc:'VVIP 등급 회원 대상 매달 자동 발급. 신발·의류·아웃도어 전 카테고리. 금액 상한 없이 적용.',
+    url:'https://www.musinsa.com/app/campaign/index' },
+  { id:'ms3', brand:'무신사', brandIcon:'🧢', brandColor:'#1a1a1a', brandBg:'#f5f5f5', category:'패션·뷰티',
+    title:'무신사 쿠폰 페스타 브랜드 쿠폰', discount:'최대 30%',
+    desc:'분기별 쿠폰 페스타 기간 중 단독 브랜드 30% 쿠폰 발급. 상품 상세 페이지에서 개별 다운로드.',
+    url:'https://www.musinsa.com/app/campaign/index' },
+  // ── 배달의민족
+  { id:'bm1', brand:'배달의민족', brandIcon:'🍱', brandColor:'#2ac1bc', brandBg:'#effffe', category:'외식·배달',
+    title:'배민클럽 배달비 무료 쿠폰', discount:'배달비 무료',
+    desc:'배민클럽 가입 시 월정액 내 배달비 무제한 무료. 미가입자는 첫 달 무료 체험 쿠폰 발급 가능.',
+    url:'https://www.baemin.com/event/baemin-club' },
+  { id:'bm2', brand:'배달의민족', brandIcon:'🍱', brandColor:'#2ac1bc', brandBg:'#effffe', category:'외식·배달',
+    title:'첫 주문 3,000원 할인쿠폰', discount:'3,000원',
+    desc:'배달의민족 앱 첫 주문 고객에게 3,000원 자동 발급. 최소 주문 금액 1만원 이상. 앱에서만 사용.',
+    url:'https://www.baemin.com' },
+  { id:'bm3', brand:'배달의민족', brandIcon:'🍱', brandColor:'#2ac1bc', brandBg:'#effffe', category:'외식·배달',
+    title:'브랜드관 치킨·피자 2,000원 할인', discount:'2,000원',
+    desc:'배민 브랜드관 참여 치킨·피자 전문점 한정. 앱 [쿠폰함]에서 다운로드. 주 1회, 2만원 이상 적용.',
+    url:'https://www.baemin.com/event' },
+  // ── 쿠팡이츠
+  { id:'ce1', brand:'쿠팡이츠', brandIcon:'🥡', brandColor:'#e04e3f', brandBg:'#fff1f0', category:'외식·배달',
+    title:'쿠팡이츠 첫 주문 50% 할인', discount:'최대 50%',
+    desc:'쿠팡이츠 신규 가입 첫 주문 50% 즉시 할인. 최대 할인 1만원. 와우회원은 추가 10% 중복 가능.',
+    url:'https://www.coupangeats.com' },
+  { id:'ce2', brand:'쿠팡이츠', brandIcon:'🥡', brandColor:'#e04e3f', brandBg:'#fff1f0', category:'외식·배달',
+    title:'와우 회원 배달비 무료 쿠폰', discount:'배달비 무료',
+    desc:'쿠팡 와우 회원 전용. 월 2회 배달비 무료 쿠폰 자동 지급. 쿠팡이츠 앱 [혜택] 탭에서 확인.',
+    url:'https://www.coupangeats.com' },
+  // ── T멤버십
+  { id:'tm1', brand:'T멤버십', brandIcon:'📡', brandColor:'#e83c2e', brandBg:'#fff0f0', category:'통신·생활',
+    title:'T-Day 파리바게뜨 40% 할인', discount:'40%',
+    desc:'매달 T멤버십 데이 참여 파리바게뜨 전 매장 40% 청구 할인. T world 앱에서 쿠폰 확인 후 바코드 제시.',
+    url:'https://www.tworld.co.kr/benefit/membership' },
+  { id:'tm2', brand:'T멤버십', brandIcon:'📡', brandColor:'#e83c2e', brandBg:'#fff0f0', category:'통신·생활',
+    title:'CGV 영화 관람권 50% 할인', discount:'50%',
+    desc:'T멤버십 앱에서 CGV 쿠폰 발급 후 현장 적용. 일반 2D 상영관 한정. 주말·공휴일 포함 사용 가능.',
+    url:'https://www.tworld.co.kr/benefit/membership' },
+  { id:'tm3', brand:'T멤버십', brandIcon:'📡', brandColor:'#e83c2e', brandBg:'#fff0f0', category:'통신·생활',
+    title:'스타벅스 음료 30% 할인 쿠폰', discount:'30%',
+    desc:'T 우주 회원 전용 스타벅스 음료 30% 할인. 월 4회 사용 가능. T world 앱에서 바코드 발급 후 사용.',
+    url:'https://www.tworld.co.kr/benefit/membership' },
+  // ── KT멤버십
+  { id:'kt1', brand:'KT 멤버십', brandIcon:'📱', brandColor:'#e8003d', brandBg:'#fff0f4', category:'통신·생활',
+    title:'KT 나의 초이스 스타벅스 쿠폰', discount:'무료 음료 1잔',
+    desc:'매달 1일 초이스 메뉴에서 스타벅스 선택 시 아메리카노 1잔 무료. KT 멤버십 앱에서 신청.',
+    url:'https://membership.kt.com' },
+  { id:'kt2', brand:'KT 멤버십', brandIcon:'📱', brandColor:'#e8003d', brandBg:'#fff0f4', category:'통신·생활',
+    title:'CGV/롯데시네마 관람권 할인', discount:'최대 6,000원',
+    desc:'KT 멤버십 VIP 고객 CGV/롯데시네마 6,000원 할인. 멤버십 앱 [나의 초이스]에서 월 1회 선택.',
+    url:'https://membership.kt.com' },
+  { id:'kt3', brand:'KT 멤버십', brandIcon:'📱', brandColor:'#e8003d', brandBg:'#fff0f4', category:'통신·생활',
+    title:'베스킨라빈스 패밀리 사이즈 1+1', discount:'1+1',
+    desc:'KT 멤버십 앱 제휴 혜택에서 베스킨라빈스 패밀리 사이즈 아이스크림 1+1 쿠폰 발급. 월 1회.',
+    url:'https://membership.kt.com' },
+  // ── 카카오페이
+  { id:'kp1', brand:'카카오페이', brandIcon:'💛', brandColor:'#f9e000', brandBg:'#fffde0', category:'통신·생활',
+    title:'카카오페이 결제 포인트 5% 적립', discount:'5% 적립',
+    desc:'카카오페이 앱 내 지정 가맹점 결제 시 포인트 5% 자동 적립. 적립 포인트는 다음 결제 시 현금처럼 사용.',
+    url:'https://www.kakaopay.com/promotion' },
+  { id:'kp2', brand:'카카오페이', brandIcon:'💛', brandColor:'#f9e000', brandBg:'#fffde0', category:'통신·생활',
+    title:'카카오쇼핑 전용 3,000원 할인쿠폰', discount:'3,000원',
+    desc:'카카오톡 쇼핑하기 탭에서 카카오페이 결제 시 3,000원 즉시 할인. 2만원 이상 구매 시 적용.',
+    url:'https://shopping.kakao.com' },
 ];
 const COUPON_CATS = ['전체','온라인쇼핑','마트·식품','편의점','외식·배달','패션·뷰티','통신·생활'];
 function CouponTab() {
   const [filter, setFilter] = useState('전체');
-  const filtered = filter==='전체' ? COUPON_PLATFORMS : COUPON_PLATFORMS.filter(p => p.category===filter);
+  const [brandFilter, setBrandFilter] = useState('전체');
+  const filtered = (filter==='전체' ? COUPONS : COUPONS.filter(c => c.category===filter))
+    .filter(c => brandFilter==='전체' || c.brand===brandFilter);
+  const brandsInCategory = filter==='전체'
+    ? [...new Set(COUPONS.map(c => c.brand))]
+    : [...new Set(COUPONS.filter(c => c.category===filter).map(c => c.brand))];
   return (<div>
     <div style={{background:'linear-gradient(135deg,#7c3aed,#a855f7)',borderRadius:16,padding:'18px 20px',marginBottom:16,color:'#fff'}}>
       <div style={{fontSize:10,letterSpacing:0.5,color:'rgba(255,255,255,0.8)',textTransform:'uppercase',marginBottom:6}}>🎟️ 기업 할인쿠폰</div>
-      <div style={{fontFamily:'serif',fontSize:'1.15rem',fontWeight:700,marginBottom:4,wordBreak:'keep-all'}}>주요 기업 쿠폰을 한 곳에서</div>
-      <p style={{fontSize:12,color:'rgba(255,255,255,0.8)',lineHeight:1.6,margin:0}}>쇼핑몰·마트·편의점·배달앱·통신사 쿠폰 페이지로 바로 이동하세요</p>
+      <div style={{fontFamily:'serif',fontSize:'1.15rem',fontWeight:700,marginBottom:4,wordBreak:'keep-all'}}>기업 최신 할인쿠폰 모음</div>
+      <p style={{fontSize:12,color:'rgba(255,255,255,0.8)',lineHeight:1.6,margin:0}}>각 쿠폰의 [쿠폰 받기] 버튼을 눌러 바로 받아가세요</p>
     </div>
-    <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:4,marginBottom:16}}>
+    {/* 카테고리 필터 */}
+    <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:4,marginBottom:10}}>
       {COUPON_CATS.map(cat => {
         const active = filter===cat;
-        return (<button key={cat} onClick={() => setFilter(cat)} style={{flexShrink:0,padding:'6px 12px',border:`1.5px solid ${active?'#7c3aed':'#e5e7eb'}`,borderRadius:20,fontSize:12,fontWeight:active?700:500,background:active?'#7c3aed':'#fff',color:active?'#fff':'#6b6560',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>{cat}</button>);
+        return (<button key={cat} onClick={() => { setFilter(cat); setBrandFilter('전체'); }} style={{flexShrink:0,padding:'6px 12px',border:`1.5px solid ${active?'#7c3aed':'#e5e7eb'}`,borderRadius:20,fontSize:12,fontWeight:active?700:500,background:active?'#7c3aed':'#fff',color:active?'#fff':'#6b6560',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>{cat}</button>);
       })}
     </div>
-    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-      {filtered.map((p, i) => (
-        <div 
-          key={i} 
-          onClick={() => window.open(p.url, '_blank')}
-          style={{
-            background:'#fff',border:'1px solid #e5e7eb',borderRadius:14,padding:'14px',
-            boxSizing:'border-box',boxShadow:'0 1px 4px rgba(0,0,0,0.05)',
-            display:'flex',flexDirection:'column',height:'100%',cursor:'pointer'
-          }}
-        >
-          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
-            <div style={{width:40,height:40,borderRadius:12,background:p.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{p.icon}</div>
-            <div><div style={{fontSize:14,fontWeight:700,color:'#0d1117'}}>{p.name}</div><div style={{fontSize:11,color:p.color,fontWeight:600}}>{p.category}</div></div>
+    {/* 브랜드 필터 */}
+    <div style={{display:'flex',gap:5,overflowX:'auto',paddingBottom:4,marginBottom:16}}>
+      {['전체',...brandsInCategory].map(b => {
+        const active = brandFilter===b;
+        return (<button key={b} onClick={() => setBrandFilter(b)} style={{flexShrink:0,padding:'5px 10px',border:`1.5px solid ${active?'#a855f7':'#e5e7eb'}`,borderRadius:16,fontSize:11,fontWeight:active?700:500,background:active?'#f5f0ff':'#fff',color:active?'#7c3aed':'#9ca3af',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>{b}</button>);
+      })}
+    </div>
+    {/* 쿠폰 목록 */}
+    <div style={{display:'flex',flexDirection:'column',gap:12}}>
+      {filtered.map(c => (
+        <div key={c.id} style={{background:'#fff',border:'1px solid #e5e7eb',borderRadius:16,padding:'16px',boxShadow:'0 1px 4px rgba(0,0,0,0.05)',boxSizing:'border-box'}}>
+          {/* 브랜드 헤더 */}
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+            <div style={{width:32,height:32,borderRadius:10,background:c.brandBg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0}}>{c.brandIcon}</div>
+            <div>
+              <div style={{fontSize:11,color:c.brandColor,fontWeight:700}}>{c.brand}</div>
+              <div style={{fontSize:10,color:'#9ca3af'}}>{c.category}</div>
+            </div>
+            <div style={{marginLeft:'auto',background:c.brandBg,border:`1.5px solid ${c.brandColor}`,borderRadius:20,padding:'3px 10px',fontSize:12,fontWeight:800,color:c.brandColor,whiteSpace:'nowrap',flexShrink:0}}>{c.discount}</div>
           </div>
-          <div style={{fontSize:12,color:'#6b6560',lineHeight:1.6,flex:1}}>{p.desc}</div>
-          <div style={{marginTop:10,fontSize:12,fontWeight:700,color:p.color,textAlign:'right'}}>쿠폰 받기 →</div>
+          {/* 쿠폰 제목 */}
+          <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:6,lineHeight:1.4}}>{c.title}</div>
+          {/* 설명 */}
+          <div style={{fontSize:12,color:'#6b7280',lineHeight:1.65,marginBottom:12}}>{c.desc}</div>
+          {/* 쿠폰 받기 버튼 */}
+          <button
+            onClick={() => window.open(c.url, '_blank')}
+            style={{width:'100%',padding:'11px 0',border:'none',borderRadius:10,fontSize:13,fontWeight:700,background:c.brandColor,color:'#fff',cursor:'pointer',fontFamily:'inherit',letterSpacing:0.3}}
+          >🎟️ 쿠폰 받기</button>
         </div>
       ))}
-    </div>    <div style={{textAlign:'center',padding:'20px 0',fontSize:12,color:'#9ca3af',lineHeight:1.7,marginTop:8}}>각 버튼을 누르면 해당 기업의 쿠폰 페이지로 이동합니다.<br/>로그인 후 쿠폰을 다운로드하세요.</div>
+      {filtered.length === 0 && (
+        <div style={{textAlign:'center',padding:'40px 0',fontSize:14,color:'#9ca3af'}}>해당 조건의 쿠폰이 없습니다.</div>
+      )}
+    </div>
+    <div style={{textAlign:'center',padding:'20px 0',fontSize:12,color:'#9ca3af',lineHeight:1.7,marginTop:8}}>쿠폰 받기 버튼을 누르면 해당 기업의 쿠폰 페이지로 이동합니다.<br/>로그인 후 쿠폰을 다운로드하세요.</div>
   </div>);
 }
 
