@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
   ADMIN_ID, ADMIN_PW,
-  sendOTP, verifyOTP,
+  KAKAO_CLIENT_ID, NAVER_CLIENT_ID,
+  startKakaoLogin, startNaverLogin, handleOAuthCallback,
   getSession, saveSession, clearSession,
   registerUser, getUser,
   getAllUsers, deleteUser,
@@ -1515,127 +1516,96 @@ function LandingScreen({onStartAuth}){
 
 // ─── AuthScreen ───────────────────────────────────────────────────
 function AuthScreen({onLogin}){
-  const[step,setStep]=useState('phone'); // 'phone'|'otp'|'name'|'admin'
-  const[phone,setPhone]=useState('');
-  const[code,setCode]=useState('');
-  const[name,setName]=useState('');
+  const[step,setStep]=useState('social'); // 'social'|'admin'
   const[adminId,setAdminId]=useState('');
   const[adminPw,setAdminPw]=useState('');
   const[msg,setMsg]=useState({type:'',text:''});
   const[busy,setBusy]=useState(false);
-  const[verifiedInfo,setVerifiedInfo]=useState(null);
 
   const showErr=t=>setMsg({type:'err',text:t});
-  const showOk=t=>setMsg({type:'ok',text:t});
   const clearMsg=()=>setMsg({type:'',text:''});
 
-  const doSendOTP=async()=>{
-    const p=phone.replace(/\D/g,'');
-    if(p.length<10){showErr('올바른 휴대폰 번호를 입력해 주세요.');return;}
-    setBusy(true);clearMsg();
-    try{
-      await sendOTP(phone,'recaptcha-container');
-      showOk('인증코드가 발송됐습니다. 문자를 확인해 주세요.');
-      setStep('otp');
-    }catch(e){showErr('발송 실패: '+e.message);}
-    finally{setBusy(false);}
+  const doKakaoLogin=()=>{
+    try{ startKakaoLogin(); }
+    catch(e){ showErr(e.message); }
   };
-
-  const doVerifyOTP=async()=>{
-    if(code.length!==6){showErr('6자리 코드를 입력해 주세요.');return;}
-    setBusy(true);clearMsg();
-    try{
-      const info=await verifyOTP(code);
-      const existing=getUser(info.phone);
-      if(existing){onLogin(existing);return;}
-      setVerifiedInfo(info);
-      setStep('name');
-    }catch(e){showErr('인증 실패: 코드를 다시 확인해 주세요.');}
-    finally{setBusy(false);}
+  const doNaverLogin=()=>{
+    try{ startNaverLogin(); }
+    catch(e){ showErr(e.message); }
   };
-
-  const doRegister=()=>{
-    if(!name.trim()){showErr('이름을 입력해 주세요.');return;}
-    const u=registerUser({name:name.trim(),phone:verifiedInfo.phone,uid:verifiedInfo.uid});
-    onLogin(u);
-  };
-
   const doAdminLogin=()=>{
     if(adminId===ADMIN_ID&&adminPw===ADMIN_PW){
       onLogin({name:'관리자',phone:ADMIN_ID,isAdmin:true,createdAt:new Date().toISOString()});
     }else{showErr('관리자 ID 또는 비밀번호가 틀렸습니다.');}
   };
 
-  const STEP_IDX={phone:0,otp:1,name:2};
-  const STEP_LABELS=['번호 입력','코드 확인','이름 등록'];
-
 return(
 <div style={{minHeight:'100vh',background:`linear-gradient(160deg,${C.dark} 0%,#0f2744 55%,#0d1117 100%)`,display:'flex',flexDirection:'column',padding:'env(safe-area-inset-top,0px) 0 0'}}>
   {/* 상단 브랜드 영역 */}
-  <div style={{flex:'0 0 auto',padding:'48px 32px 36px',textAlign:'center'}}>
-    <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:14,marginBottom:12}}>
-      <BrandLogo size={52} style={{flexShrink:0,filter:'drop-shadow(0 6px 20px rgba(0,0,0,0.25))'}}/>
-
-      <span style={{fontFamily:'serif',fontSize:'2.64rem',fontWeight:900,color:'#fff',letterSpacing:-1.5}}>네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
+  <div style={{flex:'0 0 auto',padding:'56px 32px 40px',textAlign:'center'}}>
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:14,marginBottom:14}}>
+      <BrandLogo size={56} style={{flexShrink:0,filter:'drop-shadow(0 6px 20px rgba(0,0,0,0.25))'}}/>
+      <span style={{fontFamily:'serif',fontSize:'2.8rem',fontWeight:900,color:'#fff',letterSpacing:-1.5}}>네모<span style={{background:'linear-gradient(135deg,#22C55E 0%,#4ADE80 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>혜</span></span>
     </div>
-    <p style={{color:'rgba(255,255,255,0.45)',fontSize:14,letterSpacing:0.5}}>내게 맞는 모든 혜택을 한 번에</p>
+    <p style={{color:'rgba(255,255,255,0.5)',fontSize:14,letterSpacing:0.5,margin:0}}>내게 맞는 모든 혜택을 한 번에</p>
   </div>
 
   {/* 카드 */}
-  <div style={{flex:1,background:C.bg,borderRadius:'28px 28px 0 0',padding:'32px 24px 40px',overflow:'auto'}}>
-    {step!=='admin'&&(<>
-      {/* 스텝 인디케이터 */}
-      <div style={{display:'flex',alignItems:'center',marginBottom:28,gap:4}}>
-        {STEP_LABELS.map((l,i)=>{
-          const done=STEP_IDX[step]>i;
-          const active=STEP_IDX[step]===i;
-          return(<div key={i} style={{display:'flex',alignItems:'center',gap:4,flex:i<STEP_LABELS.length-1?'none':1}}>
-            <div style={{width:24,height:24,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,background:done?C.teal:active?C.dark:'#E2E8F0',color:done||active?'#fff':C.text3,flexShrink:0}}>
-              {done?'✓':i+1}
-            </div>
-            <span style={{fontSize:12,color:active?C.text1:C.text3,fontWeight:active?700:400,whiteSpace:'nowrap'}}>{l}</span>
-            {i<STEP_LABELS.length-1&&<div style={{flex:1,height:1,background:done?C.teal:C.border,minWidth:16,margin:'0 4px'}}/>}
-          </div>);
-        })}
+  <div style={{flex:1,background:C.bg,borderRadius:'28px 28px 0 0',padding:'36px 24px 48px',overflow:'auto'}}>
+    {step==='social'&&(<>
+      <h2 style={{fontSize:22,fontWeight:800,color:C.text1,marginBottom:6,textAlign:'center'}}>간편 로그인</h2>
+      <p style={{fontSize:14,color:C.text2,marginBottom:32,textAlign:'center'}}>소셜 계정으로 1초 만에 시작하세요</p>
+
+      {/* 카카오 로그인 */}
+      <button
+        onClick={doKakaoLogin}
+        disabled={busy}
+        style={{
+          width:'100%',padding:'16px',border:'none',borderRadius:14,
+          fontSize:16,fontWeight:700,cursor:'pointer',fontFamily:'inherit',
+          background:'#FEE500',color:'#191919',
+          display:'flex',alignItems:'center',justifyContent:'center',gap:10,
+          marginBottom:12,boxSizing:'border-box',
+          boxShadow:'0 2px 8px rgba(254,229,0,0.35)',
+          opacity:busy?0.7:1,
+        }}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M12 3C6.477 3 2 6.697 2 11.253c0 2.93 1.87 5.504 4.694 6.97L5.6 21.47a.4.4 0 0 0 .578.44l4.43-2.954A11.5 11.5 0 0 0 12 19.506C17.523 19.506 22 15.81 22 11.253 22 6.697 17.523 3 12 3z" fill="#191919"/>
+        </svg>
+        카카오로 시작하기
+      </button>
+
+      {/* 네이버 로그인 */}
+      <button
+        onClick={doNaverLogin}
+        disabled={busy}
+        style={{
+          width:'100%',padding:'16px',border:'none',borderRadius:14,
+          fontSize:16,fontWeight:700,cursor:'pointer',fontFamily:'inherit',
+          background:'#03C75A',color:'#fff',
+          display:'flex',alignItems:'center',justifyContent:'center',gap:10,
+          marginBottom:32,boxSizing:'border-box',
+          boxShadow:'0 2px 8px rgba(3,199,90,0.35)',
+          opacity:busy?0.7:1,
+        }}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M16.273 12.845 7.376 3H3v18h7.727V11.155L19.624 21H24V3h-7.727v9.845z" fill="#fff"/>
+        </svg>
+        네이버로 시작하기
+      </button>
+
+      {msg.text&&<div style={{background:'#FEE2E2',borderRadius:10,padding:'12px 14px',fontSize:13,color:C.err,marginBottom:20,textAlign:'center'}}>{msg.text}</div>}
+
+      <div style={{background:'#f8f9fa',borderRadius:12,padding:'14px 16px',fontSize:12,color:'#6b7280',lineHeight:1.7,marginBottom:24}}>
+        <strong style={{color:'#374151'}}>📌 로그인 안내</strong><br/>
+        카카오 또는 네이버 계정으로 가입·로그인이 동시에 처리됩니다.<br/>
+        별도 비밀번호 없이 소셜 계정으로 안전하게 이용하세요.
       </div>
 
-      {step==='phone'&&(<>
-        <h2 style={{fontSize:20,fontWeight:800,color:C.text1,marginBottom:6}}>휴대폰 번호로 시작하기</h2>
-        <p style={{fontSize:14,color:C.text2,marginBottom:22}}>번호로 간편하게 가입·로그인 할 수 있어요</p>
-        <div style={{marginBottom:16}}>
-          <label style={LS}>휴대폰 번호</label>
-          <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="010-1234-5678" style={IS} type="tel" inputMode="numeric" onKeyDown={e=>e.key==='Enter'&&doSendOTP()}/>
-        </div>
-        {msg.text&&<div style={{background:msg.type==='err'?'#FEE2E2':'#DCFCE7',borderRadius:10,padding:'11px 14px',fontSize:13.5,color:msg.type==='err'?C.err:C.ok,marginBottom:16}}>{msg.text}</div>}
-        <button onClick={doSendOTP} disabled={busy} style={BP({width:'100%',padding:'15px',fontSize:16,borderRadius:12,opacity:busy?0.7:1})}>{busy?'발송 중...':'인증코드 받기'}</button>
-        <p style={{textAlign:'center',fontSize:12.5,color:C.text3,marginTop:14}}>문자로 6자리 인증코드가 발송됩니다</p>
-      </>)}
-
-      {step==='otp'&&(<>
-        <h2 style={{fontSize:20,fontWeight:800,color:C.text1,marginBottom:6}}>코드를 입력해 주세요</h2>
-        <p style={{fontSize:14,color:C.text2,marginBottom:22}}>📱 <strong>{phone}</strong>으로 발송됐습니다</p>
-        <div style={{marginBottom:16}}>
-          <label style={LS}>인증 코드 (6자리)</label>
-          <input value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,'').slice(0,6))} placeholder="000000" style={{...IS,fontSize:26,letterSpacing:10,textAlign:'center',fontWeight:700}} inputMode="numeric" onKeyDown={e=>e.key==='Enter'&&doVerifyOTP()}/>
-        </div>
-        {msg.text&&<div style={{background:msg.type==='err'?'#FEE2E2':'#DCFCE7',borderRadius:10,padding:'11px 14px',fontSize:13.5,color:msg.type==='err'?C.err:C.ok,marginBottom:16}}>{msg.text}</div>}
-        <button onClick={doVerifyOTP} disabled={busy} style={BP({width:'100%',padding:'15px',fontSize:16,borderRadius:12,opacity:busy?0.7:1})}>{busy?'확인 중...':'확인'}</button>
-        <button onClick={()=>{setStep('phone');setCode('');clearMsg();}} style={{width:'100%',marginTop:12,background:'none',border:'none',color:C.text3,fontSize:13.5,cursor:'pointer',fontFamily:'inherit',padding:'8px 0'}}>← 번호 다시 입력</button>
-      </>)}
-
-      {step==='name'&&(<>
-        <h2 style={{fontSize:20,fontWeight:800,color:C.text1,marginBottom:6}}>반갑습니다! 👋</h2>
-        <p style={{fontSize:14,color:C.text2,marginBottom:22}}>서비스 이용을 위해 이름을 입력해 주세요</p>
-        <div style={{marginBottom:20}}>
-          <label style={LS}>이름</label>
-          <input value={name} onChange={e=>setName(e.target.value)} placeholder="홍길동" style={IS} onKeyDown={e=>e.key==='Enter'&&doRegister()}/>
-        </div>
-        {msg.text&&<div style={{background:'#FEE2E2',borderRadius:10,padding:'11px 14px',fontSize:13.5,color:C.err,marginBottom:16}}>{msg.text}</div>}
-        <button onClick={doRegister} style={BP({width:'100%',padding:'15px',fontSize:16,borderRadius:12,background:`linear-gradient(135deg,${C.teal},#0a5f70)`})}>시작하기 →</button>
-      </>)}
-
-      <div style={{marginTop:24,paddingTop:20,borderTop:`1px solid ${C.border}`,textAlign:'center'}}>
-        <button onClick={()=>{setStep('admin');clearMsg();}} style={{background:'none',border:'none',color:C.text3,fontSize:12.5,cursor:'pointer',fontFamily:'inherit',padding:'4px 8px'}}>관리자 로그인</button>
+      <div style={{textAlign:'center',paddingTop:16,borderTop:`1px solid ${C.border}`}}>
+        <button onClick={()=>{setStep('admin');clearMsg();}} style={{background:'none',border:'none',color:C.text3,fontSize:12,cursor:'pointer',fontFamily:'inherit',padding:'4px 8px'}}>관리자 로그인</button>
       </div>
     </>)}
 
@@ -1646,7 +1616,7 @@ return(
       <div style={{marginBottom:20}}><label style={LS}>비밀번호</label><input type="password" value={adminPw} onChange={e=>setAdminPw(e.target.value)} style={IS} onKeyDown={e=>e.key==='Enter'&&doAdminLogin()}/></div>
       {msg.text&&<div style={{background:'#FEE2E2',borderRadius:10,padding:'11px 14px',fontSize:13.5,color:C.err,marginBottom:16}}>{msg.text}</div>}
       <button onClick={doAdminLogin} style={BP({width:'100%',padding:'15px',fontSize:16,borderRadius:12})}>로그인</button>
-      <button onClick={()=>{setStep('phone');clearMsg();setAdminId('');setAdminPw('');}} style={{width:'100%',marginTop:12,background:'none',border:'none',color:C.text3,fontSize:13.5,cursor:'pointer',fontFamily:'inherit',padding:'8px 0'}}>← 일반 로그인으로</button>
+      <button onClick={()=>{setStep('social');clearMsg();setAdminId('');setAdminPw('');}} style={{width:'100%',marginTop:12,background:'none',border:'none',color:C.text3,fontSize:13.5,cursor:'pointer',fontFamily:'inherit',padding:'8px 0'}}>← 소셜 로그인으로</button>
     </>)}
   </div>
 </div>);}
@@ -3165,7 +3135,7 @@ function CouponTab() {
 }
 
 // ─── ProfileTab ───────────────────────────────────────────────────
-function ProfileTab({user,onLogout,savedCount}){return(<div style={{maxWidth:480,margin:'0 auto'}}><div style={{...CS,textAlign:'center',padding:'32px 24px',marginBottom:14}}><div style={{width:68,height:68,borderRadius:'50%',background:'linear-gradient(135deg,#1a6b6b,#0d4f4f)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.76rem',fontWeight:900,color:'#c9a84c',margin:'0 auto 14px',fontFamily:'serif'}}>{user.name?.charAt(0)||'?'}</div><div style={{fontFamily:'serif',fontSize:'1.32rem',fontWeight:700,marginBottom:3}}>{user.name}</div><div style={{fontSize:14,color:'#6b6560',marginBottom:20}}>{formatPhone(user.phone)}</div><div style={{display:'flex',justifyContent:'center',gap:32,padding:'16px 0',borderTop:'1px solid #f0ebe0',borderBottom:'1px solid #f0ebe0',marginBottom:20}}><div style={{textAlign:'center'}}><div style={{fontSize:'1.98rem',fontWeight:900,color:'#1a6b6b',lineHeight:1}}>{savedCount}</div><div style={{fontSize:12,color:'#6b6560',marginTop:3}}>저장한 혜택</div></div><div style={{textAlign:'center'}}><div style={{fontSize:'1.10rem',fontWeight:700,color:'#c9a84c',lineHeight:1,paddingTop:4}}>{new Date(user.createdAt).toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'})}</div><div style={{fontSize:12,color:'#6b6560',marginTop:3}}>가입일</div></div></div><button onClick={onLogout} style={BP({width:'100%',padding:'12px',background:'#fee2e2',color:'#991b1b',borderRadius:10,fontSize:14})}>로그아웃</button></div><div style={{background:'#ede8dc',borderRadius:12,padding:'14px 16px',fontSize:13,color:'#6b6560',lineHeight:1.7}}><strong style={{color:'#0d1117'}}>💡 안내</strong><br/>저장된 혜택은 이 기기의 localStorage에 보관됩니다. 캘린더 알림은 브라우저 알림 권한을 허용하면 자동으로 작동합니다.</div></div>);}
+function ProfileTab({user,onLogout,savedCount}){return(<div style={{maxWidth:480,margin:'0 auto'}}><div style={{...CS,textAlign:'center',padding:'32px 24px',marginBottom:14}}><div style={{width:68,height:68,borderRadius:'50%',background:'linear-gradient(135deg,#1a6b6b,#0d4f4f)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.76rem',fontWeight:900,color:'#c9a84c',margin:'0 auto 14px',fontFamily:'serif'}}>{user.name?.charAt(0)||'?'}</div><div style={{fontFamily:'serif',fontSize:'1.32rem',fontWeight:700,marginBottom:3}}>{user.name}</div><div style={{fontSize:14,color:'#6b6560',marginBottom:20}}>{user.provider==='kakao'?'카카오 계정':user.provider==='naver'?'네이버 계정':formatPhone(user.phone)}</div><div style={{display:'flex',justifyContent:'center',gap:32,padding:'16px 0',borderTop:'1px solid #f0ebe0',borderBottom:'1px solid #f0ebe0',marginBottom:20}}><div style={{textAlign:'center'}}><div style={{fontSize:'1.98rem',fontWeight:900,color:'#1a6b6b',lineHeight:1}}>{savedCount}</div><div style={{fontSize:12,color:'#6b6560',marginTop:3}}>저장한 혜택</div></div><div style={{textAlign:'center'}}><div style={{fontSize:'1.10rem',fontWeight:700,color:'#c9a84c',lineHeight:1,paddingTop:4}}>{new Date(user.createdAt).toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'})}</div><div style={{fontSize:12,color:'#6b6560',marginTop:3}}>가입일</div></div></div><button onClick={onLogout} style={BP({width:'100%',padding:'12px',background:'#fee2e2',color:'#991b1b',borderRadius:10,fontSize:14})}>로그아웃</button></div><div style={{background:'#ede8dc',borderRadius:12,padding:'14px 16px',fontSize:13,color:'#6b6560',lineHeight:1.7}}><strong style={{color:'#0d1117'}}>💡 안내</strong><br/>저장된 혜택은 이 기기의 localStorage에 보관됩니다. 캘린더 알림은 브라우저 알림 권한을 허용하면 자동으로 작동합니다.</div></div>);}
 
 // ─── Root App ─────────────────────────────────────────────────────
 export default function App() {
@@ -3180,6 +3150,24 @@ export default function App() {
   const noKey = !API_KEY;
 
   useEffect(() => {
+    // OAuth 콜백 처리 (카카오/네이버 리다이렉트 후 ?code= 파라미터 감지)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('code')) {
+      handleOAuthCallback()
+        .then(info => {
+          if (!info) return;
+          const existing = getUser(info.id);
+          if (existing) {
+            login(existing);
+          } else {
+            const u = registerUser({ name: info.name, phone: info.id, uid: info.id, provider: info.provider });
+            login(u);
+          }
+        })
+        .catch(e => { console.error('[OAuth]', e.message); })
+        .finally(() => setReady(true));
+      return;
+    }
     const s = getSession();
     if (s) setUser(s);
     setReady(true);

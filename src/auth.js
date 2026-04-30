@@ -15,6 +15,10 @@
 export const ADMIN_ID = 'lovejesus420';
 export const ADMIN_PW = 'kim159753';
 
+// ─── 소셜 로그인 클라이언트 ID (Vite 빌드 시 주입) ──────────────────
+export const KAKAO_CLIENT_ID = import.meta.env.VITE_KAKAO_CLIENT_ID || '';
+export const NAVER_CLIENT_ID = import.meta.env.VITE_NAVER_CLIENT_ID || '';
+
 // ═══════════════════════════════════════════════════════════════════════
 //  SECTION A: PROVIDER IMPLEMENTATION — Solapi SMS OTP
 //
@@ -95,6 +99,59 @@ export async function verifyOTP(code) {
 
   _otpToken = null; // 사용 후 토큰 폐기
   return { uid: data.phone, phone: data.phone }; // uid = phone (Firebase uid 자리 대체)
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  SECTION C: SOCIAL LOGIN (카카오 / 네이버 OAuth 2.0)
+// ═══════════════════════════════════════════════════════════════════════
+
+/**
+ * 카카오 로그인 시작 — 카카오 인가 페이지로 리다이렉트
+ */
+export function startKakaoLogin() {
+  if (!KAKAO_CLIENT_ID) throw new Error('VITE_KAKAO_CLIENT_ID 환경변수가 설정되지 않았습니다.');
+  const redirectUri = encodeURIComponent(window.location.origin);
+  const url = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&state=kakao`;
+  window.location.href = url;
+}
+
+/**
+ * 네이버 로그인 시작 — 네이버 인가 페이지로 리다이렉트
+ */
+export function startNaverLogin() {
+  if (!NAVER_CLIENT_ID) throw new Error('VITE_NAVER_CLIENT_ID 환경변수가 설정되지 않았습니다.');
+  const state = `naver_${Math.random().toString(36).slice(2, 10)}`;
+  sessionStorage.setItem('_oauth_state', state);
+  const redirectUri = encodeURIComponent(window.location.origin);
+  const url = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_CLIENT_ID}&redirect_uri=${redirectUri}&state=${encodeURIComponent(state)}`;
+  window.location.href = url;
+}
+
+/**
+ * OAuth 콜백 처리 — URL의 code/state 파라미터로 사용자 정보를 가져옴
+ * @returns {Promise<{ id, name, email, provider }> | null}  콜백이 아니면 null
+ */
+export async function handleOAuthCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code  = params.get('code');
+  const state = params.get('state');
+  if (!code) return null;
+
+  const provider = state?.startsWith('naver') ? 'naver' : 'kakao';
+
+  const apiParams = new URLSearchParams({
+    code,
+    redirect_uri: window.location.origin,
+    ...(state ? { state } : {}),
+  });
+  const res = await fetch(`${_API_BASE}/api/oauth/${provider}?${apiParams.toString()}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || '소셜 로그인에 실패했습니다.');
+
+  // URL에서 OAuth 파라미터 제거 (히스토리 교체)
+  window.history.replaceState({}, document.title, window.location.pathname);
+
+  return data; // { id, name, email, provider }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
