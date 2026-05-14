@@ -692,8 +692,8 @@ const KUKMIN_EMPLOYMENT = {
   applyUrl:'https://www.work24.go.kr/ua/z/z/1300/selectEmssRqutIntro.do',
 };
 
-// ─── 이달의 행사·할인 정적 데이터 ────────────────────────────────────
-const MONTHLY_EVENTS=[
+// ─── 이달의 행사·할인: 상시 이벤트 + 월별 축제 ──────────────────────
+const PERMANENT_EVENTS=[
   {
     id:'event-culture-wednesday',
     eventType:'culture-day',
@@ -732,7 +732,7 @@ const MONTHLY_EVENTS=[
     id:'event-local-performance',
     eventType:'local-performance',
     categoryIcon:'🎭', category:'문화/공연',
-    badge:'4월 행사', badgeColor:'#059669', badgeBg:'#ecfdf5',
+    badge:'이달의 행사', badgeColor:'#059669', badgeBg:'#ecfdf5',
     title:'지자체 무료 문화 공연',
     institution:'각 지방자치단체',
     amount:'무료 입장',
@@ -750,67 +750,86 @@ const MONTHLY_EVENTS=[
     ],
     applyUrl:'https://www.culture.go.kr/',
   },
-  {
-    id:'event-festival-jinhae',
-    eventType:'festival',
-    categoryIcon:'🌸', category:'축제',
-    badge:'4월 축제', badgeColor:'#db2777', badgeBg:'#fdf2f8',
-    title:'진해 군항제 (벚꽃)',
-    institution:'창원시',
-    amount:'무료 입장',
-    scope:'경상남도 창원',
-    period:'4월 초 (통상 4/1~4/10)',
-    highlight:'국내 최대 벚꽃 축제 · 경화역·여좌천·안민도로 일대 360만 그루',
-    admission:'무료',
-    tips:'주말 극혼잡 예상, 평일 방문 권장. 진해역·창원역에서 셔틀버스 운행.',
-    applyUrl:'https://www.changwon.go.kr/cwportal/depart/11063/11090/12962.web',
-  },
-  {
-    id:'event-festival-yeouido',
-    eventType:'festival',
-    categoryIcon:'🌸', category:'축제',
-    badge:'4월 축제', badgeColor:'#db2777', badgeBg:'#fdf2f8',
-    title:'여의도 봄꽃축제',
-    institution:'서울시 영등포구',
-    amount:'무료 입장',
-    scope:'서울 영등포',
-    period:'4월 초~중순 (통상 4/5~4/14)',
-    highlight:'한강 윤중로 벚꽃길 6km · 야간 조명 이벤트 · 푸드트럭 마켓',
-    admission:'무료',
-    tips:'지하철 5호선 여의나루역 하차. 주차 불가, 대중교통 이용 권장.',
-    applyUrl:'https://www.ydpcf.or.kr/festival/festival.do',
-  },
-  {
-    id:'event-festival-icheon',
-    eventType:'festival',
-    categoryIcon:'🏺', category:'축제',
-    badge:'4월 축제', badgeColor:'#db2777', badgeBg:'#fdf2f8',
-    title:'이천 도자기 축제',
-    institution:'이천시',
-    amount:'입장료 성인 5,000원 / 청소년 3,000원',
-    scope:'경기 이천',
-    period:'4/19~5/11 (예정)',
-    highlight:'도자기 체험·구매, 전통 도예 시연, 가마 불 지피기 체험',
-    admission:'성인 5,000원 / 청소년 3,000원 / 어린이 무료',
-    tips:'도자기 만들기 체험 사전 예약 권장. 주차장 무료.',
-    applyUrl:'https://www.ceramic.or.kr/',
-  },
-  {
-    id:'event-festival-goyang',
-    eventType:'festival',
-    categoryIcon:'🌼', category:'축제',
-    badge:'4월 축제', badgeColor:'#db2777', badgeBg:'#fdf2f8',
-    title:'고양 국제꽃박람회',
-    institution:'고양시',
-    amount:'성인 12,000원 / 청소년 8,000원 (사전 예매 할인 있음)',
-    scope:'경기 고양',
-    period:'4월 말~5월 초 (예정)',
-    highlight:'100만 송이 꽃 전시 · 대형 플라워 쇼 · 야간 경관',
-    admission:'성인 12,000원 / 청소년 8,000원 / 어린이 6,000원',
-    tips:'일산호수공원 일대. 사전 온라인 예매 시 최대 30% 할인.',
-    applyUrl:'https://giff.flower.or.kr/main/',
-  },
 ];
+
+// 월별 축제·이벤트 (1~12월)
+const FESTIVALS_BY_MONTH={
+  1:[
+    {id:'f1-1',eventType:'festival',categoryIcon:'🐟',category:'축제',title:'화천 산천어 축제',institution:'강원 화천군',amount:'산천어 낚시 체험 포함',scope:'강원 화천',period:'1월 초~말 (통상 1/4~1/26)',highlight:'세계 4대 겨울 축제 · 얼음 산천어 낚시 · 눈썰매 · 빙판 체험',admission:'성인 5,000원 / 어린이 무료 (낚시는 별도)',tips:'주말 현장 혼잡. 산천어 낚시 체험은 사전 예약 권장.',applyUrl:'https://www.narafestival.com/'},
+    {id:'f1-2',eventType:'festival',categoryIcon:'❄️',category:'축제',title:'태백산 눈꽃축제',institution:'강원 태백시',amount:'무료 입장 (일부 체험 유료)',scope:'강원 태백',period:'1월 중순~말 (통상 1/17~1/26)',highlight:'태백산 눈꽃 트레킹 · 눈 조각품 전시 · 흰 사슴 눈 조각 포토존',admission:'입장 무료 (케이블카 이용 시 유료)',tips:'방한 장비 필수. 대설 예보 시 도로 통제 가능.',applyUrl:'https://www.taebaek.go.kr/'},
+    {id:'f1-3',eventType:'festival',categoryIcon:'🎋',category:'전통/문화',title:'설날 민속 체험 행사',institution:'국립민속박물관·각 지자체',amount:'무료 입장',scope:'전국',period:'설 연휴 3일간',highlight:'전통 민속놀이(윷놀이·연날리기·팽이치기) · 한복 무료 대여 · 떡국 시식',admission:'무료',tips:'국립민속박물관, 국립고궁박물관, 한국민속촌 등에서 동시 진행.',applyUrl:'https://www.nfm.go.kr/'},
+  ],
+  2:[
+    {id:'f2-1',eventType:'festival',categoryIcon:'🐟',category:'축제',title:'인제 빙어축제',institution:'강원 인제군',amount:'빙어 낚시 체험 포함',scope:'강원 인제',period:'2월 초~중순 (통상 2/1~2/16)',highlight:'소양강 빙어 낚시 · 얼음 조각 전시 · 빙판 자전거 · 썰매',admission:'성인 3,000원 / 어린이 무료',tips:'방한 필수. 주말 방문 시 1~2시간 대기 가능.',applyUrl:'https://www.inje.go.kr/'},
+    {id:'f2-2',eventType:'festival',categoryIcon:'🏔️',category:'축제',title:'대관령 눈꽃축제',institution:'강원 강릉시·평창군',amount:'무료 (일부 프로그램 유료)',scope:'강원 평창·강릉',period:'2월 초~중순',highlight:'대관령 눈꽃 산행 · 설경 포토존 · 겨울 레포츠',admission:'입장 무료',tips:'방한 필수. 평창 올림픽 스타디움 연계 방문 추천.',applyUrl:'https://www.visitkorea.or.kr/'},
+    {id:'f2-3',eventType:'festival',categoryIcon:'🎋',category:'전통/문화',title:'정월대보름 민속 행사',institution:'각 지자체',amount:'무료',scope:'전국',period:'음력 1월 15일',highlight:'달집 태우기 · 쥐불놀이 · 오곡밥 나눔 · 지신밟기',admission:'무료',tips:'야간 행사 위주. 지역별 일정 확인 필수.',applyUrl:'https://www.culture.go.kr/'},
+  ],
+  3:[
+    {id:'f3-1',eventType:'festival',categoryIcon:'🌸',category:'축제',title:'광양 매화 축제',institution:'전남 광양시',amount:'무료 입장',scope:'전남 광양',period:'3월 초~중순 (매화 개화 시기 따라 변동)',highlight:'섬진강 매화마을 10만 그루 · 야간 조명 · 매실 제품 시식',admission:'무료',tips:'섬진강 자전거 코스 연계 추천. 주말 주차 혼잡.',applyUrl:'https://www.maehwa.or.kr/'},
+    {id:'f3-2',eventType:'festival',categoryIcon:'🌿',category:'축제',title:'삼일절 문화 행사',institution:'각 지자체·독립기념관',amount:'무료',scope:'전국',period:'3월 1일',highlight:'독립기념관 무료 개방 · 태극기 달기 · 독립선언서 낭독 행사',admission:'무료 (3/1 하루 한정)',tips:'천안 독립기념관 3/1 무료 입장. 전국 역사·기념관 대부분 무료.',applyUrl:'https://www.i815.or.kr/'},
+    {id:'f3-3',eventType:'festival',categoryIcon:'🏃',category:'스포츠',title:'서울 국제 마라톤',institution:'서울시·동아일보',amount:'참가비 별도',scope:'서울',period:'3월 중순~말 (예정)',highlight:'풀코스 42.195km · 세계 6대 마라톤 · 광화문~잠실 코스',admission:'참가비: 55,000~70,000원',tips:'사전 참가 신청 필수. 응원 관람은 무료.',applyUrl:'https://www.donga-marathon.co.kr/'},
+  ],
+  4:[
+    {id:'f4-1',eventType:'festival',categoryIcon:'🌸',category:'축제',title:'진해 군항제 (벚꽃)',institution:'창원시',amount:'무료 입장',scope:'경상남도 창원',period:'4월 초 (통상 4/1~4/10)',highlight:'국내 최대 벚꽃 축제 · 경화역·여좌천·안민도로 일대 360만 그루',admission:'무료',tips:'주말 극혼잡 예상, 평일 방문 권장. 진해역·창원역에서 셔틀버스 운행.',applyUrl:'https://www.changwon.go.kr/cwportal/depart/11063/11090/12962.web'},
+    {id:'f4-2',eventType:'festival',categoryIcon:'🌸',category:'축제',title:'여의도 봄꽃축제',institution:'서울시 영등포구',amount:'무료 입장',scope:'서울 영등포',period:'4월 초~중순 (통상 4/5~4/14)',highlight:'한강 윤중로 벚꽃길 6km · 야간 조명 이벤트 · 푸드트럭 마켓',admission:'무료',tips:'지하철 5호선 여의나루역 하차. 주차 불가, 대중교통 이용 권장.',applyUrl:'https://www.ydpcf.or.kr/festival/festival.do'},
+    {id:'f4-3',eventType:'festival',categoryIcon:'🏺',category:'축제',title:'이천 도자기 축제',institution:'이천시',amount:'입장료 성인 5,000원',scope:'경기 이천',period:'4월 중순~5월 초 (통상 4/19~5/11)',highlight:'도자기 체험·구매, 전통 도예 시연, 가마 불 지피기 체험',admission:'성인 5,000원 / 청소년 3,000원 / 어린이 무료',tips:'도자기 만들기 체험 사전 예약 권장. 주차장 무료.',applyUrl:'https://www.ceramic.or.kr/'},
+    {id:'f4-4',eventType:'festival',categoryIcon:'🌼',category:'축제',title:'고양 국제꽃박람회',institution:'고양시',amount:'성인 12,000원 (사전 예매 할인 있음)',scope:'경기 고양',period:'4월 말~5월 초',highlight:'100만 송이 꽃 전시 · 대형 플라워 쇼 · 야간 경관',admission:'성인 12,000원 / 청소년 8,000원 / 어린이 6,000원',tips:'일산호수공원 일대. 사전 온라인 예매 시 최대 30% 할인.',applyUrl:'https://giff.flower.or.kr/main/'},
+  ],
+  5:[
+    {id:'f5-1',eventType:'festival',categoryIcon:'🌹',category:'축제',title:'서울 장미 축제',institution:'서울시 중랑구',amount:'무료 입장',scope:'서울 중랑',period:'5월 중~말 (통상 5/17~5/25)',highlight:'중랑천 장미공원 100만 송이 · 야간 장미 조명 · 포토존 연출',admission:'무료',tips:'중랑천 산책로 따라 약 5.1km. 저녁 조명 연출이 특히 인기.',applyUrl:'https://www.jungnang.go.kr/'},
+    {id:'f5-2',eventType:'festival',categoryIcon:'🎬',category:'축제',title:'전주 국제 영화제 (JIFF)',institution:'전주시',amount:'영화 1편 7,000원~',scope:'전북 전주',period:'5월 초 (통상 5/1~5/10)',highlight:'독립·예술 영화 중심 · 국내외 100편 이상 상영 · 야외 무료 상영',admission:'유료 (일부 야외 상영 무료)',tips:'전주한옥마을 인근. 좌석 사전 예약 권장.',applyUrl:'https://www.jiff.or.kr/'},
+    {id:'f5-3',eventType:'festival',categoryIcon:'🧒',category:'행사',title:'어린이날 무료 문화 행사',institution:'각 지자체·국립기관',amount:'무료',scope:'전국',period:'5월 5일 (어린이날)',highlight:'국립 기관 무료 개방 · 어린이 체험 프로그램 · 가족 공연',admission:'무료 (국립박물관·미술관 등)',tips:'국립중앙박물관, 어린이대공원, 서울대공원 등 무료/할인 행사.',applyUrl:'https://www.culture.go.kr/'},
+  ],
+  6:[
+    {id:'f6-1',eventType:'festival',categoryIcon:'🥁',category:'전통/문화',title:'강릉 단오제',institution:'강릉시',amount:'무료 입장',scope:'강원 강릉',period:'6월 초~중순 (음력 5월 5일 전후 1주일)',highlight:'유네스코 무형문화유산 · 굿판·씨름·그네·창포 머리감기',admission:'무료',tips:'남대천변 축제 마당 일대. 전국 최대 전통 제례 행사.',applyUrl:'https://www.danojefestival.or.kr/'},
+    {id:'f6-2',eventType:'festival',categoryIcon:'🌿',category:'축제',title:'보성 다향 대축제',institution:'전남 보성군',amount:'무료 입장',scope:'전남 보성',period:'5월 말~6월 초',highlight:'녹차밭 투어 · 녹차 족욕 체험 · 녹차 아이스크림·음료 할인',admission:'무료 (일부 체험 유료)',tips:'보성 대한다원(녹차밭) 방문 세트 추천.',applyUrl:'https://www.boseong.go.kr/'},
+    {id:'f6-3',eventType:'festival',categoryIcon:'✨',category:'축제',title:'무주 반딧불 축제',institution:'전북 무주군',amount:'일부 유료',scope:'전북 무주',period:'6월 말~7월 초',highlight:'자연 반딧불 관찰 · 천문 체험 · 래프팅·캠핑',admission:'입장 무료 (반딧불 투어 유료)',tips:'야간 반딧불 투어 사전 예약 필수.',applyUrl:'https://www.firefly.or.kr/'},
+  ],
+  7:[
+    {id:'f7-1',eventType:'festival',categoryIcon:'🪸',category:'축제',title:'보령 머드 축제',institution:'충남 보령시',amount:'입장 무료 (머드 존 유료)',scope:'충남 보령',period:'7월 중 (통상 7/18~7/27)',highlight:'세계 4대 이색 축제 · 머드 슬라이드·풀장·마사지 체험',admission:'무료 (머드 풀 이용 별도)',tips:'수영복 필수. 사물함 사전 예약 권장.',applyUrl:'https://www.mudfestival.or.kr/'},
+    {id:'f7-2',eventType:'festival',categoryIcon:'🌊',category:'축제',title:'부산 바다 축제',institution:'부산시',amount:'무료',scope:'부산 해운대·광안리',period:'7월 중 (통상 2주간)',highlight:'해수욕장 음악 공연 · 야간 드론쇼 · 서핑 강습 · 푸드마켓',admission:'무료',tips:'해운대·광안리·송정 해수욕장 연계 프로그램.',applyUrl:'https://sea.visitbusan.net/'},
+    {id:'f7-3',eventType:'festival',categoryIcon:'💧',category:'축제',title:'물의 날 이벤트 (한강 수상 레저)',institution:'서울시',amount:'일부 무료',scope:'서울 한강',period:'7월~8월 (여름 시즌)',highlight:'한강 수영장 개장 · 수상 자전거·카약 · 야외 영화 상영',admission:'한강 수영장 무료 / 수상 레저 유료',tips:'여의도·뚝섬·광나루·잠원 한강공원 수영장 운영.',applyUrl:'https://hangang.seoul.go.kr/'},
+  ],
+  8:[
+    {id:'f8-1',eventType:'festival',categoryIcon:'🎆',category:'축제',title:'부산 불꽃 축제',institution:'부산광역시',amount:'무료 관람',scope:'부산 광안리',period:'8월 말 (통상 10월로 연기되는 경우 있음)',highlight:'광안대교 배경 대형 불꽃쇼 · 드론 쇼 · 연 100만 명 관람',admission:'무료',tips:'광안리 해변 일대. 일찍 자리 잡을 것 권장.',applyUrl:'https://www.fireworks.or.kr/'},
+    {id:'f8-2',eventType:'festival',categoryIcon:'⛰️',category:'축제',title:'함양 산삼 축제',institution:'경남 함양군',amount:'입장료 5,000원',scope:'경남 함양',period:'8월 중 (통상 8/1~8/10)',highlight:'산삼 채취 체험 · 한방 족욕 · 산삼 요리 시식',admission:'성인 5,000원 / 청소년 3,000원',tips:'산삼 경매 참여 가능. 한방 체험 사전 예약.',applyUrl:'https://www.sansam.org/'},
+    {id:'f8-3',eventType:'festival',categoryIcon:'🏖️',category:'축제',title:'강원 여름 바다 축제',institution:'강원 양양·속초시',amount:'무료',scope:'강원 양양·속초',period:'8월 여름 시즌',highlight:'서핑 대회 · 비치 음악 축제 · 해돋이 포인트 투어',admission:'무료',tips:'양양 서핑은 초보자도 1일 강습 가능 (유료).',applyUrl:'https://www.yangyang.go.kr/'},
+  ],
+  9:[
+    {id:'f9-1',eventType:'festival',categoryIcon:'🎭',category:'전통/문화',title:'안동 국제 탈춤 페스티벌',institution:'경북 안동시',amount:'입장료 있음',scope:'경북 안동',period:'9월 말~10월 초 (통상 5~10일간)',highlight:'세계 탈춤 공연 · 탈 만들기 체험 · 안동 하회마을 연계',admission:'성인 5,000원 / 청소년 3,000원',tips:'하회마을 세계문화유산 입장료 별도.',applyUrl:'https://www.maskdance.com/'},
+    {id:'f9-2',eventType:'festival',categoryIcon:'🌾',category:'축제',title:'추석 민속 행사',institution:'각 지자체·국립기관',amount:'무료',scope:'전국',period:'추석 연휴 3일간',highlight:'전통 민속놀이 · 국립 기관 무료 개방 · 한가위 큰 잔치',admission:'무료 (국립박물관·고궁 무료)',tips:'5대 고궁(경복궁·창덕궁·덕수궁·창경궁·경희궁) 명절 무료 입장.',applyUrl:'https://www.cha.go.kr/'},
+    {id:'f9-3',eventType:'festival',categoryIcon:'🌿',category:'축제',title:'금산 인삼 축제',institution:'충남 금산군',amount:'무료 입장',scope:'충남 금산',period:'9월 말~10월 초',highlight:'인삼 체험·구매 · 인삼 요리 시식 · 인삼 캐기 체험',admission:'무료',tips:'인삼 도매 시장 연계. 선물용 인삼 저렴하게 구매 가능.',applyUrl:'https://www.geumsan.go.kr/'},
+  ],
+  10:[
+    {id:'f10-1',eventType:'festival',categoryIcon:'🎆',category:'축제',title:'서울 세계 불꽃 축제',institution:'서울시·한화',amount:'무료 관람',scope:'서울 여의도',period:'10월 첫째 주 토요일',highlight:'한강 대형 불꽃쇼 · 여의도 한강공원 일대 · 100만 관람 예상',admission:'무료',tips:'여의나루·영등포·이촌 한강공원에서 관람. 2~3시간 전 자리 확보 권장.',applyUrl:'https://www.hanwhafireworks.com/'},
+    {id:'f10-2',eventType:'festival',categoryIcon:'🍂',category:'축제',title:'내장산 단풍 축제',institution:'전북 정읍시',amount:'입장료 성인 3,000원',scope:'전북 정읍',period:'10월 말~11월 초',highlight:'국내 최고의 단풍 명소 · 내장사 일주문길 1.8km · 케이블카',admission:'국립공원 입장료 성인 3,000원',tips:'단풍 절정은 10월 말. 주말 셔틀버스 운행.',applyUrl:'https://naejangsan.knps.or.kr/'},
+    {id:'f10-3',eventType:'festival',categoryIcon:'🎨',category:'전시',title:'광주 비엔날레',institution:'광주광역시',amount:'입장료 있음',scope:'광주',period:'9~11월 (격년 개최)',highlight:'국제 현대 미술 전시 · 세계 40여 개국 참가 · 전시·퍼포먼스',admission:'성인 12,000원 / 학생 6,000원',tips:'격년 개최(짝수 연도). 광주 도심 복수 전시장.',applyUrl:'https://www.gwangjubiennale.org/'},
+  ],
+  11:[
+    {id:'f11-1',eventType:'festival',categoryIcon:'🍁',category:'축제',title:'설악산 단풍 축제',institution:'강원 속초시·인제군',amount:'국립공원 입장 무료',scope:'강원 속초·인제',period:'10월 말~11월 초',highlight:'설악산 단풍 등산 · 케이블카 운행 · 천불동계곡 단풍',admission:'국립공원 입장 무료 (케이블카 유료)',tips:'단풍 절정 10월 말. 주말 케이블카 2~3시간 대기.',applyUrl:'https://seoraksan.knps.or.kr/'},
+    {id:'f11-2',eventType:'festival',categoryIcon:'🌾',category:'축제',title:'순천만 갈대 축제',institution:'전남 순천시',amount:'입장료 성인 8,000원',scope:'전남 순천',period:'10월 말~11월 중',highlight:'순천만 갈대밭 황금빛 절경 · 생태 탐조 · 일몰 투어',admission:'성인 8,000원 / 청소년 6,000원',tips:'일몰 시간 맞춰 방문 추천. 갈대는 11월이 절정.',applyUrl:'https://www.suncheonbay.go.kr/'},
+    {id:'f11-3',eventType:'festival',categoryIcon:'💡',category:'행사',title:'서울 빛 초롱 축제',institution:'서울시 종로구',amount:'무료 입장',scope:'서울 종로 청계천',period:'11월 초~12월 말',highlight:'청계천 일대 빛 조명 전시 · 전통 등불 작품 · 야간 포토존',admission:'무료',tips:'청계광장~삼일교 구간. 야간 방문 추천.',applyUrl:'https://www.seoullanternfestival.com/'},
+  ],
+  12:[
+    {id:'f12-1',eventType:'festival',categoryIcon:'🎄',category:'행사',title:'전주 한옥마을 크리스마스 마켓',institution:'전북 전주시',amount:'무료 입장',scope:'전북 전주',period:'12월 초~12월 25일',highlight:'한옥마을 겨울 야시장 · 수공예 선물 · 전통 먹거리 · 크리스마스 조명',admission:'무료',tips:'전주 한옥마을 경기전 앞 일대. 저녁 시간 방문 추천.',applyUrl:'https://www.jeonju.go.kr/'},
+    {id:'f12-2',eventType:'festival',categoryIcon:'🎆',category:'행사',title:'서울 새해맞이 제야의 종 행사',institution:'서울시 종로구',amount:'무료',scope:'서울 종로 보신각',period:'12월 31일 자정',highlight:'보신각 33번 타종 · 카운트다운 · 불꽃쇼',admission:'무료',tips:'자정 전 1~2시간 일찍 도착 필요. 12/31 심야버스 특별 운행.',applyUrl:'https://www.jongno.go.kr/'},
+    {id:'f12-3',eventType:'festival',categoryIcon:'💡',category:'행사',title:'에버랜드 크리스마스 페스타',institution:'삼성물산 리조트',amount:'입장료 포함',scope:'경기 용인',period:'11월 말~12월 말',highlight:'대형 크리스마스 트리 · 눈 퍼레이드 · 야간 불꽃',admission:'대인 62,000원 (시즌권 있음)',tips:'연말 성수기 혼잡. 사전 예매 필수.',applyUrl:'https://www.everland.com/'},
+  ],
+};
+
+// 현재 달에 맞는 이벤트 계산 — 렌더 시마다 호출해야 월 전환이 반영됨
+function getMonthlyEvents(){
+  const m=new Date().getMonth()+1; // 1~12, 호출할 때마다 현재 달 기준
+  const label=`${m}월`;
+  const festivals=(FESTIVALS_BY_MONTH[m]||[]).map(ev=>({
+    ...ev,
+    badge:`${label} 축제`,
+    badgeColor:'#db2777',
+    badgeBg:'#fdf2f8',
+  }));
+  return[...PERMANENT_EVENTS,...festivals];
+}
+// 모듈 상수로 고정하지 않음 — 렌더 시점에 getMonthlyEvents()를 직접 호출
 
 // ─── EventDetailModal ──────────────────────────────────────────────
 function EventDetailModal({ev,onClose}){
@@ -2269,6 +2288,44 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
     )}
     {err&&<div style={{background:'#FEE2E2',border:'1px solid #FECACA',borderRadius:12,padding:'14px 16px',color:C.err,fontSize:13,marginBottom:16}}><strong>오류:</strong><br/><code style={{fontSize:12,wordBreak:'break-all'}}>{err}</code></div>}
     {results&&(<div ref={rRef}>
+      {/* ── 고유가 정책 지원금 핀 카드 (항상 최상단) ── */}
+      <div style={{background:'linear-gradient(135deg,#fff7ed,#fef3c7)',border:'2px solid #f59e0b',borderRadius:20,padding:'18px 20px',marginBottom:14,position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',top:-10,right:-10,fontSize:60,opacity:0.08,userSelect:'none'}}>⛽</div>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+          <div style={{background:'#f59e0b',borderRadius:12,width:42,height:42,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>⛽</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{display:'flex',gap:6,marginBottom:4,flexWrap:'wrap'}}>
+              <span style={{fontSize:10,fontWeight:800,color:'#92400e',background:'#fef3c7',padding:'2px 8px',borderRadius:6,border:'1px solid #fcd34d'}}>에너지 지원</span>
+              <span style={{fontSize:10,fontWeight:800,color:'#fff',background:'#f59e0b',padding:'2px 8px',borderRadius:6}}>📌 전국민 대상</span>
+            </div>
+            <h3 style={{fontSize:15,fontWeight:800,color:'#78350f',lineHeight:1.3,margin:0}}>고유가 정책 지원금 (에너지 바우처·캐시백)</h3>
+          </div>
+        </div>
+        <div style={{background:'rgba(255,255,255,0.7)',borderRadius:12,padding:'10px 14px',marginBottom:12}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+            <span style={{fontSize:12,color:'#92400e',fontWeight:600}}>에너지 바우처</span>
+            <span style={{fontSize:13,fontWeight:800,color:'#78350f'}}>최대 연 73,400원 지원</span>
+          </div>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+            <span style={{fontSize:12,color:'#92400e',fontWeight:600}}>에너지 캐시백</span>
+            <span style={{fontSize:13,fontWeight:800,color:'#78350f'}}>절감량에 따라 현금 환급</span>
+          </div>
+          <div style={{display:'flex',justifyContent:'space-between'}}>
+            <span style={{fontSize:12,color:'#92400e',fontWeight:600}}>유류세 인하</span>
+            <span style={{fontSize:13,fontWeight:800,color:'#78350f'}}>휘발유 ℓ당 최대 83원 절감</span>
+          </div>
+        </div>
+        <div style={{display:'flex',gap:8}}>
+          <a href="https://www.energyv.or.kr" target="_blank" rel="noreferrer"
+            style={{flex:1,padding:'11px 0',borderRadius:12,background:'#fff',color:'#92400e',fontSize:13,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',border:'1.5px solid #fcd34d'}}>
+            에너지 바우처 신청
+          </a>
+          <a href="https://cyber.kepco.co.kr/ckepco/front/jsp/CY/H/C/CYHC00101.jsp" target="_blank" rel="noreferrer"
+            style={{flex:1,padding:'11px 0',borderRadius:12,background:'#f59e0b',color:'#fff',fontSize:13,fontWeight:700,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px rgba(245,158,11,0.35)'}}>
+            에너지 캐시백 신청 →
+          </a>
+        </div>
+      </div>
       {/* ── DB 최신 업데이트 안내 배너 ── */}
       {dbCollectedAt&&(()=>{
         const d=dbCollectedAt;
@@ -2395,7 +2452,7 @@ function AnalyzeTab({user,onSaved,onResultsReady}){
           <span style={{fontSize:15,fontWeight:800,color:'#111827'}}>🎉 이달의 행사 및 할인</span>
           <span style={{fontSize:11,fontWeight:700,color:'#db2777',background:'#fdf2f8',padding:'2px 8px',borderRadius:20,border:'1px solid #fbcfe8'}}>{MONTH_KR[new Date().getMonth()]}</span>
         </div>
-        {MONTHLY_EVENTS.map(ev=><EventCard key={ev.id} ev={ev}/>)}
+        {getMonthlyEvents().map(ev=><EventCard key={ev.id} ev={ev}/>)}
 
         {/* ── 전국문화축제 (공공데이터포털) ── */}
         <div style={{marginTop:20}}>
@@ -3210,10 +3267,11 @@ export default function App() {
 
   // 하단 탭 바 정의 (아이콘, 레이블, 탭ID)
   // 인생·결혼·부동산 탭은 숨김 보관 (코드 유지, 네비게이션에서 제외)
+  // 할인·쿠폰 탭 숨김 처리 (코드 보관, 나중에 아래 배열에 다시 추가하면 복원됨)
+  // {v:'discount', icon:'🏷️', label:'할인'},
+  // {v:'coupon',   icon:'🎟️', label:'쿠폰'},
   const BOTTOM_TABS = [
     {v:'analyze',  icon:'✦',  label:'혜택'},
-    {v:'discount', icon:'🏷️', label:'할인'},
-    {v:'coupon',   icon:'🎟️', label:'쿠폰'},
     {v:'saved',    icon:'📁', label:`보관함${savedCount>0?` ${savedCount}`:''}` },
     {v:'profile',  icon:'👤', label:'MY'},
   ];
