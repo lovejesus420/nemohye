@@ -26,10 +26,14 @@ const QUERY_PATTERNS = [
   { pattern: 'discount', keyword: '롯데백화점 신세계백화점 현대백화점 정기 세일 이벤트', site: '' },
   { pattern: 'discount', keyword: '쿠팡 11번가 G마켓 최신 특가 할인 이벤트', site: '' },
   { pattern: 'discount', keyword: 'CU GS25 세븐일레븐 1+1 2+1 이달의 행사', site: '' },
+  { pattern: 'discount', keyword: '야놀자 여기어때 아고다 숙박 할인 프로모션', site: '' },
+  { pattern: 'discount', keyword: '무신사 올리브영 브랜드 세일 할인 혜택', site: '' },
+  { pattern: 'discount', keyword: '삼성닷컴 LG전자 가전 할인 행사 이벤트', site: '' },
+  { pattern: 'discount', keyword: '배달의민족 쿠팡이츠 요기요 이번주 할인 쿠폰', site: '' },
   { pattern: 'finance',  keyword: '청년 우대형 청약통장 금리',  site: '' },
 ];
 
-const MAX_PATTERNS_PER_RUN = 5; // 수집 범위 확대 (네이버 포함)
+const MAX_PATTERNS_PER_RUN = 8; // 수집 범위 확대 (할인 카테고리 추가)
 const SOFT_TIMEOUT_MS      = 260_000;
 const INTER_QUERY_DELAY_MS = 1_500;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

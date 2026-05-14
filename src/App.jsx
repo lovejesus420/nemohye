@@ -3267,11 +3267,10 @@ export default function App() {
 
   // 하단 탭 바 정의 (아이콘, 레이블, 탭ID)
   // 인생·결혼·부동산 탭은 숨김 보관 (코드 유지, 네비게이션에서 제외)
-  // 할인·쿠폰 탭 숨김 처리 (코드 보관, 나중에 아래 배열에 다시 추가하면 복원됨)
-  // {v:'discount', icon:'🏷️', label:'할인'},
-  // {v:'coupon',   icon:'🎟️', label:'쿠폰'},
   const BOTTOM_TABS = [
     {v:'analyze',  icon:'✦',  label:'혜택'},
+    {v:'discount', icon:'🏷️', label:'할인'},
+    {v:'coupon',   icon:'🎟️', label:'쿠폰'},
     {v:'saved',    icon:'📁', label:`보관함${savedCount>0?` ${savedCount}`:''}` },
     {v:'profile',  icon:'👤', label:'MY'},
   ];

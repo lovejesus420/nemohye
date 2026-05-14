@@ -13,6 +13,10 @@ const SEARCH_QUERIES = [
   '롯데백화점 신세계백화점 현대백화점 정기 세일 브랜드 이벤트',
   '쿠팡 11번가 G마켓 최신 할인 쿠팡와우 특가 행사',
   'CU GS25 세븐일레븐 이달의 1+1 2+1 행사 증정 이벤트',
+  '야놀자 여기어때 아고다 숙박 할인 쿠폰 프로모션 여행',
+  '무신사 올리브영 브랜드 세일 할인 코드 혜택',
+  '삼성닷컴 LG전자 전자랜드 하이마트 가전 할인 행사',
+  '배달의민족 쿠팡이츠 요기요 이번주 할인 쿠폰 혜택'
 ];
 
 async function serperSearch(query) {
@@ -26,7 +30,26 @@ async function serperSearch(query) {
 
 async function geminiExtract(snippets) {
   const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-  const prompt = `오늘은 ${today}입니다. 아래 검색 결과에서 마트, 백화점, 온라인쇼핑, 편의점 할인 행사를 JSON 배열로 추출하세요.\n\n${snippets}`;
+  const prompt = `오늘은 ${today}입니다. 아래 검색 결과에서 현재 진행 중인 마트, 백화점, 온라인쇼핑, 편의점, 여행, 가전, 패션 할인 행사를 추출하여 JSON 배열로 응답하세요.
+
+카테고리는 반드시 다음 중 하나로 지정하세요: '마트·식품', '패션·뷰티', '전자·가전', '여행·레저', '온라인쇼핑', '기타'
+
+응답 형식:
+[
+  {
+    "title": "혜택 제목 (예: 와우회원 5,000원 할인)",
+    "store": "업체명 (예: 쿠팡)",
+    "category": "카테고리명",
+    "discount": "핵심 혜택 내용 (예: 5,000원 할인, 1+1, 20% 세일)",
+    "period": "행사 기간 (예: 5/1~5/31, 상시)",
+    "url": "이벤트 또는 상품 페이지 URL (반드시 포함)",
+    "description": "상세 설명 (1~2문장)",
+    "icon": "카테고리에 어울리는 이모지"
+  }
+]
+
+검색 결과:
+${snippets}`;
 
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
@@ -58,21 +81,35 @@ export default async function handler(req, res) {
     console.log('[discount] Fetching from DB...');
     const { benefits: dbBenefits } = await queryFreshBenefits({ region: '전국', group: '할인행사', limit: 50 });
     
-    const formattedDb = dbBenefits.map(b => ({
-      title: b.혜택명 || b.title,
-      store: b.지원대상 || b.store || '전국',
-      category: b.카테고리 || '할인',
-      discount: b.지원내용 || b.discount,
-      period: b.마감일 || b.period || '상시',
-      url: b.신청URL || b.출처 || b.url,
-      icon: b.icon || '🎁'
-    }));
+    const formattedDb = dbBenefits.map(b => {
+      // 카테고리 매핑 (DB 데이터가 이전 형식일 경우 대응)
+      let cat = b.카테고리 || '기타';
+      if (cat === '할인') cat = '기타';
+      
+      return {
+        title: b.혜택명 || b.title,
+        store: b.지원대상 || b.store || '전국',
+        category: cat,
+        discount: b.지원내용 || b.discount,
+        period: b.마감일 || b.period || '상시',
+        url: b.신청URL || b.출처 || b.url,
+        icon: b.icon || '🎁',
+        description: b.description || b.지원대상
+      };
+    });
 
     // 2. 실시간 검색 (보조)
     let liveResults = [];
     if (SERPER_KEY && GEMINI_KEY) {
-      const results = await Promise.allSettled(SEARCH_QUERIES.slice(0, 2).map(serperSearch));
-      const snippets = results.filter(r => r.status === 'fulfilled').flatMap(r => r.value.organic || []).map(it => it.snippet).join('\n');
+      // 쿼리 중 랜덤하게 4개 선택하여 검색 (API 부하 감소 및 다양성 확보)
+      const selectedQueries = SEARCH_QUERIES.sort(() => 0.5 - Math.random()).slice(0, 4);
+      const results = await Promise.allSettled(selectedQueries.map(serperSearch));
+      const snippets = results
+        .filter(r => r.status === 'fulfilled')
+        .flatMap(r => r.value.organic || [])
+        .map(it => `[${it.title}] ${it.snippet} (URL: ${it.link})`)
+        .join('\n\n');
+      
       if (snippets) liveResults = await geminiExtract(snippets);
     }
 
