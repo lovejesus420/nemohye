@@ -65,6 +65,59 @@ ${snippets}`;
   return JSON.parse(clean);
 }
 
+const FEATURED_DISCOUNTS = [
+  {
+    title: '배달의민족 매주 새로운 브랜드 할인',
+    store: '배달의민족',
+    category: '마트·식품',
+    discount: '최대 1만원 할인',
+    period: '매주 갱신',
+    url: 'https://baemin.onelink.me/o97n/6620f4c',
+    description: '치킨, 피자, 중식 등 매주 요일별로 인기 브랜드 최대 1만원 할인 쿠폰을 드립니다.',
+    icon: '🛵'
+  },
+  {
+    title: 'SKT T멤버십 0 day 혜택 (만 13~34세)',
+    store: 'SKT',
+    category: '기타',
+    discount: '다양한 무료/할인',
+    period: '매달 10일, 20일, 30일',
+    url: 'https://tmembership.tworld.co.kr',
+    description: '청년 고객이라면 누구나! 매월 10일, 20일, 30일에 다이소, 올리브영, 편의점 등 인기 브랜드 혜택을 선착순으로 드립니다.',
+    icon: '📱'
+  },
+  {
+    title: '쿠팡 와우 멤버십 로켓배송 및 OTT 혜택',
+    store: '쿠팡',
+    category: '온라인쇼핑',
+    discount: '월 7,890원 무제한 혜택',
+    period: '상시',
+    url: 'https://www.coupang.com',
+    description: '로켓배송 무료, 로켓직구 무료배송, 쿠팡플레이 시청, 쿠팡이츠 무제한 무료배달까지 모두 누리세요.',
+    icon: '🚀'
+  },
+  {
+    title: '네이버플러스 멤버십 첫 달 무료 체험',
+    store: '네이버',
+    category: '온라인쇼핑',
+    discount: '최대 5% 적립',
+    period: '상시',
+    url: 'https://nid.naver.com/membership/join',
+    description: '쇼핑 시 최대 5% 적립, 티빙 방송 무제한, 편의점/카페 할인 등 강력한 혜택을 첫 달 무료로 시작하세요.',
+    icon: '💚'
+  },
+  {
+    title: '야놀자 국내 숙소 최대 10% 할인 쿠폰',
+    store: '야놀자',
+    category: '여행·레저',
+    discount: '최대 10% 할인',
+    period: '상시',
+    url: 'https://www.yanolja.com',
+    description: '국내 호텔, 리조트, 펜션 예약 시 즉시 사용 가능한 할인 쿠폰을 드립니다.',
+    icon: '🏨'
+  }
+];
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -77,15 +130,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. DB 데이터 조회 (가장 중요)
+    // 1. DB 데이터 조회
     console.log('[discount] Fetching from DB...');
-    const { benefits: dbBenefits } = await queryFreshBenefits({ region: '전국', group: '할인행사', limit: 50 });
+    let dbBenefits = [];
+    try {
+      const dbRes = await queryFreshBenefits({ region: '전국', group: '할인행사', limit: 40 });
+      dbBenefits = dbRes.benefits || [];
+    } catch (e) {
+      console.error('[discount] DB Query Error:', e.message);
+    }
     
     const formattedDb = dbBenefits.map(b => {
-      // 카테고리 매핑 (DB 데이터가 이전 형식일 경우 대응)
       let cat = b.카테고리 || '기타';
       if (cat === '할인') cat = '기타';
-      
       return {
         title: b.혜택명 || b.title,
         store: b.지원대상 || b.store || '전국',
@@ -98,23 +155,27 @@ export default async function handler(req, res) {
       };
     });
 
-    // 2. 실시간 검색 (보조)
+    // 2. 실시간 검색
     let liveResults = [];
     if (SERPER_KEY && GEMINI_KEY) {
-      // 쿼리 중 랜덤하게 4개 선택하여 검색 (API 부하 감소 및 다양성 확보)
-      const selectedQueries = SEARCH_QUERIES.sort(() => 0.5 - Math.random()).slice(0, 4);
-      const results = await Promise.allSettled(selectedQueries.map(serperSearch));
-      const snippets = results
-        .filter(r => r.status === 'fulfilled')
-        .flatMap(r => r.value.organic || [])
-        .map(it => `[${it.title}] ${it.snippet} (URL: ${it.link})`)
-        .join('\n\n');
-      
-      if (snippets) liveResults = await geminiExtract(snippets);
+      try {
+        const selectedQueries = SEARCH_QUERIES.sort(() => 0.5 - Math.random()).slice(0, 3);
+        const results = await Promise.allSettled(selectedQueries.map(serperSearch));
+        const snippets = results
+          .filter(r => r.status === 'fulfilled')
+          .flatMap(r => r.value.organic || [])
+          .map(it => `[${it.title}] ${it.snippet} (URL: ${it.link})`)
+          .join('\n\n');
+        
+        if (snippets) liveResults = await geminiExtract(snippets);
+      } catch (e) {
+        console.error('[discount] Live Search/Extraction Error:', e.message);
+      }
     }
 
     // 3. 합치기 및 중복 제거
-    const combined = [...formattedDb, ...liveResults];
+    // Featured + DB + Live 순서로 결합 (Featured를 앞에 두어 항상 보이게 함)
+    const combined = [...FEATURED_DISCOUNTS, ...formattedDb, ...liveResults];
     const seen = new Set();
     const final = combined.filter(d => {
       const k = (d.title || '').replace(/\s/g, '');
@@ -131,10 +192,16 @@ export default async function handler(req, res) {
       count: final.length,
       dbCount: formattedDb.length,
       liveCount: liveResults.length,
+      featuredCount: FEATURED_DISCOUNTS.length,
       discounts: final
     });
   } catch (e) {
-    console.error('[discount] Error:', e.message);
-    return res.status(500).json({ ok: false, error: e.message });
+    console.error('[discount] Fatal Error:', e.message);
+    // 에러 발생 시에도 최소한 Featured 데이터는 반환
+    return res.status(200).json({ 
+      ok: true, 
+      error: e.message, 
+      discounts: FEATURED_DISCOUNTS 
+    });
   }
 }
