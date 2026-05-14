@@ -2836,12 +2836,13 @@ function AdminTab(){
 
 // ─── DiscountTab ──────────────────────────────────────────────────
 const DISCOUNT_CAT_STYLE = {
-  '마트·식품':  { bg:'#dcfce7', color:'#166534', icon:'🛒' },
-  '패션·뷰티':  { bg:'#fce7f3', color:'#9d174d', icon:'👗' },
-  '전자·가전':  { bg:'#dbeafe', color:'#1e40af', icon:'📱' },
-  '여행·레저':  { bg:'#fef9c3', color:'#854d0e', icon:'✈️' },
-  '온라인쇼핑': { bg:'#ede9fe', color:'#5b21b6', icon:'🛍️' },
-  '기타':       { bg:'#f3f4f6', color:'#374151', icon:'🎁' },
+  '마트·생필품': { bg:'#dcfce7', color:'#166534', icon:'🛒' },
+  '음식·배달':   { bg:'#ffedd5', color:'#9a3412', icon:'🍕' },
+  '패션·뷰티':   { bg:'#fce7f3', color:'#9d174d', icon:'👗' },
+  '전자·가전':   { bg:'#dbeafe', color:'#1e40af', icon:'📱' },
+  '여행·레저':   { bg:'#fef9c3', color:'#854d0e', icon:'✈️' },
+  '온라인쇼핑':  { bg:'#ede9fe', color:'#5b21b6', icon:'🛍️' },
+  '기타':        { bg:'#f3f4f6', color:'#374151', icon:'🎁' },
 };
 function DiscountTab() {
   const [discounts, setDiscounts] = useState([]);

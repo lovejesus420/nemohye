@@ -9,10 +9,19 @@ let _cache = null;
 let _cacheAt = 0;
 
 const SEARCH_QUERIES_MAP = {
-  '마트·식품': [
-    '이마트 롯데마트 홈플러스 이번주 전단지 할인 행사 이벤트',
-    'CU GS25 세븐일레븐 이달의 1+1 2+1 행사 증정 이벤트',
-    '배달의민족 쿠팡이츠 요기요 이번주 할인 쿠폰 혜택'
+  '마트·생필품': [
+    '홈플러스 공식 홈페이지 현재 진행 중인 이벤트 행사 할인',
+    '다이소몰 이벤트 기획전 할인 혜택',
+    '이마트 전단 광고 이번주 행사 할인 정보',
+    '이마트 트레이더스 현재 진행 중인 추천 상품 및 행사',
+    '코스트코 코리아 이번주 할인 품목 및 이벤트',
+    '롯데마트 GO 앱 전용 할인 및 전단 행사'
+  ],
+  '음식·배달': [
+    '배달의민족 이번주 브랜드 할인 쿠폰 혜택',
+    '쿠팡이츠 무제한 무료배달 및 브랜드 할인 프로모션',
+    '요기요 오늘의 할인 및 구독 혜택',
+    '맥도날드 버거킹 롯데리아 이달의 행사 및 쿠폰'
   ],
   '패션·뷰티': [
     '무신사 브랜드 세일 할인 코드 혜택',
@@ -37,7 +46,7 @@ async function serperSearch(query) {
   const res = await fetch('https://google.serper.dev/search', {
     method: 'POST',
     headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ q: query, gl: 'kr', hl: 'ko', num: 12 }), // 검색 결과 수 약간 증가
+    body: JSON.stringify({ q: query, gl: 'kr', hl: 'ko', num: 15 }), // 수집량 확보를 위해 증가
   });
   return res.json();
 }
@@ -48,15 +57,15 @@ async function geminiExtract(snippets, targetCategory) {
   
   const prompt = `오늘은 ${today}입니다. 아래 검색 결과에서 현재 진행 중인 할인 행사를 추출하여 JSON 배열로 응답하세요. ${categoryContext}
 
-카테고리는 반드시 다음 중 하나로 지정하세요: '마트·식품', '패션·뷰티', '전자·가전', '여행·레저', '온라인쇼핑', '기타'
+카테고리는 반드시 다음 중 하나로 지정하세요: '마트·생필품', '음식·배달', '패션·뷰티', '전자·가전', '여행·레저', '온라인쇼핑', '기타'
 
 응답 형식:
 [
   {
     "title": "혜택 제목 (예: 와우회원 5,000원 할인)",
-    "store": "업체명 (예: 쿠팡)",
+    "store": "업체명 (예: 홈플러스, 다이소, 이마트, 트레이더스, 코스트코 등)",
     "category": "카테고리명",
-    "discount": "핵심 혜택 내용 (예: 5,000원 할인, 1+1, 20% 세일)",
+    "discount": "핵심 혜택 내용 (예: 20% 세일, 1+1, 반값 행사)",
     "period": "행사 기간 (예: 5/1~5/31, 상시)",
     "url": "이벤트 또는 상품 페이지 URL (반드시 포함)",
     "description": "상세 설명 (1~2문장)",
