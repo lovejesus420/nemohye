@@ -2834,7 +2834,7 @@ function AdminTab(){
     </div>))}
   </div>);}
 
-// ─── DiscountTab ──────────────────────────────────────────────────
+// ─── DiscountCouponTab ────────────────────────────────────────────
 const DISCOUNT_CAT_STYLE = {
   '마트·생필품': { bg:'#dcfce7', color:'#166534', icon:'🛒' },
   '음식·배달':   { bg:'#ffedd5', color:'#9a3412', icon:'🍕' },
@@ -2844,174 +2844,6 @@ const DISCOUNT_CAT_STYLE = {
   '온라인쇼핑':  { bg:'#ede9fe', color:'#5b21b6', icon:'🛍️' },
   '기타':        { bg:'#f3f4f6', color:'#374151', icon:'🎁' },
 };
-function DiscountTab() {
-  const [discounts, setDiscounts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState('');
-  const [selectedCat, setSelectedCat] = useState(null);
-  const [expandedStores, setExpandedStores] = useState({});
-
-  const fetchCategoryDiscounts = (cat) => {
-    setSelectedCat(cat);
-    setLoading(true);
-    setErr('');
-    const BASE = import.meta.env.VITE_API_BASE || '';
-    const url = cat === '전체' ? `${BASE}/api/discount` : `${BASE}/api/discount?category=${encodeURIComponent(cat)}`;
-    
-    fetch(url)
-      .then(r => r.json())
-      .then(data => { 
-        setDiscounts(data.discounts || []); 
-        setLoading(false); 
-        // 새 카테고리 로딩 시 확장 상태 초기화
-        setExpandedStores({});
-      })
-      .catch(e => { setErr(e.message); setLoading(false); });
-  };
-
-  const toggleStoreExpand = (store) => {
-    setExpandedStores(prev => ({ ...prev, [store]: !prev[store] }));
-  };
-
-  // 기업별(store) 그룹화
-  const grouped = discounts.reduce((acc, d) => {
-    const s = d.store || '기타';
-    if (!acc[s]) acc[s] = [];
-    acc[s].push(d);
-    return acc;
-  }, {});
-
-  if (!selectedCat) {
-    return (
-      <div>
-        <div style={{background:'linear-gradient(135deg,#d97706,#f59e0b)',borderRadius:16,padding:'22px 20px',marginBottom:20,color:'#fff',boxShadow:'0 10px 25px rgba(217,119,6,0.2)'}}>
-          <div style={{fontSize:11,letterSpacing:1,color:'rgba(255,255,255,0.9)',textTransform:'uppercase',fontWeight:800,marginBottom:8}}>🏷️ REAL-TIME DISCOUNTS</div>
-          <div style={{fontFamily:'serif',fontSize:'1.3rem',fontWeight:800,marginBottom:6,wordBreak:'keep-all',lineHeight:1.3}}>관심 있는 카테고리의<br/>실시간 할인 정보를 확인하세요</div>
-          <p style={{fontSize:13,color:'rgba(255,255,255,0.8)',lineHeight:1.6,margin:0,fontWeight:500}}>대형마트, 배달앱, 여행사 등 기업별 최신 세일 정보를 실시간으로 수집합니다.</p>
-        </div>
-        
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-          {Object.entries(DISCOUNT_CAT_STYLE).map(([name, info]) => (
-            <button 
-              key={name}
-              onClick={() => fetchCategoryDiscounts(name)}
-              style={{
-                background:'#fff',border:'1.5px solid #f3f4f6',borderRadius:16,padding:'24px 16px',
-                display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
-                gap:12,cursor:'pointer',transition:'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow:'0 4px 6px -1px rgba(0,0,0,0.05)',fontFamily:'inherit'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.borderColor = '#fbbf24';
-                e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.borderColor = '#f3f4f6';
-                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)';
-              }}
-            >
-              <div style={{fontSize:32,width:56,height:56,background:info.bg,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center'}}>{info.icon}</div>
-              <div style={{fontSize:15,fontWeight:800,color:'#1f2937'}}>{name}</div>
-              <div style={{fontSize:11,color:'#9ca3af',fontWeight:500}}>실시간 혜택 확인 →</div>
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) return (
-    <div style={{textAlign:'center',padding:'80px 20px'}}>
-      <div style={{width:48,height:48,border:'3.5px solid #f3f4f6',borderTopColor:'#f59e0b',borderRadius:'50%',animation:'spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite',margin:'0 auto 20px'}}/>
-      <div style={{fontSize:16,fontWeight:800,color:'#1f2937',marginBottom:6}}>{selectedCat} 할인 정보를 찾는 중...</div>
-      <div style={{fontSize:13,color:'#6b7280'}}>AI가 각 기업의 실시간 이벤트 페이지를 분석하고 있습니다.</div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
-  );
-
-  return (
-    <div>
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
-        <button onClick={() => setSelectedCat(null)} style={{background:'#f3f4f6',border:'none',borderRadius:10,padding:'8px 12px',fontSize:13,fontWeight:700,color:'#4b5563',cursor:'pointer',display:'flex',alignItems:'center',gap:4}}>
-          ← 뒤로가기
-        </button>
-        <div style={{fontSize:15,fontWeight:800,color:'#d97706'}}>{DISCOUNT_CAT_STYLE[selectedCat]?.icon} {selectedCat} 실시간 혜택</div>
-      </div>
-
-      {err && <div style={{background:'#fef2f2',border:'1px solid #fca5a5',borderRadius:12,padding:'14px 18px',color:'#991b1b',fontSize:14,marginBottom:20}}><strong>오류 발생:</strong> {err}</div>}
-      
-      {discounts.length === 0 && !err && (
-        <div style={{textAlign:'center',padding:'60px 20px',background:'#fff',borderRadius:20,border:'1px dashed #e5e7eb'}}>
-          <div style={{fontSize:48,marginBottom:16}}>🔍</div>
-          <div style={{fontSize:18,fontWeight:800,color:'#1f2937',marginBottom:8}}>현재 수집된 혜택이 없습니다</div>
-          <div style={{fontSize:14,color:'#6b7280',lineHeight:1.6}}>다른 카테고리를 확인하시거나<br/>잠시 후 다시 실시간 검색을 시도해주세요.</div>
-          <button onClick={() => fetchCategoryDiscounts(selectedCat)} style={{marginTop:20,padding:'10px 20px',borderRadius:12,border:'none',background:'#d97706',color:'#fff',fontWeight:700,cursor:'pointer'}}>다시 검색하기</button>
-        </div>
-      )}
-
-      {Object.entries(grouped).map(([store, items]) => {
-        const isExpanded = expandedStores[store];
-        const displayItems = isExpanded ? items.slice(0, 7) : items.slice(0, 2);
-        const hasMore = items.length > 2;
-
-        return (
-          <div key={store} style={{marginBottom:24}}>
-            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,paddingLeft:4}}>
-              <div style={{width:4,height:16,background:'#d97706',borderRadius:2}}/>
-              <div style={{fontSize:16,fontWeight:800,color:'#111827'}}>{store}</div>
-              <div style={{fontSize:12,color:'#9ca3af',fontWeight:500}}>{items.length}개 혜택</div>
-            </div>
-
-            {displayItems.map((d, i) => (
-              <div key={i} style={{background:'#fff',border:'1px solid #f3f4f6',borderRadius:16,padding:'16px',marginBottom:12,boxShadow:'0 2px 8px rgba(0,0,0,0.03)'}}>
-                <div style={{fontSize:14,fontWeight:800,marginBottom:6,lineHeight:1.4}}>{d.title}</div>
-                {d.discount && (
-                  <div style={{display:'inline-flex',background:'#fffbeb',border:'1px solid #fef3c7',borderRadius:8,padding:'6px 10px',fontSize:13,fontWeight:800,color:'#b45309',marginBottom:10}}>
-                    💰 {d.discount}
-                  </div>
-                )}
-                {d.description && <div style={{fontSize:13,color:'#4b5563',lineHeight:1.6,marginBottom:12}}>{d.description}</div>}
-                
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                  <div style={{fontSize:12,color:'#9ca3af',display:'flex',alignItems:'center',gap:4}}>
-                    📅 {d.period || '상시'}
-                  </div>
-                  <button 
-                    onClick={() => window.open(d.url, '_blank')}
-                    style={{background:'#d97706',color:'#fff',border:'none',borderRadius:10,padding:'8px 16px',fontSize:12,fontWeight:700,cursor:'pointer',boxShadow:'0 4px 10px rgba(217,119,6,0.2)'}}
-                  >
-                    할인받기 →
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            {hasMore && (
-              <button 
-                onClick={() => toggleStoreExpand(store)}
-                style={{
-                  width:'100%',padding:'12px',borderRadius:12,border:'1px solid #e5e7eb',
-                  background:'#fff',color:'#6b7280',fontSize:13,fontWeight:700,cursor:'pointer',
-                  transition:'all 0.2s',display:'flex',alignItems:'center',justifyContent:'center',gap:6
-                }}
-              >
-                {isExpanded ? '간략히 보기 ↑' : `${store} 혜택 더보기 (총 ${items.length}개) ↓`}
-              </button>
-            )}
-          </div>
-        );
-      })}
-
-      <div style={{textAlign:'center',padding:'20px 0',fontSize:12,color:'#9ca3af',lineHeight:1.7}}>
-        실시간 수집 특성상 정보가 다를 수 있습니다.<br/>상세 내용은 해당 기업 공식 앱/웹에서 확인하세요.
-      </div>
-    </div>
-  );
-}
-
-// ─── CouponTab ────────────────────────────────────────────────────
 const COUPONS = [
   // ── 쿠팡
   { id:'cp1', brand:'쿠팡', brandIcon:'🛒', brandColor:'#e04e3f', brandBg:'#fff1f0', category:'온라인쇼핑',
@@ -3228,65 +3060,193 @@ const COUPONS = [
     desc:'카카오톡 쇼핑하기 탭에서 카카오페이 결제 시 3,000원 즉시 할인. 2만원 이상 구매 시 적용.',
     url:'https://shopping.kakao.com' },
 ];
-const COUPON_CATS = ['전체','온라인쇼핑','마트·식품','편의점','외식·배달','패션·뷰티','통신·생활'];
-function CouponTab() {
-  const [filter, setFilter] = useState('전체');
-  const [brandFilter, setBrandFilter] = useState('전체');
-  const filtered = (filter==='전체' ? COUPONS : COUPONS.filter(c => c.category===filter))
-    .filter(c => brandFilter==='전체' || c.brand===brandFilter);
-  const brandsInCategory = filter==='전체'
-    ? [...new Set(COUPONS.map(c => c.brand))]
-    : [...new Set(COUPONS.filter(c => c.category===filter).map(c => c.brand))];
-  return (<div>
-    <div style={{background:'linear-gradient(135deg,#7c3aed,#a855f7)',borderRadius:16,padding:'18px 20px',marginBottom:16,color:'#fff'}}>
-      <div style={{fontSize:10,letterSpacing:0.5,color:'rgba(255,255,255,0.8)',textTransform:'uppercase',marginBottom:6}}>🎟️ 기업 할인쿠폰</div>
-      <div style={{fontFamily:'serif',fontSize:'1.15rem',fontWeight:700,marginBottom:4,wordBreak:'keep-all'}}>기업 최신 할인쿠폰 모음</div>
-      <p style={{fontSize:12,color:'rgba(255,255,255,0.8)',lineHeight:1.6,margin:0}}>각 쿠폰의 [쿠폰 받기] 버튼을 눌러 바로 받아가세요</p>
-    </div>
-    {/* 카테고리 필터 */}
-    <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:4,marginBottom:10}}>
-      {COUPON_CATS.map(cat => {
-        const active = filter===cat;
-        return (<button key={cat} onClick={() => { setFilter(cat); setBrandFilter('전체'); }} style={{flexShrink:0,padding:'6px 12px',border:`1.5px solid ${active?'#7c3aed':'#e5e7eb'}`,borderRadius:20,fontSize:12,fontWeight:active?700:500,background:active?'#7c3aed':'#fff',color:active?'#fff':'#6b6560',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>{cat}</button>);
-      })}
-    </div>
-    {/* 브랜드 필터 */}
-    <div style={{display:'flex',gap:5,overflowX:'auto',paddingBottom:4,marginBottom:16}}>
-      {['전체',...brandsInCategory].map(b => {
-        const active = brandFilter===b;
-        return (<button key={b} onClick={() => setBrandFilter(b)} style={{flexShrink:0,padding:'5px 10px',border:`1.5px solid ${active?'#a855f7':'#e5e7eb'}`,borderRadius:16,fontSize:11,fontWeight:active?700:500,background:active?'#f5f0ff':'#fff',color:active?'#7c3aed':'#9ca3af',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>{b}</button>);
-      })}
-    </div>
-    {/* 쿠폰 목록 */}
-    <div style={{display:'flex',flexDirection:'column',gap:12}}>
-      {filtered.map(c => (
-        <div key={c.id} style={{background:'#fff',border:'1px solid #e5e7eb',borderRadius:16,padding:'16px',boxShadow:'0 1px 4px rgba(0,0,0,0.05)',boxSizing:'border-box'}}>
-          {/* 브랜드 헤더 */}
-          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-            <div style={{width:32,height:32,borderRadius:10,background:c.brandBg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0}}>{c.brandIcon}</div>
-            <div>
-              <div style={{fontSize:11,color:c.brandColor,fontWeight:700}}>{c.brand}</div>
-              <div style={{fontSize:10,color:'#9ca3af'}}>{c.category}</div>
-            </div>
-            <div style={{marginLeft:'auto',background:c.brandBg,border:`1.5px solid ${c.brandColor}`,borderRadius:20,padding:'3px 10px',fontSize:12,fontWeight:800,color:c.brandColor,whiteSpace:'nowrap',flexShrink:0}}>{c.discount}</div>
-          </div>
-          {/* 쿠폰 제목 */}
-          <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:6,lineHeight:1.4}}>{c.title}</div>
-          {/* 설명 */}
-          <div style={{fontSize:12,color:'#6b7280',lineHeight:1.65,marginBottom:12}}>{c.desc}</div>
-          {/* 쿠폰 받기 버튼 */}
-          <button
-            onClick={() => window.open(c.url, '_blank')}
-            style={{width:'100%',padding:'11px 0',border:'none',borderRadius:10,fontSize:13,fontWeight:700,background:c.brandColor,color:'#fff',cursor:'pointer',fontFamily:'inherit',letterSpacing:0.3}}
-          >🎟️ 쿠폰 받기</button>
-        </div>
+const COUPON_CATS_META = {
+  '온라인쇼핑': { icon:'🛍️', bg:'#ede9fe' },
+  '마트·식품':  { icon:'🛒', bg:'#dcfce7' },
+  '편의점':     { icon:'🏬', bg:'#fce7f3' },
+  '외식·배달':  { icon:'🍕', bg:'#ffedd5' },
+  '패션·뷰티':  { icon:'💄', bg:'#fdf2f8' },
+  '통신·생활':  { icon:'📱', bg:'#dbeafe' },
+};
+function DiscountCouponTab() {
+  const [mode, setMode] = useState('discount'); // 'discount' | 'coupon'
+  // discount state
+  const [discounts, setDiscounts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
+  const [selDiscCat, setSelDiscCat] = useState(null);
+  const [exDisc, setExDisc] = useState({});
+  // coupon state
+  const [selCouponCat, setSelCouponCat] = useState(null);
+  const [exCoupon, setExCoupon] = useState({});
+
+  const fetchDiscount = (cat) => {
+    setSelDiscCat(cat); setLoading(true); setErr(''); setExDisc({});
+    const BASE = import.meta.env.VITE_API_BASE || '';
+    fetch(cat==='전체'?`${BASE}/api/discount`:`${BASE}/api/discount?category=${encodeURIComponent(cat)}`)
+      .then(r=>r.json()).then(d=>{setDiscounts(d.discounts||[]);setLoading(false);})
+      .catch(e=>{setErr(e.message);setLoading(false);});
+  };
+  const switchMode = (m) => { setMode(m); setSelDiscCat(null); setSelCouponCat(null); };
+  const toggleEx = (setter, key) => setter(p=>({...p,[key]:!p[key]}));
+
+  const discGrouped = discounts.reduce((a,d)=>{const s=d.store||'기타';if(!a[s])a[s]=[];a[s].push(d);return a;},{});
+  const couponList = selCouponCat ? COUPONS.filter(c=>c.category===selCouponCat) : [];
+  const couponGrouped = couponList.reduce((a,c)=>{if(!a[c.brand])a[c.brand]=[];a[c.brand].push(c);return a;},{});
+
+  const CategoryGrid = ({items, onSelect, accentColor, btnLabel}) => (
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+      {items.map(([name,info])=>(
+        <button key={name} onClick={()=>onSelect(name)}
+          style={{background:'#fff',border:'1.5px solid #f3f4f6',borderRadius:16,padding:'24px 16px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12,cursor:'pointer',transition:'all 0.2s',boxShadow:'0 4px 6px -1px rgba(0,0,0,0.05)',fontFamily:'inherit'}}
+          onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-4px)';e.currentTarget.style.borderColor=accentColor;e.currentTarget.style.boxShadow='0 10px 15px -3px rgba(0,0,0,0.1)';}}
+          onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.borderColor='#f3f4f6';e.currentTarget.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.05)';}}
+        >
+          <div style={{fontSize:32,width:56,height:56,background:info.bg||info.bg,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center'}}>{info.icon}</div>
+          <div style={{fontSize:15,fontWeight:800,color:'#1f2937'}}>{name}</div>
+          <div style={{fontSize:11,color:'#9ca3af',fontWeight:500}}>{btnLabel}</div>
+        </button>
       ))}
-      {filtered.length === 0 && (
-        <div style={{textAlign:'center',padding:'40px 0',fontSize:14,color:'#9ca3af'}}>해당 조건의 쿠폰이 없습니다.</div>
-      )}
     </div>
-    <div style={{textAlign:'center',padding:'20px 0',fontSize:12,color:'#9ca3af',lineHeight:1.7,marginTop:8}}>쿠폰 받기 버튼을 누르면 해당 기업의 쿠폰 페이지로 이동합니다.<br/>로그인 후 쿠폰을 다운로드하세요.</div>
-  </div>);
+  );
+
+  const ItemCard = ({title, discountBadge, badgeBg, badgeBorder, badgeColor, desc, period, btnLabel, btnBg, btnShadow, url}) => (
+    <div style={{background:'#fff',border:'1px solid #f3f4f6',borderRadius:16,padding:'16px',marginBottom:12,boxShadow:'0 2px 8px rgba(0,0,0,0.03)'}}>
+      <div style={{fontSize:14,fontWeight:800,marginBottom:6,lineHeight:1.4}}>{title}</div>
+      {discountBadge&&<div style={{display:'inline-flex',background:badgeBg,border:`1px solid ${badgeBorder}`,borderRadius:8,padding:'6px 10px',fontSize:13,fontWeight:800,color:badgeColor,marginBottom:10}}>{discountBadge}</div>}
+      {desc&&<div style={{fontSize:13,color:'#4b5563',lineHeight:1.6,marginBottom:12}}>{desc}</div>}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        {period!==undefined?<div style={{fontSize:12,color:'#9ca3af',display:'flex',alignItems:'center',gap:4}}>📅 {period||'상시'}</div>:<div/>}
+        <button onClick={()=>window.open(url,'_blank')} style={{background:btnBg,color:'#fff',border:'none',borderRadius:10,padding:'8px 16px',fontSize:12,fontWeight:700,cursor:'pointer',boxShadow:btnShadow}}>{btnLabel}</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      {/* 상단 모드 토글 */}
+      <div style={{display:'flex',background:'#f3f4f6',borderRadius:12,padding:4,marginBottom:20,gap:4}}>
+        {[['discount','🏷️ 실시간 할인'],['coupon','🎟️ 기업 쿠폰']].map(([v,l])=>(
+          <button key={v} onClick={()=>switchMode(v)} style={{flex:1,padding:'10px 0',border:'none',borderRadius:9,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',background:mode===v?'#fff':'transparent',color:mode===v?'#1f2937':'#6b7280',boxShadow:mode===v?'0 1px 4px rgba(0,0,0,0.10)':'none',transition:'all 0.15s'}}>{l}</button>
+        ))}
+      </div>
+
+      {/* ── 실시간 할인 ── */}
+      {mode==='discount'&&(<>
+        {!selDiscCat&&(
+          <div>
+            <div style={{background:'linear-gradient(135deg,#d97706,#f59e0b)',borderRadius:16,padding:'22px 20px',marginBottom:20,color:'#fff',boxShadow:'0 10px 25px rgba(217,119,6,0.2)'}}>
+              <div style={{fontSize:11,letterSpacing:1,color:'rgba(255,255,255,0.9)',textTransform:'uppercase',fontWeight:800,marginBottom:8}}>🏷️ REAL-TIME DISCOUNTS</div>
+              <div style={{fontFamily:'serif',fontSize:'1.3rem',fontWeight:800,marginBottom:6,wordBreak:'keep-all',lineHeight:1.3}}>관심 있는 카테고리의<br/>실시간 할인 정보를 확인하세요</div>
+              <p style={{fontSize:13,color:'rgba(255,255,255,0.8)',lineHeight:1.6,margin:0,fontWeight:500}}>대형마트, 배달앱, 여행사 등 기업별 최신 세일 정보를 실시간으로 수집합니다.</p>
+            </div>
+            <CategoryGrid items={Object.entries(DISCOUNT_CAT_STYLE)} onSelect={fetchDiscount} accentColor="#fbbf24" btnLabel="실시간 혜택 확인 →"/>
+          </div>
+        )}
+        {selDiscCat&&loading&&(
+          <div style={{textAlign:'center',padding:'80px 20px'}}>
+            <div style={{width:48,height:48,border:'3.5px solid #f3f4f6',borderTopColor:'#f59e0b',borderRadius:'50%',animation:'spin 1s linear infinite',margin:'0 auto 20px'}}/>
+            <div style={{fontSize:16,fontWeight:800,color:'#1f2937',marginBottom:6}}>{selDiscCat} 할인 정보를 찾는 중...</div>
+            <div style={{fontSize:13,color:'#6b7280'}}>AI가 각 기업의 실시간 이벤트 페이지를 분석하고 있습니다.</div>
+            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+          </div>
+        )}
+        {selDiscCat&&!loading&&(
+          <div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+              <button onClick={()=>setSelDiscCat(null)} style={{background:'#f3f4f6',border:'none',borderRadius:10,padding:'8px 12px',fontSize:13,fontWeight:700,color:'#4b5563',cursor:'pointer'}}>← 뒤로가기</button>
+              <div style={{fontSize:15,fontWeight:800,color:'#d97706'}}>{DISCOUNT_CAT_STYLE[selDiscCat]?.icon} {selDiscCat} 실시간 혜택</div>
+            </div>
+            {err&&<div style={{background:'#fef2f2',border:'1px solid #fca5a5',borderRadius:12,padding:'14px 18px',color:'#991b1b',fontSize:14,marginBottom:20}}><strong>오류:</strong> {err}</div>}
+            {discounts.length===0&&!err&&(
+              <div style={{textAlign:'center',padding:'60px 20px',background:'#fff',borderRadius:20,border:'1px dashed #e5e7eb'}}>
+                <div style={{fontSize:48,marginBottom:16}}>🔍</div>
+                <div style={{fontSize:18,fontWeight:800,color:'#1f2937',marginBottom:8}}>현재 수집된 혜택이 없습니다</div>
+                <div style={{fontSize:14,color:'#6b7280',lineHeight:1.6}}>다른 카테고리를 확인하시거나<br/>잠시 후 다시 시도해주세요.</div>
+                <button onClick={()=>fetchDiscount(selDiscCat)} style={{marginTop:20,padding:'10px 20px',borderRadius:12,border:'none',background:'#d97706',color:'#fff',fontWeight:700,cursor:'pointer'}}>다시 검색하기</button>
+              </div>
+            )}
+            {Object.entries(discGrouped).map(([store,items])=>{
+              const expanded=exDisc[store];
+              return(
+                <div key={store} style={{marginBottom:24}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,paddingLeft:4}}>
+                    <div style={{width:4,height:16,background:'#d97706',borderRadius:2}}/>
+                    <div style={{fontSize:16,fontWeight:800,color:'#111827'}}>{store}</div>
+                    <div style={{fontSize:12,color:'#9ca3af'}}>{items.length}개 혜택</div>
+                  </div>
+                  {(expanded?items.slice(0,7):items.slice(0,2)).map((d,i)=>(
+                    <ItemCard key={i} title={d.title} discountBadge={d.discount?`💰 ${d.discount}`:null} badgeBg="#fffbeb" badgeBorder="#fef3c7" badgeColor="#b45309" desc={d.description} period={d.period} btnLabel="할인받기 →" btnBg="#d97706" btnShadow="0 4px 10px rgba(217,119,6,0.2)" url={d.url}/>
+                  ))}
+                  {items.length>2&&<button onClick={()=>toggleEx(setExDisc,store)} style={{width:'100%',padding:'12px',borderRadius:12,border:'1px solid #e5e7eb',background:'#fff',color:'#6b7280',fontSize:13,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>{expanded?'간략히 보기 ↑':`${store} 혜택 더보기 (총 ${items.length}개) ↓`}</button>}
+                </div>
+              );
+            })}
+            <div style={{textAlign:'center',padding:'20px 0',fontSize:12,color:'#9ca3af',lineHeight:1.7}}>실시간 수집 특성상 정보가 다를 수 있습니다.<br/>상세 내용은 해당 기업 공식 앱/웹에서 확인하세요.</div>
+          </div>
+        )}
+      </>)}
+
+      {/* ── 기업 쿠폰 ── */}
+      {mode==='coupon'&&(<>
+        {!selCouponCat&&(
+          <div>
+            <div style={{background:'linear-gradient(135deg,#7c3aed,#a855f7)',borderRadius:16,padding:'22px 20px',marginBottom:20,color:'#fff',boxShadow:'0 10px 25px rgba(124,58,237,0.2)'}}>
+              <div style={{fontSize:11,letterSpacing:1,color:'rgba(255,255,255,0.9)',textTransform:'uppercase',fontWeight:800,marginBottom:8}}>🎟️ BRAND COUPONS</div>
+              <div style={{fontFamily:'serif',fontSize:'1.3rem',fontWeight:800,marginBottom:6,wordBreak:'keep-all',lineHeight:1.3}}>관심 있는 카테고리의<br/>기업 할인쿠폰을 받아가세요</div>
+              <p style={{fontSize:13,color:'rgba(255,255,255,0.8)',lineHeight:1.6,margin:0,fontWeight:500}}>쿠팡·마트·편의점·배달앱 등 주요 기업의 최신 할인쿠폰을 모았습니다.</p>
+            </div>
+            <CategoryGrid
+              items={Object.entries(COUPON_CATS_META).map(([name,info])=>[name,{...info,bg:info.bg,extraLabel:`${COUPONS.filter(c=>c.category===name).length}개 쿠폰`}])}
+              onSelect={setSelCouponCat} accentColor="#a855f7"
+              btnLabel={null}
+            />
+            {/* 카테고리별 쿠폰 수 오버레이를 위해 직접 렌더 */}
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginTop:-12}}>
+              {Object.entries(COUPON_CATS_META).map(([name,info])=>(
+                <button key={name} onClick={()=>setSelCouponCat(name)}
+                  style={{background:'#fff',border:'1.5px solid #f3f4f6',borderRadius:16,padding:'24px 16px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12,cursor:'pointer',transition:'all 0.2s',boxShadow:'0 4px 6px -1px rgba(0,0,0,0.05)',fontFamily:'inherit'}}
+                  onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-4px)';e.currentTarget.style.borderColor='#a855f7';e.currentTarget.style.boxShadow='0 10px 15px -3px rgba(0,0,0,0.1)';}}
+                  onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.borderColor='#f3f4f6';e.currentTarget.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.05)';}}
+                >
+                  <div style={{fontSize:32,width:56,height:56,background:info.bg,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center'}}>{info.icon}</div>
+                  <div style={{fontSize:15,fontWeight:800,color:'#1f2937'}}>{name}</div>
+                  <div style={{fontSize:11,color:'#9ca3af',fontWeight:500}}>{COUPONS.filter(c=>c.category===name).length}개 쿠폰 →</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {selCouponCat&&(
+          <div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+              <button onClick={()=>setSelCouponCat(null)} style={{background:'#f3f4f6',border:'none',borderRadius:10,padding:'8px 12px',fontSize:13,fontWeight:700,color:'#4b5563',cursor:'pointer'}}>← 뒤로가기</button>
+              <div style={{fontSize:15,fontWeight:800,color:'#7c3aed'}}>{COUPON_CATS_META[selCouponCat]?.icon} {selCouponCat} 쿠폰</div>
+            </div>
+            {Object.entries(couponGrouped).map(([brand,items])=>{
+              const expanded=exCoupon[brand];
+              const first=items[0];
+              return(
+                <div key={brand} style={{marginBottom:24}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,paddingLeft:4}}>
+                    <div style={{width:4,height:16,background:'#7c3aed',borderRadius:2}}/>
+                    <div style={{width:28,height:28,borderRadius:8,background:first.brandBg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16}}>{first.brandIcon}</div>
+                    <div style={{fontSize:16,fontWeight:800,color:'#111827'}}>{brand}</div>
+                    <div style={{fontSize:12,color:'#9ca3af'}}>{items.length}개 쿠폰</div>
+                  </div>
+                  {(expanded?items:items.slice(0,2)).map(c=>(
+                    <ItemCard key={c.id} title={c.title} discountBadge={`🎟️ ${c.discount}`} badgeBg="#f5f0ff" badgeBorder="#e9d5ff" badgeColor="#7c3aed" desc={c.desc} period={undefined} btnLabel="쿠폰 받기 →" btnBg={c.brandColor} btnShadow={`0 4px 10px ${c.brandColor}40`} url={c.url}/>
+                  ))}
+                  {items.length>2&&<button onClick={()=>toggleEx(setExCoupon,brand)} style={{width:'100%',padding:'12px',borderRadius:12,border:'1px solid #e5e7eb',background:'#fff',color:'#6b7280',fontSize:13,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>{expanded?'간략히 보기 ↑':`${brand} 쿠폰 더보기 (총 ${items.length}개) ↓`}</button>}
+                </div>
+              );
+            })}
+            <div style={{textAlign:'center',padding:'20px 0',fontSize:12,color:'#9ca3af',lineHeight:1.7}}>쿠폰 받기 버튼을 누르면 해당 기업의 쿠폰 페이지로 이동합니다.<br/>로그인 후 쿠폰을 다운로드하세요.</div>
+          </div>
+        )}
+      </>)}
+    </div>
+  );
 }
 
 // ─── ProfileTab ───────────────────────────────────────────────────
@@ -3366,18 +3326,16 @@ export default function App() {
   // 하단 탭 바 정의 (아이콘, 레이블, 탭ID)
   // 인생·결혼·부동산 탭은 숨김 보관 (코드 유지, 네비게이션에서 제외)
   const BOTTOM_TABS = [
-    {v:'analyze',  icon:'✦',  label:'혜택'},
-    {v:'discount', icon:'🏷️', label:'할인'},
-    {v:'coupon',   icon:'🎟️', label:'쿠폰'},
-    {v:'saved',    icon:'📁', label:`보관함${savedCount>0?` ${savedCount}`:''}` },
-    {v:'profile',  icon:'👤', label:'MY'},
+    {v:'analyze',       icon:'✦',  label:'혜택'},
+    {v:'discountcoupon',icon:'🏷️', label:'할인·쿠폰'},
+    {v:'saved',         icon:'📁', label:`보관함${savedCount>0?` ${savedCount}`:''}` },
+    {v:'profile',       icon:'👤', label:'MY'},
   ];
 
   // 페이지별 메타
   const PAGE_META = {
     analyze:     {title:'혜택 설계', sub:'나이·지역·상황을 입력하면 맞춤 혜택을 찾아드려요'},
-    discount:    {title:'전국 할인 행사', sub:'마트·백화점·온라인쇼핑·편의점 할인 이벤트를 모아드려요'},
-    coupon:      {title:'기업 할인쿠폰', sub:'주요 기업 쿠폰 페이지로 바로 이동하세요'},
+    discountcoupon: {title:'할인·쿠폰', sub:'실시간 할인 정보와 기업 할인쿠폰을 한 곳에서 확인하세요'},
     // 숨김 탭 (코드 보관용)
     life:        {title:'인생 설계', sub:'목표와 재정 상황으로 현실적인 단계별 플랜을 설계해드려요'},
     wedding:     {title:'결혼 설계', sub:'예산·지역·스타일 입력 → 스드메·웨딩홀 추천 + 일정 캘린더'},
@@ -3495,9 +3453,8 @@ export default function App() {
 
       {/* ── 탭 콘텐츠 ─────────────────────────────────────── */}
       <div style={{maxWidth:760,margin:'0 auto',padding:'16px 16px 100px',position:'relative',zIndex:10,marginTop:tab==='analyze'?-28:0}}>
-        {tab==='analyze'    && <AnalyzeTab user={user} onSaved={refreshCount} onResultsReady={setAnalyzeResults}/>}
-        {tab==='discount'   && <DiscountTab/>}
-        {tab==='coupon'     && <CouponTab/>}
+        {tab==='analyze'         && <AnalyzeTab user={user} onSaved={refreshCount} onResultsReady={setAnalyzeResults}/>}
+        {tab==='discountcoupon'  && <DiscountCouponTab/>}
         {/* 숨김 탭 (코드 보관) */}
         {tab==='life'       && <LifeTab user={user}/>}
         {tab==='wedding'    && <WeddingTab user={user}/>}

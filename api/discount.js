@@ -149,23 +149,24 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { category } = req.query;
+  const { category, refresh } = req.query;
 
-  // 캐시 키에 카테고리 포함
+  // 캐시 체크 (refresh 파라미터가 없을 때만)
   const cacheKey = category || 'all';
-  if (_cache && _cache[cacheKey] && Date.now() - _cacheAt < CACHE_TTL) {
+  if (!refresh && _cache && _cache[cacheKey] && Date.now() - _cacheAt < CACHE_TTL) {
     return res.status(200).json({ ok: true, fromCache: true, discounts: _cache[cacheKey] });
   }
 
   try {
-    // 1. DB 데이터 조회
+    // 1. DB 데이터 조회 (속도를 위해 DB 우선)
+    console.log(`[discount] Fetching ${category || 'all'} from DB...`);
     let dbBenefits = [];
     try {
       const dbRes = await queryFreshBenefits({ 
         region: '전국', 
         group: '할인행사', 
         category: category,
-        limit: 50 
+        limit: 100 
       });
       dbBenefits = dbRes.benefits || [];
     } catch (e) {
@@ -187,15 +188,17 @@ export default async function handler(req, res) {
       };
     });
 
-    // 2. 실시간 검색 (카테고리 기반)
+    // 2. 실시간 검색 (DB가 비어있거나 강제 갱신 요청 시에만 수행)
     let liveResults = [];
-    if (SERPER_KEY && GEMINI_KEY) {
+    const shouldSearchLive = refresh === 'true' || formattedDb.length < 5;
+
+    if (shouldSearchLive && SERPER_KEY && GEMINI_KEY) {
+      console.log('[discount] DB results insufficient, searching live...');
       try {
         let queries = [];
         if (category && SEARCH_QUERIES_MAP[category]) {
           queries = SEARCH_QUERIES_MAP[category];
         } else {
-          // 카테고리 미지정 시 전체 중 랜덤 선택
           queries = Object.values(SEARCH_QUERIES_MAP).flat().sort(() => 0.5 - Math.random()).slice(0, 3);
         }
 
@@ -208,7 +211,7 @@ export default async function handler(req, res) {
         
         if (snippets) liveResults = await geminiExtract(snippets, category);
       } catch (e) {
-        console.error('[discount] Live Search/Extraction Error:', e.message);
+        console.error('[discount] Live Search Error:', e.message);
       }
     }
 
@@ -231,6 +234,8 @@ export default async function handler(req, res) {
       ok: true,
       category: category || 'all',
       count: final.length,
+      fromDb: formattedDb.length,
+      fromLive: liveResults.length,
       discounts: final
     });
   } catch (e) {
